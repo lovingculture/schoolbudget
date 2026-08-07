@@ -33,6 +33,7 @@ describe("예산 안건설명서 화면", () => {
     expect(workspace).toHaveClass("budget-agenda-workspace-vertical");
     expect(workspace?.querySelector(".budget-agenda-editor")?.nextElementSibling).toHaveClass("budget-agenda-preview");
     expect(screen.getByRole("heading", { name: "2026학년도 서울옥정초등학교 회계 1차 추경예산(안)" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "한글(HWPX) 내려받기" })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "PDF 내려받기" })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Word 내려받기" })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Excel 내려받기" })).toBeInTheDocument();
