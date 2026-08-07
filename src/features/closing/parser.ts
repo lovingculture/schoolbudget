@@ -125,7 +125,7 @@ function extractIncomeRows(sheet: XLSX.WorkSheet, incomeTotal: number): IncomeRo
     if (nextChapter) chapter = nextChapter;
     const section = asText(valueAt(sheet, row, sectionHeader.col));
     const amountValue = valueAt(sheet, row, amountHeader.col);
-    if (!section && (amountValue === undefined || amountValue === null || amountValue === "")) continue;
+    if (amountValue === undefined || amountValue === null || amountValue === "") continue;
     if (!section) throw new ClosingParseError(`세입 결산내역 ${row + 1}행의 관 항목이 비어 있습니다.`);
     const amount = requiredMoney(amountValue, `세입 결산내역 ${row + 1}행`);
     rows.push({
@@ -151,7 +151,7 @@ function extractExpenseRows(sheet: XLSX.WorkSheet, expenseTotal: number): Expens
     const policy = asText(valueAt(sheet, row, header.col));
     if (policy === "합계") break;
     const amountValue = valueAt(sheet, row, amountHeader.col);
-    if (!policy && (amountValue === undefined || amountValue === null || amountValue === "")) continue;
+    if (amountValue === undefined || amountValue === null || amountValue === "") continue;
     if (!policy) throw new ClosingParseError(`세출 결산내역 ${row + 1}행의 정책사업이 비어 있습니다.`);
     const amount = requiredMoney(amountValue, `세출 결산내역 ${row + 1}행`);
     rows.push({

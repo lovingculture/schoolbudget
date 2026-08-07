@@ -104,6 +104,14 @@ describe("에듀파인 세입세출결산총괄표 분석", () => {
     );
   });
 
+  it("정책사업 열에 있는 페이지 푸터는 금액 행으로 오인하지 않는다", () => {
+    const workbook = XLSX.read(createClosingWorkbook("comma-string"), { type: "array" });
+    workbook.Sheets["세입세출결산총괄표"]["A26"] = { t: "s", v: "담당자 2026년 08월 07일 17시 47분 39초" };
+    const data = XLSX.write(workbook, { type: "array", bookType: "xlsx" }) as ArrayBuffer;
+
+    expect(parseClosingWorkbook(data).expenseRows).toHaveLength(7);
+  });
+
   it("엑셀 확장자로 위장한 바이트를 구체적으로 거절한다", () => {
     const fake = new TextEncoder().encode("not an excel workbook").buffer;
     expect(() => parseClosingWorkbook(fake)).toThrow(
