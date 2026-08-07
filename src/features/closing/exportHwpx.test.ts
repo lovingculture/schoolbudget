@@ -30,9 +30,14 @@ describe("결산 안건설명서 HWPX 생성", () => {
     expect(await zip.file("mimetype")!.async("string")).toBe("application/hwp+zip");
     expect(zip.file("META-INF/container.xml")).not.toBeNull();
     expect(zip.file("Contents/content.hpf")).not.toBeNull();
+    expect(await zip.file("Contents/content.hpf")!.async("string")).not.toMatch(/>user<|>User</);
     expect(zip.file("Contents/header.xml")).not.toBeNull();
     const sectionXml = await zip.file("Contents/section0.xml")!.async("string");
-    expect(sectionXml).toContain("서울옥정초등학교");
+    const versionXml = await zip.file("version.xml")!.async("string");
+    expect(versionXml).toContain('application="Hancom Office Hangul"');
+    expect(sectionXml).toContain('paraPrIDRef="40"');
+    expect(sectionXml).toContain('rowSpan="3"');
+    expect(await zip.file("Preview/PrvText.txt")!.async("string")).toContain("서울옥정초등학교");
     expect(sectionXml).toContain("제3호");
     expect(sectionXml).toContain("2,724,818,217");
     expect(sectionXml).toContain("2,698,568,069");
@@ -48,5 +53,22 @@ describe("결산 안건설명서 HWPX 생성", () => {
     const sectionXml = await zip.file("Contents/section0.xml")!.async("string");
     expect(sectionXml).toContain("A &amp; B &lt;확인&gt;");
     expect(sectionXml).not.toContain("A & B <확인>");
+  });
+
+  it("수정한 결산 합계가 한글 수식의 이전 결과에도 남지 않는다", async () => {
+    const draft = {
+      ...createClosingDraft(source),
+      incomeTotal: 1111111111,
+      expenseTotal: 999999999,
+      incomeRows: [{ ...source.incomeRows[0], amount: 1111111111 }],
+      expenseRows: [{ ...source.expenseRows[0], amount: 999999999 }],
+    };
+    const blob = await exportClosingHwpx(draft);
+    const zip = await JSZip.loadAsync(await readBlob(blob));
+    const sectionXml = await zip.file("Contents/section0.xml")!.async("string");
+    expect(sectionXml).toContain("1,111,111,111");
+    expect(sectionXml).toContain("999,999,999");
+    expect(sectionXml).not.toContain("2,724,818,217");
+    expect(sectionXml).not.toContain("2,698,568,069");
   });
 });
