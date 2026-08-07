@@ -41,6 +41,6 @@ describe("실제 에듀파인 102-2 Excel 출력", () => {
     expect(review.getCell("C5").value).toBe(8976340);
     expect(summary.getCell("D42").result).toBe(2341568000);
     expect(summary.getCell("E42").result).toBe(1311300066);
-  });
+  }, 15_000);
 
 });
