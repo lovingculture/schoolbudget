@@ -35,6 +35,18 @@ function requiredMoney(value: unknown, context: string) {
   if (parsed === null) throw new ClosingParseError(`${context} 금액이 비어 있습니다.`);
   return parsed;
 }
+
+const OLE2_SIGNATURE = [0xd0, 0xcf, 0x11, 0xe0, 0xa1, 0xb1, 0x1a, 0xe1];
+
+function detectExcelContainer(data: ArrayBuffer): "xls" | "xlsx" {
+  const bytes = new Uint8Array(data);
+  const isOle2 = OLE2_SIGNATURE.every((byte, index) => bytes[index] === byte);
+  if (isOle2) return "xls";
+  if (bytes[0] === 0x50 && bytes[1] === 0x4b) return "xlsx";
+  throw new ClosingParseError(
+    "파일 확장자는 엑셀이지만 실제 파일 형식이 올바르지 않습니다.",
+  );
+}
 const ratioOf = (amount: number, total: number) => total === 0
   ? 0
   : Math.round((amount / total) * 1000) / 10;
@@ -59,6 +71,29 @@ function firstMatch(sheet: XLSX.WorkSheet, predicate: (text: string) => boolean,
   const match = matches(sheet, predicate)[0];
   if (!match) throw new ClosingParseError(error);
   return match;
+}
+
+function isClosingSheet(sheet: XLSX.WorkSheet) {
+  const hasTitle = matches(sheet, text => /\d{4}년도 학교회계 결산총괄표/.test(text)).length > 0;
+  const required = ["예산액", "세입결산액(A)", "세출결산액(B)", "장", "관", "정책사업"];
+  return hasTitle && required.every(label => matches(sheet, text => text === label).length > 0);
+}
+
+function findClosingSheet(workbook: XLSX.WorkBook) {
+  const named = workbook.SheetNames.filter(name => name.includes("세입세출결산총괄표"));
+  const candidates = named.length > 0
+    ? named
+    : workbook.SheetNames.filter(name => isClosingSheet(workbook.Sheets[name]));
+  if (candidates.length === 0) {
+    throw new ClosingParseError("에듀파인 세입세출결산총괄표 시트를 찾을 수 없습니다.");
+  }
+  if (candidates.length > 1) {
+    throw new ClosingParseError(
+      "결산총괄표 후보 시트가 여러 개입니다. 사용할 시트명에 '세입세출결산총괄표'를 포함해 주세요.",
+    );
+  }
+  const name = candidates[0];
+  return { name, sheet: workbook.Sheets[name] };
 }
 
 function numberUnder(sheet: XLSX.WorkSheet, label: string, rowsDown = 1, colsRight = 0) {
@@ -131,15 +166,14 @@ function extractExpenseRows(sheet: XLSX.WorkSheet, expenseTotal: number): Expens
 }
 
 export function parseClosingWorkbook(data: ArrayBuffer): ClosingSource {
+  detectExcelContainer(data);
   let workbook: XLSX.WorkBook;
   try {
     workbook = XLSX.read(data, { type: "array" });
   } catch {
     throw new ClosingParseError("파일이 손상되었거나 지원하지 않는 엑셀 형식입니다.");
   }
-  const sheetName = workbook.SheetNames.find(name => name.includes("세입세출결산총괄표"));
-  if (!sheetName) throw new ClosingParseError("에듀파인 세입세출결산총괄표가 아닙니다.");
-  const sheet = workbook.Sheets[sheetName];
+  const { sheet } = findClosingSheet(workbook);
   const title = firstMatch(
     sheet,
     text => /\d{4}년도 학교회계 결산총괄표/.test(text),

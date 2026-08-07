@@ -55,6 +55,15 @@ function createClosingWorkbook(
   ) as ArrayBuffer;
 }
 
+function createWorkbookWithTwoValidClosingSheets() {
+  const source = XLSX.read(createClosingWorkbook("number"), { type: "array" });
+  const sheet = source.Sheets["세입세출결산총괄표"];
+  return XLSX.write(
+    { SheetNames: ["결산자료 A", "결산자료 B"], Sheets: { "결산자료 A": sheet, "결산자료 B": sheet } },
+    { type: "array", bookType: "xlsx" },
+  ) as ArrayBuffer;
+}
+
 describe("에듀파인 세입세출결산총괄표 분석", () => {
   it("실제 에듀파인 파일에서 결산 항목을 추출한다", () => {
     const source = parseClosingWorkbook(createClosingWorkbook("number"));
@@ -95,6 +104,24 @@ describe("에듀파인 세입세출결산총괄표 분석", () => {
     );
   });
 
+  it("엑셀 확장자로 위장한 바이트를 구체적으로 거절한다", () => {
+    const fake = new TextEncoder().encode("not an excel workbook").buffer;
+    expect(() => parseClosingWorkbook(fake)).toThrow(
+      "실제 파일 형식이 올바르지 않습니다",
+    );
+  });
+
+  it("시트명이 달라도 결산 제목과 필수 헤더가 있으면 찾는다", () => {
+    const data = createClosingWorkbook("comma-string", "xlsx", "결산자료 출력");
+    expect(parseClosingWorkbook(data).incomeRows).toHaveLength(6);
+  });
+
+  it("결산표 후보가 둘이면 자동 확정하지 않는다", () => {
+    expect(() => parseClosingWorkbook(createWorkbookWithTwoValidClosingSheets())).toThrow(
+      "결산총괄표 후보 시트가 여러 개입니다",
+    );
+  });
+
   it("다른 보고서를 명확한 메시지로 거절한다", () => {
     const sheet = XLSX.utils.aoa_to_sheet([["집행현황"]]);
     const data = XLSX.write(
@@ -103,7 +130,7 @@ describe("에듀파인 세입세출결산총괄표 분석", () => {
     );
 
     expect(() => parseClosingWorkbook(data)).toThrow(
-      "에듀파인 세입세출결산총괄표가 아닙니다",
+      "에듀파인 세입세출결산총괄표 시트를 찾을 수 없습니다",
     );
   });
 });
