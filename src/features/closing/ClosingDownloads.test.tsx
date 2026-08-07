@@ -1,6 +1,7 @@
+import { render, screen } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 import { createClosingDraft } from "./createDraft";
-import { exportClosingWord } from "./exportWord";
+import { ClosingDownloads } from "./ClosingDownloads";
 import type { ClosingSource } from "./types";
 
 const source: ClosingSource = {
@@ -12,10 +13,11 @@ const source: ClosingSource = {
   expenseRows: [{ id: "e1", policy: "기본적 교육활동", amount: 90, ratio: 100 }],
 };
 
-describe("결산 안건설명서 파일 생성", () => {
-  it("편집값을 포함한 Word Blob을 만든다", async () => {
-    const blob = await exportClosingWord({ ...createClosingDraft(source), proposer: "서울옥정초등학교장" });
-    expect(blob.type).toContain("wordprocessingml");
-    expect(blob.size).toBeGreaterThan(1000);
+describe("결산 안건설명서 다운로드", () => {
+  it("결과 파일은 Word와 PDF만 표시하고 Excel은 제공하지 않는다", () => {
+    render(<ClosingDownloads draft={createClosingDraft(source)}/>);
+    expect(screen.getByRole("button", { name: "Word(DOCX) 내려받기" })).toBeVisible();
+    expect(screen.getByRole("button", { name: "PDF 내려받기" })).toBeVisible();
+    expect(screen.queryByRole("button", { name: /Excel/i })).not.toBeInTheDocument();
   });
 });
