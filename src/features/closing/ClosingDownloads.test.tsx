@@ -14,8 +14,9 @@ const source: ClosingSource = {
 };
 
 describe("결산 안건설명서 다운로드", () => {
-  it("결과 파일은 Word와 PDF만 표시하고 Excel은 제공하지 않는다", () => {
+  it("결과 파일은 한글, Word와 PDF만 표시하고 Excel은 제공하지 않는다", () => {
     render(<ClosingDownloads draft={createClosingDraft(source)}/>);
+    expect(screen.getByRole("button", { name: "한글(HWPX) 내려받기" })).toBeVisible();
     expect(screen.getByRole("button", { name: "Word(DOCX) 내려받기" })).toBeVisible();
     expect(screen.getByRole("button", { name: "PDF 내려받기" })).toBeVisible();
     expect(screen.queryByRole("button", { name: /Excel/i })).not.toBeInTheDocument();

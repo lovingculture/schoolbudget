@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Download, FileText, LoaderCircle } from "lucide-react";
+import { exportClosingHwpx } from "./exportHwpx";
 import { exportClosingPdf } from "./exportPdf";
 import { exportClosingWord } from "./exportWord";
 import type { ClosingAgendaDraft } from "./types";
@@ -25,6 +26,7 @@ export function ClosingDownloads({ draft }: { draft: ClosingAgendaDraft }) {
   return <section className="closing-downloads">
     <div><span>DOWNLOAD</span><h2>안건설명서 내려받기</h2><p>최종 수정한 내용으로 파일을 만듭니다.</p></div>
     <div className="closing-download-buttons">
+      <button type="button" aria-label="한글(HWPX) 내려받기" onClick={() => void run("hwpx", "한글(HWPX)", async () => save(await exportClosingHwpx(draft), `${base}.hwpx`))}>{working === "hwpx" ? <LoaderCircle className="spin"/> : <FileText/>}한글(HWPX)</button>
       <button type="button" aria-label="PDF 내려받기" onClick={() => void run("pdf", "PDF", async () => save(await exportClosingPdf(Array.from(document.querySelectorAll<HTMLElement>(".closing-a4-page"))), `${base}.pdf`))}>{working === "pdf" ? <LoaderCircle className="spin"/> : <Download/>}PDF</button>
       <button type="button" aria-label="Word(DOCX) 내려받기" onClick={() => void run("word", "Word(DOCX)", async () => save(await exportClosingWord(draft), `${base}.docx`))}>{working === "word" ? <LoaderCircle className="spin"/> : <FileText/>}Word(DOCX)</button>
     </div>
