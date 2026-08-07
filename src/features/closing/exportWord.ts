@@ -11,6 +11,7 @@ const table = (rows: TableRow[]) => new Table({ width: { size: 100, type: WidthT
 export async function exportClosingWord(draft: ClosingAgendaDraft): Promise<Blob> {
   const document = new Document({ sections: [{ children: [
     new Paragraph({ alignment: AlignmentType.CENTER, spacing: { after: 700 }, children: [new TextRun({ text: draft.title, bold: true, size: 36 })] }),
+    new Paragraph({ alignment: AlignmentType.CENTER, spacing: { after: 300 }, children: [new TextRun({ text: draft.schoolName, bold: true })] }),
     new Paragraph(`안건번호: ${draft.agendaNumber}`), new Paragraph(`제안년월일: ${draft.proposalDate}`),
     new Paragraph(`제안자: ${draft.proposer}`), new Paragraph({ spacing: { after: 500 }, text: `제안설명자: ${draft.presenter}` }),
     new Paragraph({ text: "1. 제안 근거", heading: HeadingLevel.HEADING_2 }), new Paragraph(draft.basis),
