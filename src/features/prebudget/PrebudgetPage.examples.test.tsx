@@ -1,11 +1,41 @@
-import { render, screen } from "@testing-library/react";
+import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
 import type { DraftStorage } from "./storage";
 import { PrebudgetPage } from "./PrebudgetPage";
 import { createPrebudgetDraft } from "./draft";
+import { exportPrebudgetHwpx } from "./exporters";
+
+vi.mock("./exporters", async (importOriginal) => ({
+  ...await importOriginal<typeof import("./exporters")>(),
+  exportPrebudgetHwpx: vi.fn(),
+}));
 
 const storage: DraftStorage = { load: () => null, save: vi.fn(), clear: vi.fn() };
+
+const validDraft = () => {
+  const draft = createPrebudgetDraft("서울우리학교");
+  draft.officialDocument = "교육지원과-2222(2026. 7. 1.)";
+  draft.items[0] = {
+    ...draft.items[0],
+    unitBusiness: "방과후 학교운영",
+    business: "늘봄학교 운영",
+    detail: "맞춤형 늘봄교실 운영",
+    description: "운영 물품비",
+    manualAmount: 200_000,
+  };
+  return draft;
+};
+
+async function renderValidPreview() {
+  Element.prototype.scrollIntoView = vi.fn();
+  const draft = validDraft();
+  const loadedStorage: DraftStorage = { load: () => draft, save: vi.fn(), clear: vi.fn() };
+  render(<PrebudgetPage initialSchoolName="서울우리학교" storage={loadedStorage} />);
+  const user = userEvent.setup();
+  await user.click(screen.getByRole("button", { name: "자동점검 후 기안문 생성" }));
+  return user;
+}
 
 describe("성립전예산 예시 통합", () => {
   it("필요한 담당자 입력만 표시한다", () => {
@@ -19,22 +49,35 @@ describe("성립전예산 예시 통합", () => {
 
   it("미리보기에서 문서 제목을 한 번만 표시한다", async () => {
     Element.prototype.scrollIntoView = vi.fn();
-    const draft = createPrebudgetDraft("서울우리학교");
-    draft.officialDocument = "교육지원과-2222(2026. 7. 1.)";
-    draft.items[0] = {
-      ...draft.items[0],
-      unitBusiness: "방과후 학교운영",
-      business: "늘봄학교 운영",
-      detail: "맞춤형 늘봄교실 운영",
-      description: "운영 물품비",
-      manualAmount: 200_000,
-    };
+    const draft = validDraft();
     const loadedStorage: DraftStorage = { load: () => draft, save: vi.fn(), clear: vi.fn() };
     const { container } = render(<PrebudgetPage initialSchoolName="서울우리학교" storage={loadedStorage} />);
     await userEvent.setup().click(screen.getByRole("button", { name: "자동점검 후 기안문 생성" }));
     const paper = container.querySelector(".prebudget-paper")!;
     expect(paper.querySelector("h1")).toHaveTextContent(draft.title);
     expect(paper.querySelector("pre")).not.toHaveTextContent(new RegExp(`^${draft.title}`));
+  });
+
+  it("renders HWPX, Word, and PDF downloads without Excel", async () => {
+    await renderValidPreview();
+
+    expect(screen.getByRole("button", { name: "한글(HWPX)" })).toBeVisible();
+    expect(screen.getByRole("button", { name: "Word" })).toBeVisible();
+    expect(screen.getByRole("button", { name: "PDF" })).toBeVisible();
+    expect(screen.queryByRole("button", { name: "Excel" })).not.toBeInTheDocument();
+  });
+
+  it("disables HWPX while it exports and reports an export failure", async () => {
+    let rejectExport: (reason?: unknown) => void = () => undefined;
+    vi.mocked(exportPrebudgetHwpx).mockImplementationOnce(() => new Promise<Blob>((_, reject) => { rejectExport = reject; }));
+    const user = await renderValidPreview();
+    const hwpxButton = screen.getByRole("button", { name: "한글(HWPX)" });
+
+    await user.click(hwpxButton);
+    expect(hwpxButton).toBeDisabled();
+
+    rejectExport(new Error("HWPX export failed"));
+    await waitFor(() => expect(screen.getByText("한글(HWPX) 파일을 만들지 못했습니다. 다시 시도해 주세요.")).toBeVisible());
   });
 
 
