@@ -27,7 +27,7 @@ describe("legacy draft normalization", () => {
 
     expect(normalizePrebudgetDraft(legacy)).toMatchObject({
       schoolName: "기존학교",
-      fiscalYear: "2026",
+      fiscalYear: 2026,
       schoolLevel: "공통",
       grantingAgency: "",
       projectPeriod: "",
@@ -35,6 +35,21 @@ describe("legacy draft normalization", () => {
       basis: "",
       reviewRequiredFields: [],
     });
+  });
+
+  it("converts a legacy numeric-string year to a number", () => {
+    const result = normalizePrebudgetDraft({ fiscalYear: "2026" });
+    expect(result.fiscalYear).toBe(2026);
+    expect(typeof result.fiscalYear).toBe("number");
+  });
+
+  it("uses the blank-draft year for an invalid legacy year", () => {
+    const fallback = createPrebudgetDraft("학교").fiscalYear;
+    expect(normalizePrebudgetDraft({ fiscalYear: "20XX" }, "학교").fiscalYear).toBe(fallback);
+  });
+
+  it("rejects an unknown legacy funding source", () => {
+    expect(normalizePrebudgetDraft({ source: "임의재원" }).source).toBe(createPrebudgetDraft("").source);
   });
 
   it("does not share mutable review fields between blank drafts", () => {
