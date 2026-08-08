@@ -36,7 +36,7 @@ describe("예산 안건설명서 화면", () => {
     expect(screen.getByRole("button", { name: "한글(HWPX) 내려받기" })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "PDF 내려받기" })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Word 내려받기" })).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "Excel 내려받기" })).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Excel 내려받기" })).not.toBeInTheDocument();
   });
 
   it("큰 점선 업로드 상자에 총괄표를 놓으면 파일을 불러온다", async () => {
