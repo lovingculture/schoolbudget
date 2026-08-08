@@ -13,6 +13,9 @@ function setParagraphText(paragraph: Element, value: string) {
   if (texts.length === 0) throw new Error("Prebudget HWPX template paragraph has no text node.");
   texts[0].textContent = value;
   for (const text of texts.slice(1)) text.textContent = "";
+  for (const lineSegArray of Array.from(paragraph.getElementsByTagNameNS("*", "linesegarray"))) {
+    lineSegArray.remove();
+  }
 }
 
 export function createPrebudgetHwpxSection(document: PrebudgetDocument): string {

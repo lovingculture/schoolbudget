@@ -2,6 +2,7 @@ import JSZip from "jszip";
 import type { PrebudgetDocument } from "./createDocument";
 import { createPrebudgetHwpxSection } from "./hwpxSection";
 import containerXml from "./templates/prebudgetContainer.xml?raw";
+import containerRdf from "./templates/prebudgetContainer.rdf?raw";
 import contentXml from "./templates/prebudgetContent.hpf?raw";
 import headerXml from "./templates/prebudgetHeader.xml?raw";
 import manifestXml from "./templates/prebudgetManifest.xml?raw";
@@ -23,6 +24,7 @@ export async function exportPrebudgetHwpx(document: PrebudgetDocument): Promise<
   zip.file("Contents/section0.xml", createPrebudgetHwpxSection(document));
   zip.file("Contents/content.hpf", sanitizedContentXml);
   zip.file("META-INF/container.xml", containerXml);
+  zip.file("META-INF/container.rdf", containerRdf);
   zip.file("META-INF/manifest.xml", manifestXml);
   zip.file("Preview/PrvText.txt", `${document.title}\n${document.bodyLines.join("\n")}`);
 

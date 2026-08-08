@@ -11,12 +11,12 @@ const readBlob = (blob: Blob) => new Promise<ArrayBuffer>((resolve, reject) => {
   reader.readAsArrayBuffer(blob);
 });
 
-const activeDocument = (officialDocument = "Related document 2026-1") => {
+const activeDocument = (officialDocument = "Related document 2026-1", approvalGranter = "") => {
   const draft = createPrebudgetDraft("Test School");
   Object.assign(draft, {
     title: "Student safety program budget request",
     requester: "Business manager",
-    approvalGranter: "",
+    approvalGranter,
     officialDocument,
   });
   draft.items[0] = {
@@ -46,10 +46,13 @@ describe("prebudget HWPX export", () => {
       "Contents/section0.xml",
       "Contents/content.hpf",
       "META-INF/container.xml",
+      "META-INF/container.rdf",
       "META-INF/manifest.xml",
       "Preview/PrvText.txt",
     ]));
     expect(await zip.file("mimetype")!.async("string")).toBe("application/hwp+zip");
+    expect(await zip.file("META-INF/container.xml")!.async("string")).toContain("META-INF/container.rdf");
+    expect(zip.file("META-INF/container.rdf")).not.toBeNull();
 
     const section = new DOMParser().parseFromString(await zip.file("Contents/section0.xml")!.async("string"), "application/xml");
     expect(section.querySelector("parsererror")).toBeNull();
@@ -58,10 +61,30 @@ describe("prebudget HWPX export", () => {
     expect(section.documentElement.textContent).toContain(document.requester);
     expect(section.documentElement.textContent).toContain(document.total.toLocaleString());
     expect(section.documentElement.textContent).toContain(document.bodyLines.at(-1));
-    expect(section.documentElement.textContent).not.toContain("Approval granter");
-    expect(section.documentElement.textContent).toContain(document.bodyLines.at(-3));
-    expect(section.documentElement.textContent).toContain(document.bodyLines.at(-2));
+    expect(section.documentElement.textContent).not.toContain("품의권한 부여자");
+    expect(section.documentElement.textContent).toContain("라. 예산요구 총액: 800,000원");
+    expect(section.documentElement.textContent).toContain("마. 성립전예산 요구내역");
+    expect(section.documentElement.textContent!.indexOf("라. 예산요구 총액: 800,000원"))
+      .toBeLessThan(section.documentElement.textContent!.indexOf("마. 성립전예산 요구내역"));
+    for (const paragraph of Array.from(section.getElementsByTagNameNS("*", "p"))) {
+      expect(paragraph.getElementsByTagNameNS("*", "linesegarray")).toHaveLength(0);
+    }
     expect(await zip.file("Preview/PrvText.txt")!.async("string")).toBe(`${document.title}\n${document.bodyLines.join("\n")}`);
+  });
+
+  it("keeps approval-granter numbering in the canonical Korean order", async () => {
+    const document = activeDocument("Related document 2026-1", "Approver");
+    const zip = await JSZip.loadAsync(await readBlob(await exportPrebudgetHwpx(document)));
+    const section = new DOMParser().parseFromString(await zip.file("Contents/section0.xml")!.async("string"), "application/xml");
+    const text = section.documentElement.textContent!;
+
+    expect(text).toContain("라. 품의권한 부여자: Approver");
+    expect(text).toContain("마. 예산요구 총액: 800,000원");
+    expect(text).toContain("바. 성립전예산 요구내역");
+    expect(text.indexOf("라. 품의권한 부여자: Approver"))
+      .toBeLessThan(text.indexOf("마. 예산요구 총액: 800,000원"));
+    expect(text.indexOf("마. 예산요구 총액: 800,000원"))
+      .toBeLessThan(text.indexOf("바. 성립전예산 요구내역"));
   });
 
   it("preserves XML-reserved characters from canonical document fields", async () => {
