@@ -1,119 +1,107 @@
-# Prebudget Example Library Implementation Plan
+# Beginner Prebudget Example Library Implementation Plan
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** 개인정보가 제거된 12개 성립전예산 예시를 검색·필터·미리보기하고, 선택한 예시를 기존 성립전예산 작성 화면에 안전하게 복사해 편집·점검·문서 생성까지 이어갈 수 있게 한다.
+**Goal:** 예산 초보자가 쉬운 질문으로 재원구분을 찾고, 목적사업비 10종·구청보조금 3종·수익자부담금 3종 중 알맞은 성립전예산 예시를 선택해 기존 작성 화면에서 안전하게 편집하도록 한다.
 
-**Architecture:** 예시는 서버나 사용자 파일이 아닌 정적 TypeScript 데이터로 번들에 포함하고, 순수 함수로 데이터 검증·필터링·초안 변환을 담당하게 한다. UI는 기존 `PrebudgetPage`의 직접 작성 흐름을 유지하면서 독립된 예시 라이브러리 컴포넌트를 추가하고, 기존 localStorage 자료는 정규화 계층을 통해 새 필드가 없어도 복원한다.
+**Architecture:** 16종 예시는 외부 호출이 없는 정적 TypeScript 카탈로그로 번들에 포함한다. 순수 함수가 카탈로그 검증·검색·초안 변환을 담당하고, React 안내 컴포넌트가 `재원 질문 → 세부 예시 → 상세 확인 → 작성 시작` 흐름을 제공한다. 기존 localStorage 초안은 정규화 계층을 통해 새 필드와 타입을 안전하게 복원한다.
 
 **Tech Stack:** React 19, TypeScript 5.8, Vite 6, Vitest 3, Testing Library, 기존 CSS 및 localStorage
 
 ## Global Constraints
 
-- 사용자가 과거 자료를 업로드하거나 브라우저에 원본 파일을 저장하는 기능은 만들지 않는다.
-- 예시는 사용자가 제공한 2024·2025 예산자료와 성립전예산 신청서 및 서울교육재정 공개자료의 구조·계산방식만 일반화해 사용한다.
-- 실제 학교명, 개인 이름, 전화번호, 이메일, 계정, 출력일시를 예시 데이터에 포함하지 않는다.
-- 학교명은 `서울○○초등학교`, `서울○○중학교`, `서울○○고등학교`처럼 익명화하고 기관명·공문번호도 일반화한다.
-- 초기 예시는 정확히 12종이며 초등학교·중학교·고등학교·공통, 주요 재원구분, 사업유형, 원가통계비목을 포함한다.
-- `○○`, `0000`, `20XX` 등 예시 표시는 복사 후 반드시 `확인 필요`로 안내한다.
-- `이 예시로 작성하기`는 현재 학교명과 회계연도를 보존하고 나머지 예시 필드를 새 초안으로 깊은 복사한다.
-- 기존 작성 내용이 있으면 덮어쓰기 전 확인창을 표시하고 취소 시 현재 초안을 변경하지 않는다.
-- 기존 직접 작성, 임시저장·복원, 자동점검, 기안문 생성, 다운로드 기능을 삭제하거나 망가뜨리지 않는다.
+- 초기 예시는 정확히 16종이며 목적사업비 10종, 구청보조금 3종, 수익자부담금 3종이다.
+- 학교급은 예시 탐색의 필수조건으로 사용하지 않는다.
+- 첫 선택은 `교육청·교육지원청`, `구청·지방자치단체`, `학부모 부담`, `잘 모르겠어요`의 쉬운 질문으로 제공한다.
+- 사용자가 과거자료를 업로드하거나 원본 파일을 브라우저에 저장하는 기능은 만들지 않는다.
+- 실제 학교명, 담당자명, 전화번호, 이메일, 계정, 출력일시는 예시 데이터에 포함하지 않는다.
+- `○○`, `0000`, `20XX` 등 예시 표시는 복사 후 `확인 필요`로 안내한다.
+- `이 예시로 작성하기`는 현재 학교명과 회계연도를 보존하고 예시 데이터를 깊은 복사한다.
+- 기존 작성 내용이 있으면 덮어쓰기 전 확인창을 표시하며 취소 시 초안과 화면 상태를 변경하지 않는다.
+- 기존 직접 작성, 저장·복원, 초기화, 자동점검, 기안문 생성 및 다운로드 기능을 유지한다.
 - 모든 처리는 브라우저 내부에서 수행하고 실행 중 외부 사이트나 API를 호출하지 않는다.
-- PC 행정실 환경을 우선하되 좁은 화면에서 필터와 카드가 한 열로 배치되게 한다.
+- 예시는 수정 가능한 참고값이며 실제 교부공문·사업기간·산출내역·금액 확인이 필요함을 표시한다.
+- PC 행정실 환경을 우선하되 760px 이하에서는 한 열로 사용할 수 있게 한다.
 - Preview에만 배포하며 사용자 최종 승인 전 Production 배포, Promote, 운영 도메인 변경을 하지 않는다.
 
 ---
 
 ## File Map
 
-- `src/features/prebudget/types.ts`: 기존 초안 모델과 학교급 타입 정의.
-- `src/features/prebudget/draft.ts`: 빈 초안 생성 및 구버전 초안 정규화.
-- `src/features/prebudget/storage.ts`: 정규화된 localStorage 저장·복원.
-- `src/features/prebudget/examples/types.ts`: 예시·필터·검증 결과 모델.
-- `src/features/prebudget/examples/data.ts`: 익명화된 12개 정적 예시.
-- `src/features/prebudget/examples/validateExamples.ts`: 개수·계산·개인정보·범위 검증.
-- `src/features/prebudget/examples/filterExamples.ts`: 검색 및 다중 필터 순수 함수.
+- `src/features/prebudget/types.ts`: 초안과 재원구분 타입.
+- `src/features/prebudget/draft.ts`: 빈 초안 생성과 구버전 초안 정규화.
+- `src/features/prebudget/storage.ts`: 정규화된 localStorage 복원.
+- `src/features/prebudget/examples/types.ts`: 예시·검색 모델.
+- `src/features/prebudget/examples/data.ts`: 3개 분류·16종 정적 예시.
+- `src/features/prebudget/examples/validateExamples.ts`: 개수·계산·개인정보 검증.
+- `src/features/prebudget/examples/searchExamples.ts`: 재원별 탐색과 통합검색.
 - `src/features/prebudget/examples/applyExample.ts`: 예시를 편집 가능한 초안으로 변환.
-- `src/features/prebudget/examples/PrebudgetExampleLibrary.tsx`: 목록·필터·상세·미리보기 UI.
-- `src/features/prebudget/PrebudgetPage.tsx`: 진입 방식과 예시 적용을 기존 화면에 통합.
-- `src/features/prebudget/validation.ts`: 예시 자리표시자와 확인 필요 필드 경고.
-- `src/styles.css`: 예시 라이브러리와 반응형 스타일.
+- `src/features/prebudget/examples/PrebudgetFundingGuide.tsx`: 초보자용 재원 질문.
+- `src/features/prebudget/examples/PrebudgetExampleLibrary.tsx`: 목록·검색·상세 UI.
+- `src/features/prebudget/PrebudgetPage.tsx`: 기존 작성 화면과 예시 흐름 통합.
+- `src/features/prebudget/validation.ts`: 확인 필요 경고.
+- `src/styles.css`: 안내형 UI 및 반응형 스타일.
 
-### Task 1: Extend and Normalize the Draft Model
+### Task 1: Repair Draft Normalization and Complete the Model Foundation
 
 **Files:**
-- Modify: `src/features/prebudget/types.ts`
 - Modify: `src/features/prebudget/draft.ts`
 - Modify: `src/features/prebudget/draft.test.ts`
-- Modify: `src/features/prebudget/storage.ts`
 - Modify: `src/features/prebudget/storage.test.ts`
+- Verify: `src/features/prebudget/types.ts`
 
 **Interfaces:**
-- Produces: `type PrebudgetSchoolLevel = "초등학교" | "중학교" | "고등학교" | "공통"`
-- Produces: `normalizePrebudgetDraft(value: unknown, initialSchoolName?: string): PrebudgetFormDraft`
-- Extends `PrebudgetFormDraft` with `schoolLevel`, `grantingAgency`, `projectPeriod`, `reason`, `basis`, `exampleSourceId?`, `reviewRequiredFields`.
-- Preserves the existing storage key `school-budget-portal:prebudget-draft:v1`.
+- Consumes existing `normalizePrebudgetDraft(value: unknown, initialSchoolName?: string): PrebudgetFormDraft`.
+- Keeps `fiscalYear: number` at both compile time and runtime.
+- Keeps `PrebudgetSource` limited to its exact existing three UI values: `보조금(구청)`, `목적사업비(교육청)`, `수익자부담경비(학부모)`.
 
-- [ ] **Step 1: Write failing normalization tests**
+- [ ] **Step 1: Replace the conflicting legacy-year expectation with failing runtime-invariant tests**
 
 ```ts
-it("fills new fields when loading a legacy draft", () => {
-  const legacy = { schoolName: "기존학교", fiscalYear: "2026", source: "목적사업비", title: "기존", department: "", requester: "", officialDocument: "", items: [], savedAt: 1 };
-  expect(normalizePrebudgetDraft(legacy)).toMatchObject({
-    schoolName: "기존학교", fiscalYear: "2026", schoolLevel: "공통",
-    grantingAgency: "", projectPeriod: "", reason: "", basis: "",
-    reviewRequiredFields: [],
-  });
+it("converts a legacy numeric-string year to a number", () => {
+  const result = normalizePrebudgetDraft({ ...legacyDraft, fiscalYear: "2026" });
+  expect(result.fiscalYear).toBe(2026);
+  expect(typeof result.fiscalYear).toBe("number");
 });
 
-it("does not share mutable review fields between blank drafts", () => {
-  const first = createPrebudgetDraft("A");
-  const second = createPrebudgetDraft("B");
-  first.reviewRequiredFields.push("grantingAgency");
-  expect(second.reviewRequiredFields).toEqual([]);
+it("uses the blank-draft year for an invalid legacy year", () => {
+  const fallback = createPrebudgetDraft("학교").fiscalYear;
+  expect(normalizePrebudgetDraft({ ...legacyDraft, fiscalYear: "20XX" }, "학교").fiscalYear).toBe(fallback);
+});
+
+it("rejects an unknown legacy funding source", () => {
+  expect(normalizePrebudgetDraft({ ...legacyDraft, source: "임의재원" }).source).toBe(createPrebudgetDraft().source);
 });
 ```
 
-- [ ] **Step 2: Run tests and verify failure**
+- [ ] **Step 2: Run RED tests**
 
-Run: `npm test -- --run src/features/prebudget/draft.test.ts src/features/prebudget/storage.test.ts`
+Run: `npm.cmd test -- --run src/features/prebudget/draft.test.ts src/features/prebudget/storage.test.ts`
 
-Expected: FAIL because the new fields and `normalizePrebudgetDraft` do not exist.
+Expected: FAIL because the current code returns a string year and accepts an arbitrary source.
 
-- [ ] **Step 3: Add exact types and normalization**
+- [ ] **Step 3: Implement strict scalar normalization**
 
-```ts
-export type PrebudgetSchoolLevel = "초등학교" | "중학교" | "고등학교" | "공통";
+Add `isPrebudgetSource(value: unknown): value is PrebudgetSource` using an exact three-value array. Accept a finite numeric year directly; convert a trimmed numeric string with `Number`; accept it only when finite; otherwise retain the blank draft value. Remove every `as unknown as number` and unchecked `as PrebudgetSource` cast.
 
-export interface PrebudgetFormDraft {
-  // keep every existing property unchanged
-  schoolLevel: PrebudgetSchoolLevel;
-  grantingAgency: string;
-  projectPeriod: string;
-  reason: string;
-  basis: string;
-  exampleSourceId?: string;
-  reviewRequiredFields: string[];
-}
-```
+- [ ] **Step 4: Run GREEN tests and build**
 
-Implement `normalizePrebudgetDraft` by starting from `createPrebudgetDraft(initialSchoolName)`, accepting only a non-null object, copying legacy scalar fields with type guards, mapping valid item objects onto fresh item defaults, and accepting `reviewRequiredFields` only when it is a string array. Update `loadDraft` to parse JSON and return `normalizePrebudgetDraft(parsed)`; retain its current invalid-JSON fallback behavior.
+Run: `npm.cmd test -- --run src/features/prebudget/draft.test.ts src/features/prebudget/storage.test.ts`
 
-- [ ] **Step 4: Run focused tests**
+Expected: PASS with runtime values matching declared types.
 
-Run: `npm test -- --run src/features/prebudget/draft.test.ts src/features/prebudget/storage.test.ts`
+Run: `npm.cmd run build`
 
-Expected: PASS, including existing save/restore tests.
+Expected: PASS.
 
 - [ ] **Step 5: Commit**
 
 ```bash
-git add src/features/prebudget/types.ts src/features/prebudget/draft.ts src/features/prebudget/draft.test.ts src/features/prebudget/storage.ts src/features/prebudget/storage.test.ts
-git commit -m "feat: extend prebudget draft model"
+git add src/features/prebudget/draft.ts src/features/prebudget/draft.test.ts src/features/prebudget/storage.test.ts
+git commit -m "fix: normalize legacy prebudget drafts safely"
 ```
 
-### Task 2: Define and Validate the 12 Anonymized Examples
+### Task 2: Add the 3 Funding Categories and 16 Anonymized Examples
 
 **Files:**
 - Create: `src/features/prebudget/examples/types.ts`
@@ -122,51 +110,46 @@ git commit -m "feat: extend prebudget draft model"
 - Create: `src/features/prebudget/examples/data.test.ts`
 
 **Interfaces:**
-- Consumes: `PrebudgetSchoolLevel`, `DraftItem` from `../types`.
-- Produces: `PrebudgetExample`, `PrebudgetExampleItem`, `ExampleValidationIssue`.
-- Produces: `PREBUDGET_EXAMPLES: readonly PrebudgetExample[]`.
-- Produces: `validatePrebudgetExamples(examples: readonly PrebudgetExample[]): ExampleValidationIssue[]`.
+- Produces `type ExampleFundingCategory = "목적사업비" | "구청보조금" | "수익자부담금"`.
+- Produces `PrebudgetExample`, `PrebudgetExampleItem`, `ExampleValidationIssue`.
+- Produces `PREBUDGET_EXAMPLES: readonly PrebudgetExample[]`.
+- Produces `validatePrebudgetExamples(examples: readonly PrebudgetExample[]): ExampleValidationIssue[]`.
 
-- [ ] **Step 1: Write failing catalogue tests**
+- [ ] **Step 1: Write failing catalogue-contract tests**
 
 ```ts
-it("contains exactly 12 unique, usable examples", () => {
-  expect(PREBUDGET_EXAMPLES).toHaveLength(12);
-  expect(new Set(PREBUDGET_EXAMPLES.map((item) => item.id)).size).toBe(12);
-  expect(PREBUDGET_EXAMPLES.every((item) => item.items.length >= 1)).toBe(true);
-  expect(validatePrebudgetExamples(PREBUDGET_EXAMPLES)).toEqual([]);
+it("contains the approved 10-3-3 catalogue", () => {
+  expect(PREBUDGET_EXAMPLES).toHaveLength(16);
+  expect(PREBUDGET_EXAMPLES.filter((item) => item.fundingCategory === "목적사업비")).toHaveLength(10);
+  expect(PREBUDGET_EXAMPLES.filter((item) => item.fundingCategory === "구청보조금")).toHaveLength(3);
+  expect(PREBUDGET_EXAMPLES.filter((item) => item.fundingCategory === "수익자부담금")).toHaveLength(3);
+  expect(new Set(PREBUDGET_EXAMPLES.map((item) => item.id)).size).toBe(16);
 });
 
-it("covers school levels and core funding sources", () => {
-  expect(new Set(PREBUDGET_EXAMPLES.map((item) => item.schoolLevel))).toEqual(
-    new Set(["초등학교", "중학교", "고등학교", "공통"]),
-  );
-  expect(PREBUDGET_EXAMPLES.map((item) => item.fundingSource)).toEqual(
-    expect.arrayContaining(["목적사업비", "자치단체보조금", "수익자부담금", "국고보조금"]),
-  );
+it("contains no calculation or privacy validation issue", () => {
+  expect(validatePrebudgetExamples(PREBUDGET_EXAMPLES)).toEqual([]);
 });
 ```
 
-- [ ] **Step 2: Run the catalogue test and verify failure**
+- [ ] **Step 2: Run RED test**
 
-Run: `npm test -- --run src/features/prebudget/examples/data.test.ts`
+Run: `npm.cmd test -- --run src/features/prebudget/examples/data.test.ts`
 
-Expected: FAIL because the example modules do not exist.
+Expected: FAIL because the catalogue modules do not exist.
 
-- [ ] **Step 3: Define the data contracts**
+- [ ] **Step 3: Define exact example contracts**
 
 ```ts
 export interface PrebudgetExampleItem extends Omit<DraftItem, "id"> {}
 
 export interface PrebudgetExample {
   id: string;
+  fundingCategory: ExampleFundingCategory;
   title: string;
-  schoolLevel: PrebudgetSchoolLevel;
-  fundingSource: string;
-  businessTypeTags: string[];
-  description: string;
-  schoolNameExample: string;
-  fiscalYearExample: string;
+  searchAliases: string[];
+  summary: string;
+  useWhen: string[];
+  prepareBeforeWriting: string[];
   documentTitle: string;
   grantingAgency: string;
   officialDocument: string;
@@ -180,133 +163,127 @@ export interface PrebudgetExample {
   sourceCategory: "사용자 제공 익명화 표본" | "서울교육재정 공개예산 분석" | "복합 분석";
   sourceReviewedAt: "2026-08-08";
 }
-
-export interface ExampleValidationIssue {
-  exampleId: string;
-  field: string;
-  message: string;
-}
 ```
 
-- [ ] **Step 4: Add all 12 complete examples**
+- [ ] **Step 4: Add all 16 records with stable IDs**
 
-Create exactly these IDs and subjects: `elem-books`, `elem-curriculum`, `elem-safety`, `elem-facility`, `middle-vacation`, `middle-career`, `middle-welfare`, `middle-instructor`, `high-club`, `high-national-subsidy`, `common-business-expense`, `common-multi-account`. Each item must include unit business, business, detail, category, description, note, unit price, quantity, count, and manual amount. Use realistic but anonymized calculations; for example `unitPrice: 20_000`, `quantity: 200`, `count: 1`, `manualAmount: 4_000_000`.
+Use these IDs and titles verbatim:
 
-- [ ] **Step 5: Implement deterministic safety validation**
+- 목적사업비: `purpose-basic-learning` 기초학력 지원, `purpose-neulbom` 맞춤형 늘봄교실, `purpose-care` 초등돌봄교실, `purpose-afterschool` 방과후학교 운영 지원, `purpose-digital-ai` 디지털·AI 교육 지원, `purpose-integrated-student` 학생 맞춤통합지원, `purpose-welfare` 교육복지 지원, `purpose-safety-staff` 학생안전 인력 운영, `purpose-reading-books` 독서교육·도서구입, `purpose-career-experience` 진로·체험활동 지원.
+- 구청보조금: `district-facility` 시설·환경개선 지원, `district-curriculum` 교육과정·체험활동 지원, `district-welfare` 학생복지 지원.
+- 수익자부담금: `beneficiary-yearbook` 졸업앨범비, `beneficiary-field-trip` 현장체험학습비, `beneficiary-afterschool` 방과후학교 수강료.
 
-`validatePrebudgetExamples` must report issues for: duplicate IDs; catalogue size other than 12; empty required strings; missing items; `unitPrice * quantity * count !== manualAmount`; email regex matches; Korean mobile/landline patterns; resident-number patterns; actual school suffix names that do not contain `○○`; and placeholder-bearing fields omitted from `reviewRequiredFields`. It must not reject the allowed generic organization strings containing `○○`.
+Every record must contain at least one complete item and at least three easy search aliases. Use editable anonymized organizations and document numbers. Make every row satisfy `unitPrice * quantity * count === manualAmount`.
 
-- [ ] **Step 6: Run the catalogue test**
+- [ ] **Step 5: Implement deterministic catalogue validation**
 
-Run: `npm test -- --run src/features/prebudget/examples/data.test.ts`
+Report an issue for catalogue count other than 16; category count other than 10·3·3; duplicate ID; empty required value; empty item list; invalid amount multiplication; email, phone, resident-number patterns; a school or agency name lacking `○○`; and placeholder-bearing fields missing from `reviewRequiredFields`.
 
-Expected: PASS with zero validation issues.
+- [ ] **Step 6: Run GREEN test**
+
+Run: `npm.cmd test -- --run src/features/prebudget/examples/data.test.ts`
+
+Expected: PASS with 16 unique examples and zero validation issues.
 
 - [ ] **Step 7: Commit**
 
 ```bash
 git add src/features/prebudget/examples/types.ts src/features/prebudget/examples/data.ts src/features/prebudget/examples/validateExamples.ts src/features/prebudget/examples/data.test.ts
-git commit -m "feat: add anonymized prebudget examples"
+git commit -m "feat: add beginner prebudget examples"
 ```
 
-### Task 3: Implement Search and Multi-Filter Logic
+### Task 3: Implement Guided Selection and Easy Search Logic
 
 **Files:**
-- Create: `src/features/prebudget/examples/filterExamples.ts`
-- Create: `src/features/prebudget/examples/filterExamples.test.ts`
+- Create: `src/features/prebudget/examples/searchExamples.ts`
+- Create: `src/features/prebudget/examples/searchExamples.test.ts`
 
 **Interfaces:**
-- Consumes: `PrebudgetExample` from `./types`.
-- Produces: `PrebudgetExampleFilters` with `query`, `schoolLevel`, `fundingSource`, `businessType`, `accountCategory` string fields.
-- Produces: `EMPTY_EXAMPLE_FILTERS`.
-- Produces: `filterPrebudgetExamples(examples: readonly PrebudgetExample[], filters: PrebudgetExampleFilters): PrebudgetExample[]`.
+- Produces `type ExampleSearchScope = ExampleFundingCategory | "전체"`.
+- Produces `searchPrebudgetExamples(examples: readonly PrebudgetExample[], query: string, scope: ExampleSearchScope): PrebudgetExample[]`.
+- Produces `FUNDING_GUIDE_OPTIONS` with four user-facing question choices.
 
-- [ ] **Step 1: Write failing filter tests**
+- [ ] **Step 1: Write failing search tests**
 
 ```ts
-it("combines school level, funding source and keyword filters", () => {
-  const result = filterPrebudgetExamples(PREBUDGET_EXAMPLES, {
-    ...EMPTY_EXAMPLE_FILTERS,
-    schoolLevel: "초등학교",
-    fundingSource: "목적사업비",
-    query: "교재",
-  });
-  expect(result.map((item) => item.id)).toEqual(["elem-books"]);
+it("shows only examples for the selected funding source", () => {
+  expect(searchPrebudgetExamples(PREBUDGET_EXAMPLES, "", "구청보조금").map((item) => item.id)).toEqual([
+    "district-facility", "district-curriculum", "district-welfare",
+  ]);
 });
 
-it("searches title, description, business names and calculation text", () => {
-  expect(filterPrebudgetExamples(PREBUDGET_EXAMPLES, { ...EMPTY_EXAMPLE_FILTERS, query: "강사" }).length).toBeGreaterThan(0);
+it("finds examples using beginner aliases", () => {
+  expect(searchPrebudgetExamples(PREBUDGET_EXAMPLES, "책", "전체").map((item) => item.id)).toContain("purpose-reading-books");
+  expect(searchPrebudgetExamples(PREBUDGET_EXAMPLES, "학부모 부담", "전체").every((item) => item.fundingCategory === "수익자부담금")).toBe(true);
 });
 ```
 
-- [ ] **Step 2: Run and verify failure**
+- [ ] **Step 2: Run RED test**
 
-Run: `npm test -- --run src/features/prebudget/examples/filterExamples.test.ts`
+Run: `npm.cmd test -- --run src/features/prebudget/examples/searchExamples.test.ts`
 
-Expected: FAIL because the filter module does not exist.
+Expected: FAIL because the search module does not exist.
 
-- [ ] **Step 3: Implement normalized AND filtering**
+- [ ] **Step 3: Implement normalized search and guide options**
 
-Trim the query, lowercase Latin text, and remove internal whitespace for matching. Apply non-empty filters with AND semantics; `businessType` matches the tag array and `accountCategory` matches any item category. Search a joined haystack containing title, description, funding source, tags, item business/detail/category/description/note.
+Search title, aliases, summary, funding category, item business/detail/category/description/note. Normalize lowercase Latin and remove whitespace. Apply scope first, then query. Define the guide options with exact labels from the approved design and a fourth `잘 모르겠어요` option that has no category.
 
-- [ ] **Step 4: Run focused tests**
+- [ ] **Step 4: Run GREEN test**
 
-Run: `npm test -- --run src/features/prebudget/examples/filterExamples.test.ts`
+Run: `npm.cmd test -- --run src/features/prebudget/examples/searchExamples.test.ts`
 
-Expected: PASS for combined filters, keyword matching, empty filters, and zero-result cases.
+Expected: PASS for category scope, aliases, whitespace, empty query, whole-catalogue search and zero results.
 
 - [ ] **Step 5: Commit**
 
 ```bash
-git add src/features/prebudget/examples/filterExamples.ts src/features/prebudget/examples/filterExamples.test.ts
-git commit -m "feat: filter prebudget examples"
+git add src/features/prebudget/examples/searchExamples.ts src/features/prebudget/examples/searchExamples.test.ts
+git commit -m "feat: search prebudget examples by plain language"
 ```
 
-### Task 4: Convert an Example into an Editable Draft
+### Task 4: Convert an Example into a Safe Editable Draft
 
 **Files:**
 - Create: `src/features/prebudget/examples/applyExample.ts`
 - Create: `src/features/prebudget/examples/applyExample.test.ts`
 
 **Interfaces:**
-- Consumes: `PrebudgetFormDraft` and `PrebudgetExample`.
-- Produces: `applyPrebudgetExample(current: PrebudgetFormDraft, example: PrebudgetExample): PrebudgetFormDraft`.
+- Produces `applyPrebudgetExample(current: PrebudgetFormDraft, example: PrebudgetExample): PrebudgetFormDraft`.
 
 - [ ] **Step 1: Write failing conversion tests**
 
 ```ts
-it("preserves current identity while copying example content", () => {
-  const current = { ...createPrebudgetDraft("서울우리학교"), fiscalYear: "2026" };
+it("preserves the current school and year", () => {
+  const current = { ...createPrebudgetDraft("서울우리학교"), fiscalYear: 2026 };
   const result = applyPrebudgetExample(current, PREBUDGET_EXAMPLES[0]);
   expect(result.schoolName).toBe("서울우리학교");
-  expect(result.fiscalYear).toBe("2026");
+  expect(result.fiscalYear).toBe(2026);
   expect(result.exampleSourceId).toBe(PREBUDGET_EXAMPLES[0].id);
-  expect(result.items).toHaveLength(PREBUDGET_EXAMPLES[0].items.length);
 });
 
-it("deep-copies rows and assigns unique editable ids", () => {
+it("deep-copies rows without changing catalogue data", () => {
   const result = applyPrebudgetExample(createPrebudgetDraft("학교"), PREBUDGET_EXAMPLES[0]);
-  result.items[0].description = "수정";
-  expect(PREBUDGET_EXAMPLES[0].items[0].description).not.toBe("수정");
+  result.items[0].description = "사용자 수정";
+  expect(PREBUDGET_EXAMPLES[0].items[0].description).not.toBe("사용자 수정");
   expect(new Set(result.items.map((item) => item.id)).size).toBe(result.items.length);
 });
 ```
 
-- [ ] **Step 2: Run and verify failure**
+- [ ] **Step 2: Run RED test**
 
-Run: `npm test -- --run src/features/prebudget/examples/applyExample.test.ts`
+Run: `npm.cmd test -- --run src/features/prebudget/examples/applyExample.test.ts`
 
-Expected: FAIL because `applyPrebudgetExample` does not exist.
+Expected: FAIL because the conversion function does not exist.
 
-- [ ] **Step 3: Implement the pure conversion**
+- [ ] **Step 3: Implement immutable conversion**
 
-Return a new draft that preserves `schoolName` and `fiscalYear`, copies school level/source/title/granting agency/document/project period/reason/basis, resets `savedAt`, records `exampleSourceId`, clones `reviewRequiredFields`, and maps each item to a new object with an ID from the existing row-ID helper. Do not mutate either argument.
+Preserve school name and numeric year. Map categories exactly as follows: `목적사업비` → `목적사업비(교육청)`, `구청보조금` → `보조금(구청)`, `수익자부담금` → `수익자부담경비(학부모)`. Copy title, granting agency, document, period, reason, basis, source ID and review fields. Clone every item and assign a new row ID with the existing row-ID helper. Reset `savedAt` and never mutate either input.
 
-- [ ] **Step 4: Run focused tests**
+- [ ] **Step 4: Run GREEN test**
 
-Run: `npm test -- --run src/features/prebudget/examples/applyExample.test.ts`
+Run: `npm.cmd test -- --run src/features/prebudget/examples/applyExample.test.ts`
 
-Expected: PASS, including immutability and unique-ID assertions.
+Expected: PASS for all three funding categories, identity preservation, unique IDs and immutability.
 
 - [ ] **Step 5: Commit**
 
@@ -315,134 +292,137 @@ git add src/features/prebudget/examples/applyExample.ts src/features/prebudget/e
 git commit -m "feat: apply prebudget examples to drafts"
 ```
 
-### Task 5: Build the Example Library UI
+### Task 5: Build the Beginner Funding Guide and Example Library UI
 
 **Files:**
+- Create: `src/features/prebudget/examples/PrebudgetFundingGuide.tsx`
 - Create: `src/features/prebudget/examples/PrebudgetExampleLibrary.tsx`
 - Create: `src/features/prebudget/examples/PrebudgetExampleLibrary.test.tsx`
 - Modify: `src/styles.css`
 
 **Interfaces:**
-- Consumes: `PREBUDGET_EXAMPLES`, `filterPrebudgetExamples`, `PrebudgetExample`.
-- Produces: `PrebudgetExampleLibrary({ examples, onUseExample }: { examples: readonly PrebudgetExample[]; onUseExample(example: PrebudgetExample): void })`.
+- Produces `PrebudgetFundingGuide({ onSelect, onUnsure })`.
+- Produces `PrebudgetExampleLibrary({ examples, initialScope, onUseExample, onBack })`.
 
-- [ ] **Step 1: Write failing interaction tests**
+- [ ] **Step 1: Write failing beginner-flow tests**
 
 ```tsx
-it("filters cards and reports the current count", async () => {
+it("explains funding sources with plain-language questions", async () => {
+  const onSelect = vi.fn();
+  const onUnsure = vi.fn();
   const user = userEvent.setup();
-  render(<PrebudgetExampleLibrary examples={PREBUDGET_EXAMPLES} onUseExample={vi.fn()} />);
-  await user.selectOptions(screen.getByLabelText("학교급"), "초등학교");
-  expect(screen.getByText(/4건/)).toBeInTheDocument();
-  await user.type(screen.getByRole("searchbox", { name: "예시 검색" }), "교재");
-  expect(screen.getByText("입서·도서구입 지원")).toBeInTheDocument();
+  render(<PrebudgetFundingGuide onSelect={onSelect} onUnsure={onUnsure} />);
+  await user.click(screen.getByRole("button", { name: /교육청·교육지원청에서 특정 사업/ }));
+  expect(onSelect).toHaveBeenCalledWith("목적사업비");
+  await user.click(screen.getByRole("button", { name: "잘 모르겠어요" }));
+  expect(onUnsure).toHaveBeenCalled();
 });
 
-it("shows detail, preview and sends the selected example", async () => {
-  const onUseExample = vi.fn();
+it("filters, searches, resets and reports count", async () => {
   const user = userEvent.setup();
-  render(<PrebudgetExampleLibrary examples={PREBUDGET_EXAMPLES} onUseExample={onUseExample} />);
-  await user.click(screen.getAllByRole("button", { name: "상세보기" })[0]);
-  expect(screen.getByRole("heading", { name: "기안문 미리보기" })).toBeInTheDocument();
-  expect(screen.getByText(/실제 금액과 공문은 반드시 수정/)).toBeInTheDocument();
-  await user.click(screen.getByRole("button", { name: "이 예시로 작성하기" }));
-  expect(onUseExample).toHaveBeenCalledWith(PREBUDGET_EXAMPLES[0]);
+  render(<PrebudgetExampleLibrary examples={PREBUDGET_EXAMPLES} initialScope="목적사업비" onUseExample={vi.fn()} onBack={vi.fn()} />);
+  expect(screen.getByText("10건")).toBeInTheDocument();
+  await user.type(screen.getByRole("searchbox", { name: "예시 검색" }), "책");
+  expect(screen.getByRole("heading", { name: "독서교육·도서구입" })).toBeInTheDocument();
 });
 ```
 
-- [ ] **Step 2: Run and verify failure**
+- [ ] **Step 2: Run RED component test**
 
-Run: `npm test -- --run src/features/prebudget/examples/PrebudgetExampleLibrary.test.tsx`
+Run: `npm.cmd test -- --run src/features/prebudget/examples/PrebudgetExampleLibrary.test.tsx`
 
-Expected: FAIL because the component does not exist.
+Expected: FAIL because the UI components do not exist.
 
-- [ ] **Step 3: Implement accessible list and detail UI**
+- [ ] **Step 3: Implement the four-choice guide**
 
-Render the fixed disclaimer, search box, four labelled select filters, reset button, current count, and cards with title/school level/funding source/tags/account categories/total amount. Keep one selected detail at a time. The detail must render usage description, base fields, a semantic table of items and calculations, reason, basis, draft preview, auto-check notes, review fields, source category/date, and the apply button. Use `Intl.NumberFormat("ko-KR")` for won amounts and preserve filter state when a detail is opened or closed.
+Render the question `이 사업비는 어디에서 받았나요?`, three category buttons with the approved sentences, and `잘 모르겠어요`. The unsure panel must explain how to inspect sender/title in an education-office grant notice, district grant decision, or parent notice/collection plan, and explicitly state that the portal will not decide the source automatically.
 
-- [ ] **Step 4: Add PC-first and narrow-screen styles**
+- [ ] **Step 4: Implement list, search and detail**
 
-Add prefixed classes such as `.prebudget-example-*`; use a multi-column filter/card grid on wide screens and `@media (max-width: 760px)` to switch filters/cards/detail actions to one column. Use existing color tokens and focus styles; do not alter unrelated page rules.
+Render the fixed caution notice, current category, category switch, `전체 예시에서 검색`, search box, result count, reset, and cards. Detail must have `이런 경우에 사용해요`, `작성 전에 준비하세요`, `복사한 뒤 꼭 확인하세요`, budget item table, calculation, draft preview, source category/date, back and apply buttons. Format won with `Intl.NumberFormat("ko-KR")`.
 
-- [ ] **Step 5: Run component tests**
+- [ ] **Step 5: Add scoped responsive styles**
 
-Run: `npm test -- --run src/features/prebudget/examples/PrebudgetExampleLibrary.test.tsx`
+Use `.prebudget-guide-*` and `.prebudget-example-*` class prefixes. Use wide-screen grids and switch guide cards, filters and detail actions to one column at `max-width: 760px`. Preserve unrelated CSS.
 
-Expected: PASS for filters, reset, detail, disclaimer, empty result, and callback.
+- [ ] **Step 6: Run GREEN component test**
 
-- [ ] **Step 6: Commit**
+Run: `npm.cmd test -- --run src/features/prebudget/examples/PrebudgetExampleLibrary.test.tsx`
+
+Expected: PASS for guide selection, unsure help, 10·3·3 counts, category change, whole search, aliases, reset, zero result, detail and apply callback.
+
+- [ ] **Step 7: Commit**
 
 ```bash
-git add src/features/prebudget/examples/PrebudgetExampleLibrary.tsx src/features/prebudget/examples/PrebudgetExampleLibrary.test.tsx src/styles.css
-git commit -m "feat: add prebudget example library UI"
+git add src/features/prebudget/examples/PrebudgetFundingGuide.tsx src/features/prebudget/examples/PrebudgetExampleLibrary.tsx src/features/prebudget/examples/PrebudgetExampleLibrary.test.tsx src/styles.css
+git commit -m "feat: guide beginners through prebudget examples"
 ```
 
-### Task 6: Integrate Entry Choice and Safe Example Application
+### Task 6: Integrate the Guided Flow into PrebudgetPage
 
 **Files:**
 - Modify: `src/features/prebudget/PrebudgetPage.tsx`
 - Create: `src/features/prebudget/PrebudgetPage.examples.test.tsx`
 
 **Interfaces:**
-- Consumes: `PrebudgetExampleLibrary`, `PREBUDGET_EXAMPLES`, `applyPrebudgetExample`.
-- Produces: two entry buttons, `직접 작성하기` and `예시문서에서 시작하기`, without changing the existing page route.
+- Consumes guide, library, catalogue and `applyPrebudgetExample`.
+- Adds view state `"form" | "funding-guide" | "examples"` without changing the route.
 
-- [ ] **Step 1: Write failing page integration tests**
+- [ ] **Step 1: Write failing integration tests**
 
 ```tsx
-it("opens the example library without clearing the current draft", async () => {
+it("opens the beginner guide without clearing current identity", async () => {
   const user = userEvent.setup();
   render(<PrebudgetPage />);
   await user.type(screen.getByLabelText("학교명"), "서울우리학교");
-  await user.click(screen.getByRole("button", { name: "예시문서에서 시작하기" }));
-  expect(screen.getByText("성립전예산 예시문서")).toBeInTheDocument();
+  await user.click(screen.getByRole("button", { name: "예시에서 시작하기" }));
+  expect(screen.getByText("이 사업비는 어디에서 받았나요?")).toBeInTheDocument();
   expect(screen.getByDisplayValue("서울우리학교")).toBeInTheDocument();
 });
 
-it("requires confirmation before replacing non-empty work", async () => {
+it("keeps a non-empty draft when overwrite is cancelled", async () => {
   const confirm = vi.spyOn(window, "confirm").mockReturnValue(false);
   const user = userEvent.setup();
   render(<PrebudgetPage />);
   await user.type(screen.getByLabelText("학교명"), "서울우리학교");
   await user.type(screen.getByLabelText("문서 제목"), "작성 중인 문서");
-  await user.click(screen.getByRole("button", { name: "예시문서에서 시작하기" }));
-  await user.click(screen.getAllByRole("button", { name: "상세보기" })[0]);
+  await user.click(screen.getByRole("button", { name: "예시에서 시작하기" }));
+  await user.click(screen.getByRole("button", { name: /교육청·교육지원청에서 특정 사업/ }));
+  await user.click(screen.getAllByRole("button", { name: "자세히 보기" })[0]);
   await user.click(screen.getByRole("button", { name: "이 예시로 작성하기" }));
   expect(confirm).toHaveBeenCalledWith("현재 작성 중인 내용이 예시 내용으로 바뀝니다. 계속하시겠습니까?");
-  expect(window.confirm).toHaveBeenCalled();
-  expect(screen.getByDisplayValue("서울우리학교")).toBeInTheDocument();
   expect(screen.getByDisplayValue("작성 중인 문서")).toBeInTheDocument();
 });
 ```
 
-- [ ] **Step 2: Run and verify failure**
+- [ ] **Step 2: Run RED page test**
 
-Run: `npm test -- --run src/features/prebudget/PrebudgetPage.examples.test.tsx`
+Run: `npm.cmd test -- --run src/features/prebudget/PrebudgetPage.examples.test.tsx`
 
-Expected: FAIL because the page has no example entry or application flow.
+Expected: FAIL because the guide is not integrated.
 
-- [ ] **Step 3: Add view state and overwrite guard**
+- [ ] **Step 3: Add entry and navigation state**
 
-Add `mode: "form" | "examples"`. `직접 작성하기` selects `form`; the example button selects `examples`. Define `hasMeaningfulDraft` using non-empty title/source/document fields or any item with business/detail/description/amount. When applying an example, call `window.confirm("현재 작성 중인 내용이 예시 내용으로 바뀝니다. 계속하시겠습니까?")` only for meaningful drafts. On approval, set the converted draft, return to `form`, and focus/scroll the review notice; on cancel, leave state and mode unchanged.
+Keep direct writing as default. Add `예시에서 시작하기`. Navigation to guide/library must not mutate the draft. Back buttons return one step. A meaningful draft is one with edited title/document/source or any non-empty/positive item.
 
-- [ ] **Step 4: Render and bind the six new fields**
+- [ ] **Step 4: Apply examples with overwrite protection**
 
-Add labelled controls for school level, granting agency, project period, reason, and basis; show example source as read-only metadata instead of an editable source ID. Preserve existing school name/year fields and all item-grid behavior. Do not hide the current save, reset, generate, or download controls in form mode.
+Ask for confirmation only for a meaningful draft. Cancel keeps draft and library state. Approval applies a deep copy, switches to form and focuses the review warning. Render editable inputs for granting agency, project period, reason and basis while retaining every existing control.
 
-- [ ] **Step 5: Run page and existing prebudget tests**
+- [ ] **Step 5: Run GREEN page tests and existing App tests**
 
-Run: `npm test -- --run src/features/prebudget/PrebudgetPage.examples.test.tsx src/features/prebudget/draft.test.ts src/features/prebudget/storage.test.ts`
+Run: `npm.cmd test -- --run src/features/prebudget/PrebudgetPage.examples.test.tsx src/App.test.tsx src/features/prebudget/storage.test.ts`
 
-Expected: PASS, including cancel/no-mutation and approve/preserve-identity cases.
+Expected: PASS for direct writing, navigation, cancel, approval, school/year preservation and save/restore.
 
 - [ ] **Step 6: Commit**
 
 ```bash
 git add src/features/prebudget/PrebudgetPage.tsx src/features/prebudget/PrebudgetPage.examples.test.tsx
-git commit -m "feat: start prebudget drafts from examples"
+git commit -m "feat: integrate guided prebudget examples"
 ```
 
-### Task 7: Surface Review-Required Warnings in Automatic Validation
+### Task 7: Add Review-Required Validation and Warning UX
 
 **Files:**
 - Modify: `src/features/prebudget/validation.ts`
@@ -450,101 +430,108 @@ git commit -m "feat: start prebudget drafts from examples"
 - Modify: `src/features/prebudget/PrebudgetPage.tsx`
 
 **Interfaces:**
-- Consumes: `reviewRequiredFields` and all new draft fields.
-- Produces: validation messages with severity `확인 필요` using the existing validation-result shape.
+- Consumes `reviewRequiredFields` and placeholder-bearing draft values.
+- Produces existing `PrebudgetValidationIssue[]` entries with messages ending in `확인 필요`.
 
-- [ ] **Step 1: Write failing validation tests**
+- [ ] **Step 1: Write failing warning tests**
 
 ```ts
-it("flags copied placeholders and review-required fields", () => {
+it("flags copied example placeholders", () => {
   const draft = applyPrebudgetExample(createPrebudgetDraft("서울우리학교"), PREBUDGET_EXAMPLES[0]);
-  const messages = validatePrebudgetDraft(draft).map((result) => result.message);
-  expect(messages).toEqual(expect.arrayContaining([
-    expect.stringContaining("공문번호"),
-    expect.stringContaining("확인 필요"),
-  ]));
+  const messages = validateDraft(draft).map((issue) => issue.message);
+  expect(messages).toEqual(expect.arrayContaining([expect.stringContaining("공문번호 확인 필요")]));
 });
 
-it("clears a field warning after the user replaces its example value", () => {
+it("does not flag a reviewed replacement", () => {
   const draft = applyPrebudgetExample(createPrebudgetDraft("서울우리학교"), PREBUDGET_EXAMPLES[0]);
   draft.officialDocument = "교육지원과-1234(2026. 8. 8.)";
   draft.reviewRequiredFields = draft.reviewRequiredFields.filter((field) => field !== "officialDocument");
-  expect(validatePrebudgetDraft(draft).some((result) => result.message.includes("공문번호 확인 필요"))).toBe(false);
+  expect(validateDraft(draft).some((issue) => issue.message.includes("공문번호 확인 필요"))).toBe(false);
 });
 ```
 
-- [ ] **Step 2: Run and verify failure**
+- [ ] **Step 2: Run RED validation test**
 
-Run: `npm test -- --run src/features/prebudget/validation.test.ts`
+Run: `npm.cmd test -- --run src/features/prebudget/validation.test.ts`
 
-Expected: FAIL because placeholder/review-required checks are not implemented.
+Expected: FAIL because review-required checks are absent.
 
-- [ ] **Step 3: Add explicit checks and UI clearing behavior**
+- [ ] **Step 3: Implement field-labelled warnings**
 
-Map field keys to Korean labels and add one warning per unresolved key. Also scan copied scalar strings and item descriptions/notes for `○○|0000|20XX`; avoid duplicate messages for the same field. In `PrebudgetPage`, when a user edits a flagged field, remove only that key from `reviewRequiredFields`; if the replacement still contains a placeholder, retain it. Show a persistent review panel listing unresolved labels and state that generated documents are drafts until checked.
+Map field keys to Korean labels, emit one warning per unresolved field, and scan scalar/item text for `○○|0000|20XX` without duplicates. When the user edits a flagged field to a value without placeholders, remove only that field key. Retain it while placeholders remain.
 
-- [ ] **Step 4: Run validation and page tests**
+- [ ] **Step 4: Render the persistent review panel**
 
-Run: `npm test -- --run src/features/prebudget/validation.test.ts src/features/prebudget/PrebudgetPage.examples.test.tsx`
+Show unresolved labels above the form and state `예시를 복사한 초안입니다. 실제 공문과 금액을 확인하기 전에는 확정 문서로 사용하지 마세요.` Existing document generation remains available but validation warnings remain visible.
 
-Expected: PASS for warning creation, selective clearing, and no duplicate messages.
+- [ ] **Step 5: Run GREEN validation and page tests**
 
-- [ ] **Step 5: Commit**
+Run: `npm.cmd test -- --run src/features/prebudget/validation.test.ts src/features/prebudget/PrebudgetPage.examples.test.tsx`
+
+Expected: PASS for placeholder detection, selective clearing and no duplicate warnings.
+
+- [ ] **Step 6: Commit**
 
 ```bash
 git add src/features/prebudget/validation.ts src/features/prebudget/validation.test.ts src/features/prebudget/PrebudgetPage.tsx
-git commit -m "feat: flag prebudget example fields for review"
+git commit -m "feat: warn about unreviewed example fields"
 ```
 
-### Task 8: Full Regression, Browser Verification, and Preview Deployment
+### Task 8: Full Regression, Browser Verification and Preview Deployment
 
 **Files:**
-- Potential regression-fix scope: `src/features/prebudget/types.ts`, `src/features/prebudget/draft.ts`, `src/features/prebudget/storage.ts`, `src/features/prebudget/validation.ts`, `src/features/prebudget/PrebudgetPage.tsx`, `src/features/prebudget/examples/*.ts`, `src/features/prebudget/examples/*.tsx`, `src/styles.css`
-- Do not modify: Production deployment settings or production domain bindings
+- Potential fix scope: files modified or created in Tasks 1–7 only.
+- Do not modify Production settings or production domain bindings.
 
 **Interfaces:**
-- Verifies the complete `PrebudgetPage` flow and all existing application features.
+- Verifies the complete beginner flow and existing portal behavior.
 - Produces a Vercel Preview URL only.
 
-- [ ] **Step 1: Run every automated test**
+- [ ] **Step 1: Run the complete automated suite**
 
-Run: `npm test -- --run`
+Run: `npm.cmd test -- --run`
 
-Expected: all suites PASS; no existing budget, closing, execution, guideline, or prebudget regression.
+Expected: all test files PASS with no existing feature regression.
 
-- [ ] **Step 2: Run the production build locally**
+- [ ] **Step 2: Run the build**
 
-Run: `npm run build`
+Run: `npm.cmd run build`
 
-Expected: TypeScript and Vite exit 0 and produce `dist` without type errors.
+Expected: TypeScript and Vite exit 0.
 
-- [ ] **Step 3: Run local browser verification**
+- [ ] **Step 3: Verify locally in a browser**
 
-Start the Vite development server, then verify in a browser: 12-card initial count; each school-level filter; combined filter and keyword; reset; detail and memo preview; empty-result state; cancel overwrite; approve overwrite; current school/year preservation; multiple-row totals; review-warning clearing; save/reload restoration; reset confirmation; automatic checks; and the existing document generation/download buttons. Check the browser console after each primary flow and require zero uncaught errors.
+Verify: four beginner choices; unsure help; category counts 10·3·3; all 16 detail pages; easy aliases; whole-catalogue search; count/reset/zero result; current school/year preservation; overwrite cancel/approve; multiple rows and totals; review warnings and clearing; save/reload; direct writing; reset; automatic checks; document generation/download; zero uncaught console errors.
 
-- [ ] **Step 4: Inspect responsive layout**
+- [ ] **Step 4: Verify layout sizes**
 
-Verify at a typical school-office desktop viewport and at 760px or narrower. Confirm no horizontal page overflow, readable item tables, visible focus state, and usable one-column filters/actions.
+Check a school-office desktop viewport and 760px-or-narrower viewport. Require readable cards/tables, visible keyboard focus and no page-level horizontal overflow.
 
-- [ ] **Step 5: Commit any verified regression fix separately**
+- [ ] **Step 5: Run final diff checks**
+
+Run: `git diff --check`
+
+Expected: no whitespace errors.
+
+Run: `git status --short`
+
+Expected: only intentional source/test changes before the final commit.
+
+- [ ] **Step 6: Commit any regression fix as one scoped commit**
 
 ```bash
 git add -u src/features/prebudget src/styles.css
 git commit -m "fix: preserve prebudget regression behavior"
 ```
 
-Skip this commit when no code changed.
+Skip this step when browser and automated verification require no code change.
 
-- [ ] **Step 6: Push the feature branch**
+- [ ] **Step 7: Push the branch and deploy Preview only**
 
 Run: `git push origin codex/fix-closing-xlsx`
 
-Expected: branch push succeeds and updates the existing draft pull request.
-
-- [ ] **Step 7: Deploy and verify Preview only**
-
-Create or use the branch Preview deployment, verify the same critical flow with actual example data, and record its Preview URL and deployment identifier. Confirm the URL is not `https://school-budget-portal.vercel.app/` and do not run any promote or production command.
+Expected: the existing draft pull request updates. Create/inspect a branch Preview and verify its URL is not `https://school-budget-portal.vercel.app/`. Do not run production or promote commands.
 
 - [ ] **Step 8: Report the acceptance matrix**
 
-Report PASS/FAIL and evidence for: 12 examples; privacy validation; filters/search/count/reset; detail/memo preview; overwrite cancel/approve; school/year preservation; review-required warnings; save/restore; direct-entry regression; automatic validation; document generation/download regression; complete test suite; build; desktop/narrow layout; console errors; Preview URL; Production unchanged.
+Report PASS/FAIL and evidence for: 16 examples; 10·3·3 counts; privacy/calculation validation; beginner questions and unsure help; category and whole search; detail/preview; overwrite protection; school/year preservation; review warnings; save/restore; direct-writing regression; document generation/download; full test suite; build; desktop/narrow layout; console; Preview URL; Production unchanged.
