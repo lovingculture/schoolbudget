@@ -26,6 +26,14 @@ describe("성립전예산 예시 불러오기", () => {
     expect(new Set(result.items.map((item) => item.id)).size).toBe(result.items.length);
   });
 
+  it("예시 적용 시 사업담당자와 품의권한 부여자를 유지한다", () => {
+    const current = { ...createPrebudgetDraft("학교"), requester: "박담당", approvalGranter: "이담당" };
+    const result = applyPrebudgetExample(current, PREBUDGET_EXAMPLES[0]);
+    expect(result.requester).toBe("박담당");
+    expect(result.approvalGranter).toBe("이담당");
+    expect(result.reviewRequiredFields).toEqual(["officialDocument"]);
+  });
+
   it.each([
     ["purpose-neulbom", "방과후 학교운영", "늘봄학교 운영", "맞춤형 늘봄교실 운영"],
     ["purpose-care", "방과후 학교운영", "돌봄교실운영", "오후돌봄교실 운영"],

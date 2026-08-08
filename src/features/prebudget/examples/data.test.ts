@@ -35,6 +35,16 @@ describe("초보자용 성립전예산 예시", () => {
     expect(validatePrebudgetExamples(PREBUDGET_EXAMPLES)).toEqual([]);
   });
 
+  it("불필요한 기본정보를 예시에 저장하지 않는다", () => {
+    for (const example of PREBUDGET_EXAMPLES) {
+      expect(example).not.toHaveProperty("grantingAgency");
+      expect(example).not.toHaveProperty("projectPeriod");
+      expect(example).not.toHaveProperty("reason");
+      expect(example).not.toHaveProperty("basis");
+      expect(example.reviewRequiredFields).toEqual(["officialDocument"]);
+    }
+  });
+
   it("16개 예시에 승인된 단위·세부사업·세부항목을 지정한다", () => {
     for (const example of PREBUDGET_EXAMPLES) {
       const item = example.items[0];
