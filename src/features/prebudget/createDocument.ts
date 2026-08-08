@@ -5,7 +5,21 @@ import type { PrebudgetFormDraft } from "./types";
 export function createPrebudgetDocument(draft: PrebudgetFormDraft) {
   const items = activePrebudgetItems(draft.items).map((item) => ({ ...item, amount: calculateRequestedAmount(item) }));
   const total = items.reduce((sum, item) => sum + item.amount, 0);
-  const lines = [`${draft.title}`, "", `1. 관련: ${draft.officialDocument}`, `2. ${draft.fiscalYear}학년도 성립전예산을 다음과 같이 편성하고자 합니다.`, "", `  가. 재원구분: ${draft.source}`, `  나. 요구부서: ${draft.department}`, `  다. 요구자: ${draft.requester}`, `  라. 예산요구 총액: ${total.toLocaleString()}원`, "", "[성립전예산 요구내역]", ...items.map((item, i) => `${i + 1}. ${item.unitBusiness} > ${item.business} / ${item.detail} / ${item.category} / ${item.description} / ${item.amount.toLocaleString()}원`), "", "붙임  성립전예산 요구내역 1부.  끝."];
+  const subject = draft.title.replace(/\s*성립전예산(?:\s*편성)?\s*$/, "").trim();
+  const lines = [
+    draft.title,
+    "",
+    `관련: ${draft.officialDocument}`,
+    `${draft.fiscalYear}학년도 ${subject ? `${subject} ` : ""}성립전예산을 다음과 같이 편성하고자 합니다.`,
+    "",
+    `가. 재원구분: ${draft.source}`,
+    `나. 요구부서: ${draft.department}`,
+    `다. 사업담당자: ${draft.requester}`,
+    `라. 품의권한 부여자: ${draft.approvalGranter}`,
+    `마. 예산요구 총액: ${total.toLocaleString()}원`,
+    `바. 성립전예산 요구내역`,
+    ...items.map((item) => `단위사업) ${item.unitBusiness} / 세부사업) ${item.business} / 세부항목) ${item.detail} / 원가통계비목) ${item.category} / 산출기초) ${item.description} / ${item.amount.toLocaleString()}원`),
+  ];
   return { ...draft, items, total, copyText: lines.join("\n") };
 }
 export type PrebudgetDocument = ReturnType<typeof createPrebudgetDocument>;
