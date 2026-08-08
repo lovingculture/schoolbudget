@@ -7,6 +7,15 @@ import { PrebudgetPage } from "./PrebudgetPage";
 const storage: DraftStorage = { load: () => null, save: vi.fn(), clear: vi.fn() };
 
 describe("성립전예산 예시 통합", () => {
+  it("필요한 담당자 입력만 표시한다", () => {
+    render(<PrebudgetPage initialSchoolName="서울우리학교" storage={storage} />);
+    expect(screen.getByRole("textbox", { name: "사업담당자" })).toHaveValue("김담당");
+    expect(screen.getByRole("textbox", { name: "품의권한 부여자" })).toHaveValue("");
+    for (const removed of ["교부기관", "사업기간", "편성 사유", "관련 근거"]) {
+      expect(screen.queryByLabelText(removed)).not.toBeInTheDocument();
+    }
+  });
+
   it("현재 학교명을 유지한 채 초보자 안내를 연다", async () => {
     const user = userEvent.setup(); render(<PrebudgetPage initialSchoolName="서울우리학교" storage={storage} />);
     await user.click(screen.getByRole("button", { name: "예시에서 시작하기" }));

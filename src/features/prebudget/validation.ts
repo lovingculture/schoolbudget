@@ -4,14 +4,14 @@ import type { PrebudgetFormDraft, PrebudgetValidationIssue } from "./types";
 
 export function validatePrebudgetForm(draft: PrebudgetFormDraft): PrebudgetValidationIssue[] {
   const issues: PrebudgetValidationIssue[] = [];
-  const reviewLabels: Record<string, string> = { grantingAgency: "교부기관", officialDocument: "관련 공문", projectPeriod: "사업기간", reason: "편성 사유", basis: "관련 근거" };
+  const reviewLabels: Record<string, string> = { officialDocument: "관련 공문" };
   const seenReviewFields = new Set<string>();
   for (const field of draft.reviewRequiredFields) {
     if (seenReviewFields.has(field)) continue;
     seenReviewFields.add(field);
     issues.push({ field, message: `${reviewLabels[field] ?? field} 확인 필요` });
   }
-  const required: [keyof PrebudgetFormDraft, string][] = [["schoolName", "학교명을 입력하세요."], ["title", "문서 제목을 입력하세요."], ["department", "부서명을 입력하세요."], ["requester", "요구자를 입력하세요."], ["officialDocument", "관련 공문을 입력하세요."]];
+  const required: [keyof PrebudgetFormDraft, string][] = [["schoolName", "학교명을 입력하세요."], ["title", "문서 제목을 입력하세요."], ["department", "부서명을 입력하세요."], ["requester", "사업담당자를 입력하세요."], ["officialDocument", "관련 공문을 입력하세요."]];
   required.forEach(([field, message]) => { if (!String(draft[field] ?? "").trim()) issues.push({ field, message }); });
   draft.items.forEach((item, index) => {
     if (!activePrebudgetItems([item]).length) return;
