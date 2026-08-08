@@ -38,7 +38,7 @@ export function PrebudgetPage({ initialSchoolName, storage = createBrowserDraftS
   };
   const downloadHwpx = async () => {
     if (!document || workingExport) return;
-    setWorkingExport("hwpx");
+    setWorkingExport("hwpx"); setMessage("");
     try {
       downloadBlob(await exportPrebudgetHwpx(document), prebudgetFilename(document.title, "hwpx"));
     } catch {

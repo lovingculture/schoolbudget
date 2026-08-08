@@ -8,6 +8,7 @@ import { exportPrebudgetHwpx } from "./exporters";
 
 vi.mock("./exporters", async (importOriginal) => ({
   ...await importOriginal<typeof import("./exporters")>(),
+  downloadBlob: vi.fn(),
   exportPrebudgetHwpx: vi.fn(),
 }));
 
@@ -78,6 +79,23 @@ describe("성립전예산 예시 통합", () => {
 
     rejectExport(new Error("HWPX export failed"));
     await waitFor(() => expect(screen.getByText("한글(HWPX) 파일을 만들지 못했습니다. 다시 시도해 주세요.")).toBeVisible());
+  });
+
+  it("clears the HWPX export failure after a successful retry", async () => {
+    vi.mocked(exportPrebudgetHwpx)
+      .mockRejectedValueOnce(new Error("HWPX export failed"))
+      .mockResolvedValueOnce(new Blob(["HWPX"]));
+    const user = await renderValidPreview();
+    const hwpxButton = screen.getByRole("button", { name: "한글(HWPX)" });
+    const failureMessage = "한글(HWPX) 파일을 만들지 못했습니다. 다시 시도해 주세요.";
+
+    await user.click(hwpxButton);
+    await screen.findByText(failureMessage);
+    expect(hwpxButton).toBeEnabled();
+
+    await user.click(hwpxButton);
+    await waitFor(() => expect(screen.queryByText(failureMessage)).not.toBeInTheDocument());
+    expect(hwpxButton).toBeEnabled();
   });
 
 
