@@ -80,4 +80,11 @@ describe("legacy draft normalization", () => {
 
     expect(second.reviewRequiredFields).toEqual([]);
   });
+
+  it("drops removed review fields from legacy saved examples", () => {
+    const result = normalizePrebudgetDraft({
+      reviewRequiredFields: ["grantingAgency", "officialDocument", "projectPeriod"],
+    });
+    expect(result.reviewRequiredFields).toEqual(["officialDocument"]);
+  });
 });

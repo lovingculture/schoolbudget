@@ -3,6 +3,7 @@ import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
 import type { DraftStorage } from "./storage";
 import { PrebudgetPage } from "./PrebudgetPage";
+import { createPrebudgetDraft } from "./draft";
 
 const storage: DraftStorage = { load: () => null, save: vi.fn(), clear: vi.fn() };
 
@@ -15,6 +16,27 @@ describe("성립전예산 예시 통합", () => {
       expect(screen.queryByLabelText(removed)).not.toBeInTheDocument();
     }
   });
+
+  it("미리보기에서 문서 제목을 한 번만 표시한다", async () => {
+    Element.prototype.scrollIntoView = vi.fn();
+    const draft = createPrebudgetDraft("서울우리학교");
+    draft.officialDocument = "교육지원과-2222(2026. 7. 1.)";
+    draft.items[0] = {
+      ...draft.items[0],
+      unitBusiness: "방과후 학교운영",
+      business: "늘봄학교 운영",
+      detail: "맞춤형 늘봄교실 운영",
+      description: "운영 물품비",
+      manualAmount: 200_000,
+    };
+    const loadedStorage: DraftStorage = { load: () => draft, save: vi.fn(), clear: vi.fn() };
+    const { container } = render(<PrebudgetPage initialSchoolName="서울우리학교" storage={loadedStorage} />);
+    await userEvent.setup().click(screen.getByRole("button", { name: "자동점검 후 기안문 생성" }));
+    const paper = container.querySelector(".prebudget-paper")!;
+    expect(paper.querySelector("h1")).toHaveTextContent(draft.title);
+    expect(paper.querySelector("pre")).not.toHaveTextContent(new RegExp(`^${draft.title}`));
+  });
+
 
   it("현재 학교명을 유지한 채 초보자 안내를 연다", async () => {
     const user = userEvent.setup(); render(<PrebudgetPage initialSchoolName="서울우리학교" storage={storage} />);

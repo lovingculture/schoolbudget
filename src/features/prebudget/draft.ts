@@ -45,7 +45,9 @@ export function normalizePrebudgetDraft(value: unknown, initialSchoolName = ""):
   const savedAt = stringProperty(value, "savedAt");
   if (savedAt !== undefined) draft.savedAt = savedAt;
   if (Array.isArray(value.items)) draft.items = value.items.map(normalizePrebudgetItem);
-  if (Array.isArray(value.reviewRequiredFields) && value.reviewRequiredFields.every((field): field is string => typeof field === "string")) draft.reviewRequiredFields = [...value.reviewRequiredFields];
+  if (Array.isArray(value.reviewRequiredFields)) {
+    draft.reviewRequiredFields = value.reviewRequiredFields.filter((field): field is string => field === "officialDocument");
+  }
   return draft;
 }
 
