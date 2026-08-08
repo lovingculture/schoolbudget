@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<hs:sec xmlns:ha="http://www.hancom.co.kr/hwpml/2011/app" xmlns:hp="http://www.hancom.co.kr/hwpml/2011/paragraph" xmlns:hs="http://www.hancom.co.kr/hwpml/2011/section">
+  <hp:p id="0" paraPrIDRef="40" styleIDRef="0" pageBreak="0" columnBreak="0" merged="0">
+    <hp:run charPrIDRef="41">
+      <hp:secPr id="" textDirection="HORIZONTAL" spaceColumns="1134" tabStop="8000" tabStopVal="4000" tabStopUnit="HWPUNIT" outlineShapeIDRef="1" memoShapeIDRef="0" textVerticalWidthHead="0" masterPageCnt="0">
+        <hp:grid lineGrid="0" charGrid="0" wonggojiFormat="0"/>
+        <hp:startNum pageStartsOn="BOTH" page="0" pic="0" tbl="0" equation="0"/>
+        <hp:visibility hideFirstHeader="0" hideFirstFooter="0" hideFirstMasterPage="0" border="SHOW_ALL" fill="SHOW_ALL" hideFirstPageNum="0" hideFirstEmptyLine="0" showLineNumber="0"/>
+        <hp:lineNumberShape restartType="0" countBy="0" distance="0" startNumber="0"/>
+        <hp:pagePr landscape="WIDELY" width="59528" height="84188" gutterType="LEFT_ONLY"><hp:margin header="4251" footer="3685" gutter="0" left="5669" right="5669" top="2551" bottom="4251"/></hp:pagePr>
+      </hp:secPr>
+    </hp:run>
+    <hp:run charPrIDRef="41"><hp:t>{{TITLE}}</hp:t></hp:run>
+    <hp:linesegarray><hp:lineseg textpos="0" vertpos="0" vertsize="2400" textheight="2400" baseline="2040" spacing="1440" horzpos="0" horzsize="48188" flags="393216"/></hp:linesegarray>
+  </hp:p>
+  <hp:p id="1" paraPrIDRef="2" styleIDRef="0" pageBreak="0" columnBreak="0" merged="0">
+    <hp:run charPrIDRef="20"><hp:t>{{BODY_LINE}}</hp:t></hp:run>
+    <hp:linesegarray><hp:lineseg textpos="0" vertpos="3840" vertsize="1200" textheight="1200" baseline="1020" spacing="720" horzpos="0" horzsize="48188" flags="393216"/></hp:linesegarray>
+  </hp:p>
+</hs:sec>
