@@ -6,12 +6,35 @@ describe("성립전예산 초안", () => {
     const draft = createPrebudgetDraft("서울한빛초등학교");
     expect(draft.schoolName).toBe("서울한빛초등학교");
     expect(draft.source).toBe("목적사업비(교육청)");
+    expect(draft.requester).toBe("김담당");
+    expect(draft.approvalGranter).toBe("");
+    expect(draft).not.toHaveProperty("grantingAgency");
+    expect(draft).not.toHaveProperty("projectPeriod");
+    expect(draft).not.toHaveProperty("reason");
+    expect(draft).not.toHaveProperty("basis");
     expect(draft.items).toHaveLength(5);
     expect(activePrebudgetItems(draft.items)).toEqual([]);
   });
 });
 
 describe("legacy draft normalization", () => {
+  it("ignores removed legacy fields and supplies an empty approval granter", () => {
+    const result = normalizePrebudgetDraft({
+      requester: "김담당",
+      grantingAgency: "기존 교육지원청",
+      projectPeriod: "2026. 1. 1. ~ 2026. 12. 31.",
+      reason: "기존 사유",
+      basis: "기존 근거",
+    });
+
+    expect(result.requester).toBe("김담당");
+    expect(result.approvalGranter).toBe("");
+    expect(result).not.toHaveProperty("grantingAgency");
+    expect(result).not.toHaveProperty("projectPeriod");
+    expect(result).not.toHaveProperty("reason");
+    expect(result).not.toHaveProperty("basis");
+  });
+
   it("fills new fields when loading a legacy draft", () => {
     const legacy = {
       schoolName: "기존학교",
@@ -29,10 +52,7 @@ describe("legacy draft normalization", () => {
       schoolName: "기존학교",
       fiscalYear: 2026,
       schoolLevel: "공통",
-      grantingAgency: "",
-      projectPeriod: "",
-      reason: "",
-      basis: "",
+      approvalGranter: "",
       reviewRequiredFields: [],
     });
   });

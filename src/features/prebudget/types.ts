@@ -10,14 +10,11 @@ export interface PrebudgetFormDraft {
   title: string;
   department: string;
   requester: string;
+  approvalGranter: string;
   officialDocument: string;
   items: DraftItem[];
   savedAt?: string;
   schoolLevel: PrebudgetSchoolLevel;
-  grantingAgency: string;
-  projectPeriod: string;
-  reason: string;
-  basis: string;
   exampleSourceId?: string;
   reviewRequiredFields: string[];
 }
