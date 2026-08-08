@@ -27,8 +27,8 @@ describe("성립전예산 계산", () => {
     expect(issues.map((issue) => issue.code)).toEqual(expect.arrayContaining(["TITLE_REQUIRED", "DEPARTMENT_REQUIRED", "REQUESTER_REQUIRED", "NEGATIVE_AMOUNT"]));
   });
 
-  it("20개 단위사업과 연결된 세부사업을 제공한다", () => {
-    expect(PREBUDGET_BUSINESS_OPTIONS).toHaveLength(20);
+  it("21개 단위사업과 연결된 세부사업을 제공한다", () => {
+    expect(PREBUDGET_BUSINESS_OPTIONS).toHaveLength(21);
     expect(getDetailBusinesses("교과 활동")).toEqual([
       "교과활동지원", "국어 교과활동", "사회 교과활동", "수학 교과활동",
       "과학 교과활동", "체육 교과활동", "예술 교과활동", "외국어 교과활동",
@@ -37,6 +37,15 @@ describe("성립전예산 계산", () => {
     ]);
     expect(getDetailBusinesses("급식 관리")).toEqual(["학교급식운영"]);
     expect(getDetailBusinesses()).toEqual([]);
+  });
+
+  it.each([
+    ["방과후 학교운영", "늘봄학교 운영"],
+    ["방과후 학교운영", "돌봄교실운영"],
+    ["교육여건 개선", "교육환경개선"],
+    ["학생 복지", "학생 복지운영"],
+  ])("%s에서 %s를 선택할 수 있다", (unit, detail) => {
+    expect(getDetailBusinesses(unit)).toContain(detail);
   });
 
   it("원가통계비목 20개를 지정된 순서로 제공한다", () => {
