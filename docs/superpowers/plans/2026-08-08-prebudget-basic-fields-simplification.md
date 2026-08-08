@@ -12,8 +12,8 @@
 
 - Remove 교부기관, 사업기간, 편성 사유, 관련 근거 from the prebudget feature only.
 - Display existing `requester` as `사업담당자`.
-- Add `품의권한부여자` as a separate optional field with an empty default.
-- Allow draft generation when `품의권한부여자` is empty, retaining the blank label line in the draft.
+- Add `품의권한 부여자` as a separate optional field with an empty default.
+- Allow draft generation when `품의권한 부여자` is empty, retaining the blank label line in the draft.
 - Preserve the saved-draft key and the existing `requester` storage field.
 - Preserve all 16 example business mappings, amount calculations, and existing download availability.
 - HWPX template output is out of scope until the user provides the reference HWPX file.
@@ -132,7 +132,7 @@ it("불필요한 기본정보를 예시에 저장하지 않는다", () => {
 Add an application test:
 
 ```ts
-it("예시 적용 시 사업담당자와 품의권한부여자를 유지한다", () => {
+it("예시 적용 시 사업담당자와 품의권한 부여자를 유지한다", () => {
   const current = { ...createPrebudgetDraft("학교"), requester: "박담당", approvalGranter: "이담당" };
   const result = applyPrebudgetExample(current, PREBUDGET_EXAMPLES[0]);
   expect(result.requester).toBe("박담당");
@@ -181,7 +181,7 @@ git commit -m "refactor: remove unused prebudget example fields"
 
 **Interfaces:**
 - Consumes: `draft.requester`, `draft.approvalGranter`, and `reviewRequiredFields: ["officialDocument"]`
-- Produces: separate labeled inputs `사업담당자` and `품의권한부여자`; optional validation for the latter
+- Produces: separate labeled inputs `사업담당자` and `품의권한 부여자`; optional validation for the latter
 
 - [ ] **Step 1: Write failing screen and validation tests**
 
@@ -189,7 +189,7 @@ Add a page test that renders `PrebudgetPage` and asserts:
 
 ```ts
 expect(screen.getByRole("textbox", { name: "사업담당자" })).toHaveValue("김담당");
-expect(screen.getByRole("textbox", { name: "품의권한부여자" })).toHaveValue("");
+expect(screen.getByRole("textbox", { name: "품의권한 부여자" })).toHaveValue("");
 for (const removed of ["교부기관", "사업기간", "편성 사유", "관련 근거"]) {
   expect(screen.queryByRole("textbox", { name: removed })).not.toBeInTheDocument();
 }
@@ -209,7 +209,7 @@ In the basic-information form:
 
 ```tsx
 <label>사업담당자<input value={draft.requester} onChange={(e) => field("requester", e.target.value)} /></label>
-<label>품의권한부여자<input value={draft.approvalGranter} onChange={(e) => field("approvalGranter", e.target.value)} /></label>
+<label>품의권한 부여자<input value={draft.approvalGranter} onChange={(e) => field("approvalGranter", e.target.value)} /></label>
 ```
 
 Remove the four deleted labels. Keep the related-document input. Change the required validation entry to:
@@ -242,7 +242,7 @@ git commit -m "feat: simplify prebudget basic information"
 
 **Interfaces:**
 - Consumes: `PrebudgetFormDraft.requester` and optional `approvalGranter`
-- Produces: canonical `copyText` with separate business-manager and approval-granter lines
+- Produces: canonical `copyText` with separate business-manager and approval-granter lines, approved `가`–`바` ordering, labeled item values, and no attachment sentence
 - Preserves: document totals, item lines, Word and PDF generation
 
 - [ ] **Step 1: Write the failing draft-text tests**
@@ -250,7 +250,7 @@ git commit -m "feat: simplify prebudget basic information"
 Create `createDocument.test.ts` with an active item and these assertions:
 
 ```ts
-it("사업담당자와 품의권한부여자를 별도 줄로 생성한다", () => {
+it("사업담당자와 품의권한 부여자를 승인된 순서로 생성한다", () => {
   const draft = createPrebudgetDraft("학교");
   Object.assign(draft, {
     requester: "김담당",
@@ -268,17 +268,21 @@ it("사업담당자와 품의권한부여자를 별도 줄로 생성한다", () 
   };
 
   const document = createPrebudgetDocument(draft);
+  expect(document.copyText).toContain("관련: 교육지원과-1111(2022. 1. 1.)");
   expect(document.copyText).toContain("다. 사업담당자: 김담당");
-  expect(document.copyText).toContain("라. 품의권한부여자: 이담당");
+  expect(document.copyText).toContain("라. 품의권한 부여자: 이담당");
   expect(document.copyText).toContain("마. 예산요구 총액: 800,000원");
+  expect(document.copyText).toContain("바. 성립전예산 요구내역");
+  expect(document.copyText).toContain("단위사업) 생활지도 운영 / 세부사업) 학생안전교육 / 세부항목) 학교안전인력 운영 / 원가통계비목) 교육운영비 / 산출기초) 학생안전 인력 운영 / 800,000원");
   expect(document.copyText).not.toContain("다. 요구자:");
+  expect(document.copyText).not.toContain("붙임");
 });
 
-it("품의권한부여자가 공란이어도 기안문을 생성한다", () => {
+it("품의권한 부여자가 공란이어도 기안문을 생성한다", () => {
   const draft = createPrebudgetDraft("학교");
   draft.approvalGranter = "";
   draft.items[0] = { ...draft.items[0], detail: "항목", manualAmount: 1 };
-  expect(createPrebudgetDocument(draft).copyText).toContain("라. 품의권한부여자: \n");
+  expect(createPrebudgetDocument(draft).copyText).toContain("라. 품의권한 부여자: \n");
 });
 ```
 
@@ -290,15 +294,18 @@ Expected: FAIL because the old `요구자` and four-line numbering remain.
 
 - [ ] **Step 3: Update canonical draft text and Word extraction**
 
-Generate these lines in `createPrebudgetDocument`:
+Generate the unnumbered related-document and purpose lines, followed by these lines in `createPrebudgetDocument`:
 
 ```ts
-`  다. 사업담당자: ${draft.requester}`,
-`  라. 품의권한부여자: ${draft.approvalGranter}`,
-`  마. 예산요구 총액: ${total.toLocaleString()}원`,
+`가. 재원구분: ${draft.source}`,
+`나. 요구부서: ${draft.department}`,
+`다. 사업담당자: ${draft.requester}`,
+`라. 품의권한 부여자: ${draft.approvalGranter}`,
+`마. 예산요구 총액: ${total.toLocaleString()}원`,
+"바. 성립전예산 요구내역",
 ```
 
-Update the Word exporter copy-text slice from `.slice(2, 9)` to `.slice(2, 10)` so it includes the new total line. Do not add or re-enable an Excel download button.
+Format each item as `단위사업) ... / 세부사업) ... / 세부항목) ... / 원가통계비목) ... / 산출기초) ... / 금액원`, remove the final attachment sentence, and make the Word exporter consume the complete canonical draft body instead of relying on the old `.slice(2, 9)` boundary. Do not add or re-enable an Excel download button.
 
 - [ ] **Step 4: Run document and exporter tests**
 
@@ -340,10 +347,11 @@ Start the local app and verify:
 
 - deleted four fields are absent;
 - 사업담당자 defaults to 김담당;
-- 품의권한부여자 defaults to blank;
+- 품의권한 부여자 defaults to blank;
 - an example can be applied without reintroducing removed fields;
 - generation succeeds with a blank approval granter;
-- generated draft shows the blank `품의권한부여자:` line and the `사업담당자:` line;
+- generated draft shows the blank `품의권한 부여자:` line and the `사업담당자:` line;
+- generated draft follows the `가`–`바` order and contains no `붙임` sentence;
 - browser console contains no errors.
 
 - [ ] **Step 4: Confirm repository scope**
