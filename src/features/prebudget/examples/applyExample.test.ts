@@ -25,4 +25,19 @@ describe("성립전예산 예시 불러오기", () => {
     expect(example.items[0].description).not.toBe("사용자 수정");
     expect(new Set(result.items.map((item) => item.id)).size).toBe(result.items.length);
   });
+
+  it.each([
+    ["purpose-neulbom", "방과후 학교운영", "늘봄학교 운영", "맞춤형 늘봄교실 운영"],
+    ["purpose-care", "방과후 학교운영", "돌봄교실운영", "오후돌봄교실 운영"],
+    ["district-facility", "교육여건 개선", "교육환경개선", "시설·환경개선"],
+    ["beneficiary-yearbook", "학생 복지", "학생 복지운영", "졸업앨범 제작"],
+    ["beneficiary-field-trip", "창의적 체험활동", "현장체험학습 활동", "현장체험학습"],
+  ])("%s 예시의 3단계 사업분류를 작성 화면에 복사한다", (id, unit, business, detail) => {
+    const example = PREBUDGET_EXAMPLES.find((candidate) => candidate.id === id)!;
+    const result = applyPrebudgetExample(createPrebudgetDraft("학교"), example);
+    expect(result.items[0]).toMatchObject({ unitBusiness: unit, business, detail });
+
+    result.items[0].detail = "사용자 수정 세부항목";
+    expect(example.items[0].detail).toBe(detail);
+  });
 });

@@ -18,6 +18,8 @@ export function searchPrebudgetExamples(examples: readonly PrebudgetExample[], q
     if (scope !== "전체" && example.fundingCategory !== scope) return false;
     if (!needle) return true;
     const itemText = example.items.flatMap((item) => [item.unitBusiness, item.business, item.detail, item.category, item.description, item.note]);
-    return normalize([example.title, example.fundingCategory, example.summary, ...example.searchAliases, ...itemText].filter(Boolean).join(" ")).includes(needle);
+    const searchable = [example.title, example.fundingCategory, example.summary, ...example.searchAliases];
+    if (needle.length > 1) searchable.push(...itemText.filter((value): value is string => Boolean(value)));
+    return normalize(searchable.join(" ")).includes(needle);
   });
 }
