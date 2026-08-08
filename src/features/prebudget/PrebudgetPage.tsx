@@ -20,6 +20,7 @@ export function PrebudgetPage({ initialSchoolName, storage = createBrowserDraftS
   const [exampleCategory, setExampleCategory] = useState<ExampleFundingCategory>("목적사업비");
   const [message, setMessage] = useState(""); const [issues, setIssues] = useState<string[]>([]); const [document, setDocument] = useState<PrebudgetDocument | null>(null); const previewRef = useRef<HTMLElement>(null);
   const total = useMemo(() => activePrebudgetItems(draft.items).reduce((sum, i) => sum + calculateRequestedAmount(i), 0), [draft.items]);
+  const blank = useMemo(() => createPrebudgetDraft(initialSchoolName), [initialSchoolName]);
   useEffect(() => {
     globalThis.document.querySelectorAll(".category-help").forEach((node) => node.setAttribute("aria-label", "비목 설명"));
   }, [draft.items]);
@@ -30,7 +31,6 @@ export function PrebudgetPage({ initialSchoolName, storage = createBrowserDraftS
   const updateItem = (index: number, key: keyof DraftItem, value: string | number) => field("items", draft.items.map((item, i) => i === index ? (key === "unitBusiness" ? { ...item, unitBusiness: String(value), business: "" } : { ...item, [key]: value }) : item));
   const save = () => { const savedAt = new Date().toISOString(); const next = { ...draft, savedAt }; storage.save(next); setDraft(next); setMessage(`이 브라우저에 임시저장했습니다. (${new Date(savedAt).toLocaleString("ko-KR")})`); };
   const generate = () => { const nextIssues = validatePrebudgetForm(draft); setIssues(nextIssues.map((i) => i.message)); if (nextIssues.length) { setDocument(null); setMessage("입력 내용을 확인해 주세요."); return; } const next = createPrebudgetDocument(draft); setDocument(next); setMessage("자동점검을 통과했습니다."); setTimeout(() => previewRef.current?.scrollIntoView({ behavior: "smooth" }), 0); };
-  const blank = createPrebudgetDraft(initialSchoolName);
   const hasMeaningfulDraft = draft.title !== blank.title || draft.officialDocument.trim() !== "" || activePrebudgetItems(draft.items).length > 0;
   const useExample = (example: PrebudgetExample) => {
     if (hasMeaningfulDraft && !window.confirm("현재 작성 중인 내용이 예시 내용으로 바뀝니다. 계속하시겠습니까?")) { setView("form"); return; }
