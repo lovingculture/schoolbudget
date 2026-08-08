@@ -40,6 +40,13 @@ describe("예산업무 포털", () => {
     expect(screen.getByRole("button", { name: "성립전예산 새로 작성" })).toBeVisible();
   });
 
+  it("홈에서 성립전예산의 Word와 PDF 출력만 안내한다", () => {
+    render(<Portal displayName="김담당" schoolName="서울한빛초등학교" onLogout={() => {}} />);
+    const guidance = screen.getByText((_, element) => element?.tagName === "P" && element.textContent === "지침을 확인하고 성립전예산 요구서를 작성하면기안문과 Word·PDF가 자동으로 완성됩니다.");
+    expect(guidance).toBeVisible();
+    expect(guidance).not.toHaveTextContent("Excel");
+  });
+
   it("성립전예산 입력 금액의 합계를 계산한다", async () => {
     const user = userEvent.setup();
     render(<Portal displayName="김담당" schoolName="서울한빛초등학교" onLogout={() => {}} />);

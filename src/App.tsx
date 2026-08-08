@@ -481,7 +481,7 @@ function HomePage({
           <p>
             지침을 확인하고 성립전예산 요구서를 작성하면
             <br />
-            기안문과 Excel·Word·PDF가 자동으로 완성됩니다.
+            기안문과 Word·PDF가 자동으로 완성됩니다.
           </p>
           <button className="primary" onClick={onCreate}>
             성립전예산 새로 작성 <ChevronRight size={18} />
