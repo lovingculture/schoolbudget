@@ -24,6 +24,8 @@ import { PrebudgetPage } from "./features/prebudget/PrebudgetPage";
 import { MainBudgetPage } from "./features/mainBudget/MainBudgetPage";
 import { PortalHeader, type PortalHeaderView } from "./components/PortalHeader";
 import { HomePage } from "./features/home/HomePage";
+import { ResourcesPage as PortalResourcesPage } from "./features/resources/ResourcesPage";
+import { VideoGuidePage } from "./features/videos/VideoGuidePage";
 
 export type View = PortalHeaderView;
 
@@ -365,8 +367,8 @@ export function Portal({
         {view === "supplementary" && <SupplementaryPage />}
         {view === "budget" && <MainBudgetPage />}
         {view === "settings" && <SettingsPage />}
-        {view === "resources" && <ResourcesPage onGuidelines={() => go("guidelines")} />}
-        {view === "videos" && <VideoGuideLanding />}
+        {view === "resources" && <PortalResourcesPage onGuidelines={() => go("guidelines")} />}
+        {view === "videos" && <VideoGuidePage />}
         {view === "search" && <PortalSearchPage />}
       </main>
     </div>
