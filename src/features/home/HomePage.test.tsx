@@ -154,6 +154,39 @@ describe("승인된 포털 홈", () => {
     }
   });
 
+  it("캐릭터 카드 아이콘 상자를 52픽셀로 고정합니다", () => {
+    const style = document.createElement("style");
+    style.textContent = homeStyles;
+    document.head.append(style);
+
+    try {
+      const { container } = render(
+        <HomePage
+          displayName="김담당"
+          schoolName="서울한빛초등학교"
+          onNavigate={() => {}}
+        />,
+      );
+
+      for (const view of ["prebudget", "budget", "agenda", "closing"]) {
+        const icon = container.querySelector<HTMLElement>(
+          `[data-view="${view}"] .home-work-icon`,
+        );
+        if (!icon) throw new Error(`${view} 카드 아이콘을 찾을 수 없습니다.`);
+
+        const iconStyle = getComputedStyle(icon);
+        expect(iconStyle.width).toBe("52px");
+        expect(iconStyle.height).toBe("52px");
+        expect(iconStyle.minWidth).toBe("0");
+        expect(iconStyle.minHeight).toBe("0");
+        expect(iconStyle.flexShrink).toBe("0");
+        expect(iconStyle.flexBasis).toBe("52px");
+      }
+    } finally {
+      style.remove();
+    }
+  });
+
   it("홈의 모든 실행 항목을 실제 포털 화면에 연결한다", async () => {
     const user = userEvent.setup();
     render(<Portal displayName="김담당" schoolName="서울한빛초등학교" />);
