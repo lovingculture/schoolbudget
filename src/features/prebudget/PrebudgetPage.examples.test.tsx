@@ -68,6 +68,31 @@ describe("성립전예산 예시 통합", () => {
     expect(screen.queryByRole("button", { name: "Excel" })).not.toBeInTheDocument();
   });
 
+  it("불러온 예시의 계산요소를 수정하면 항목 금액과 합계를 다시 계산한다", async () => {
+    const draft = validDraft();
+    draft.exampleSourceId = "loaded-example";
+    draft.items[0] = {
+      ...draft.items[0],
+      unitPrice: 10_000,
+      quantity: 10,
+      count: 2,
+      manualAmount: 200_000,
+    };
+    const loadedStorage: DraftStorage = { load: () => draft, save: vi.fn(), clear: vi.fn() };
+    const { container } = render(<PrebudgetPage initialSchoolName="서울우리학교" storage={loadedStorage} />);
+    const user = userEvent.setup();
+    const unitPrice = container.querySelector<HTMLInputElement>(".formula input")!;
+
+    expect(container.querySelector(".formula output")).toHaveTextContent("200,000원");
+    expect(container.querySelector(".total strong")).toHaveTextContent("200,000원");
+
+    await user.clear(unitPrice);
+    await user.type(unitPrice, "20000");
+
+    expect(container.querySelector(".formula output")).toHaveTextContent("400,000원");
+    expect(container.querySelector(".total strong")).toHaveTextContent("400,000원");
+  });
+
   it("disables HWPX while it exports and reports an export failure", async () => {
     let rejectExport: (reason?: unknown) => void = () => undefined;
     vi.mocked(exportPrebudgetHwpx).mockImplementationOnce(() => new Promise<Blob>((_, reject) => { rejectExport = reject; }));

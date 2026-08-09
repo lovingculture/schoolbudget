@@ -28,7 +28,18 @@ export function PrebudgetPage({ initialSchoolName, storage = createBrowserDraftS
     const reviewRequiredFields = typeof value === "string" && !/(○○|0000|20XX)/.test(value) ? d.reviewRequiredFields.filter((fieldName) => fieldName !== key) : d.reviewRequiredFields;
     return { ...d, [key]: value, reviewRequiredFields };
   });
-  const updateItem = (index: number, key: keyof DraftItem, value: string | number) => field("items", draft.items.map((item, i) => i === index ? (key === "unitBusiness" ? { ...item, unitBusiness: String(value), business: "" } : { ...item, [key]: value }) : item));
+  const updateItem = (index: number, key: keyof DraftItem, value: string | number) => setDraft((current) => ({
+    ...current,
+    items: current.items.map((item, i) => {
+      if (i !== index) return item;
+      if (key === "unitBusiness") return { ...item, unitBusiness: String(value), business: "" };
+      if (key === "unitPrice" || key === "quantity" || key === "count") {
+        const { manualAmount: _manualAmount, ...calculatedItem } = item;
+        return { ...calculatedItem, [key]: value };
+      }
+      return { ...item, [key]: value };
+    }),
+  }));
   const save = () => { const savedAt = new Date().toISOString(); const next = { ...draft, savedAt }; storage.save(next); setDraft(next); setMessage(`이 브라우저에 임시저장했습니다. (${new Date(savedAt).toLocaleString("ko-KR")})`); };
   const generate = () => { const nextIssues = validatePrebudgetForm(draft); setIssues(nextIssues.map((i) => i.message)); if (nextIssues.length) { setDocument(null); setMessage("입력 내용을 확인해 주세요."); return; } const next = createPrebudgetDocument(draft); setDocument(next); setMessage("자동점검을 통과했습니다."); setTimeout(() => previewRef.current?.scrollIntoView({ behavior: "smooth" }), 0); };
   const hasMeaningfulDraft = draft.title !== blank.title || draft.officialDocument.trim() !== "" || activePrebudgetItems(draft.items).length > 0;
