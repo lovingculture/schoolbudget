@@ -65,7 +65,7 @@ export async function parseExpenditureWorkbook(file: File): Promise<ParsedExpend
   const rows: MainBudgetExpenditureRow[] = [];
   for (let rowIndex = table.headerIndex + 1; rowIndex < table.rows.length; rowIndex += 1) {
     const values = table.indexes.map((index) => table.rows[rowIndex][index]);
-    if (values.every((value) => text(value) === "")) continue;
+    if ([0, 1, 2, 3, 4, 5, 7, 8, 9].every((index) => text(values[index]) === "")) continue;
     const expression = text(values[5]);
     const calculated = calculateBudgetExpression(expression);
     const priorRequestedAmount = numberValue(values[9]);

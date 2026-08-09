@@ -31,7 +31,7 @@ describe("본예산 세출 요구서 파서", () => {
   });
 
   it("빈 양식은 경고와 빈 행을 반환한다", async () => {
-    const parsed = await parseExpenditureWorkbook(workbookFile([headers]));
+    const parsed = await parseExpenditureWorkbook(workbookFile([headers, [null, null, null, null, null, null, 0, null, null, null, 0]]));
     expect(parsed.rows).toEqual([]);
     expect(parsed.warnings).toContain("입력 자료 없음");
   });
