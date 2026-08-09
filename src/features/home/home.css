@@ -3,9 +3,16 @@
   --home-blue: #188bc1;
   --home-teal: #1596a3;
   --home-muted: #6f8193;
-  max-width: 1440px;
-  padding: 0 42px 72px;
+  width: 100%;
+  max-width: none;
+  padding: 0 0 72px;
   color: var(--home-navy);
+}
+
+.home-section-inner {
+  width: calc(100% - 84px);
+  max-width: 1356px;
+  margin-inline: auto;
 }
 
 .home-page-v2 button {
@@ -20,14 +27,17 @@
 
 .home-hero {
   min-height: 520px;
-  margin-inline: -42px;
-  padding: 68px max(42px, calc((100vw - 1356px) / 2));
+  overflow: hidden;
+  background: linear-gradient(120deg, #f1fafc 0%, #eefaf7 100%);
+}
+
+.home-hero-layout {
+  min-height: 520px;
+  padding-block: 68px;
   display: grid;
   grid-template-columns: minmax(0, 1.05fr) minmax(360px, .95fr);
   align-items: center;
   gap: 42px;
-  overflow: hidden;
-  background: linear-gradient(120deg, #f1fafc 0%, #eefaf7 100%);
 }
 
 .home-hero-copy {
@@ -272,8 +282,7 @@
 }
 
 .home-work {
-  margin-inline: -42px;
-  padding: 92px max(42px, calc((100vw - 1356px) / 2));
+  padding: 92px 0;
   background: #f5f8fb;
 }
 
@@ -494,7 +503,7 @@
 }
 
 @media (max-width: 1050px) {
-  .home-hero {
+  .home-hero-layout {
     grid-template-columns: minmax(0, 1fr) minmax(300px, .75fr);
   }
 
@@ -513,16 +522,14 @@
 
 @media (max-width: 760px) {
   .home-page-v2 {
-    padding: 0 18px 48px;
+    padding-bottom: 48px;
   }
 
-  .home-hero,
-  .home-work {
-    margin-inline: -18px;
-    padding-inline: 18px;
+  .home-section-inner {
+    width: calc(100% - 36px);
   }
 
-  .home-hero {
+  .home-hero-layout {
     min-height: auto;
     padding-block: 46px 78px;
     grid-template-columns: 1fr;

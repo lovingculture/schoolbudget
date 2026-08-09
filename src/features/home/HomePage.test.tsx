@@ -1,10 +1,52 @@
 import { render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
+import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 import { Portal } from "../../App";
 import { HomePage } from "./HomePage";
 
+const homeStyles = readFileSync("src/features/home/home.css", "utf8");
+
 describe("승인된 포털 홈", () => {
+  it("초광폭 화면에서도 전체 폭 배경과 공통 콘텐츠 거터가 같은 좌표계를 쓴다", () => {
+    const style = document.createElement("style");
+    style.textContent = homeStyles;
+    document.head.append(style);
+
+    try {
+      const { container } = render(
+        <HomePage
+          displayName="김담당"
+          schoolName="서울한빛초등학교"
+          onNavigate={() => {}}
+        />,
+      );
+      const page = container.querySelector<HTMLElement>(".home-page-v2");
+      expect(page).not.toBeNull();
+      const rules = Array.from((style.sheet as CSSStyleSheet).cssRules).filter(
+        (rule): rule is CSSStyleRule => "selectorText" in rule,
+      );
+      const pageRule = rules.find((rule) => rule.selectorText === ".home-page-v2");
+      expect(pageRule).toBeDefined();
+      expect(pageRule!.style.getPropertyValue("max-width")).toBe("none");
+      expect(pageRule!.style.getPropertyValue("width")).toBe("100%");
+
+      const sectionInners = container.querySelectorAll<HTMLElement>(
+        ".home-section-inner",
+      );
+      expect(sectionInners).toHaveLength(4);
+      const innerRule = rules.find(
+        (rule) => rule.selectorText === ".home-section-inner",
+      );
+      expect(innerRule).toBeDefined();
+      expect(innerRule!.style.getPropertyValue("width")).toBe("calc(100% - 84px)");
+      expect(innerRule!.style.getPropertyValue("max-width")).toBe("1356px");
+      expect(innerRule!.style.getPropertyValue("margin-inline")).toBe("auto");
+    } finally {
+      style.remove();
+    }
+  });
+
   it("공식 캐릭터와 핵심 행동을 갖춘 홈 구성을 제공한다", () => {
     render(
       <HomePage

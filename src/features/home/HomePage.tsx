@@ -71,45 +71,47 @@ export function HomePage({ displayName, schoolName, onNavigate }: HomePageProps)
   return (
     <div className="content home-page-v2">
       <section className="home-hero" aria-labelledby="home-hero-title">
-        <div className="home-hero-copy">
-          <span className="home-hero-eyebrow">
-            <b>NEW</b> {schoolName} 업무 지원
-          </span>
-          <h1 id="home-hero-title">
-            복잡한 학교예산 업무,
-            <strong>한눈에 쉽고 빠르게</strong>
-          </h1>
-          <p>
-            지침 확인부터 예산편성·안건설명서·결산·추경자료까지
-            <br />
-            현재 제공 중인 학교회계 업무를 한곳에서 처리하세요.
-          </p>
-          <div className="home-hero-actions">
-            <button type="button" onClick={() => onNavigate("prebudget")}>
-              업무 시작하기 <ArrowRight aria-hidden="true" />
-            </button>
-            <button type="button" onClick={() => onNavigate("guidelines")}>
-              예산 지침 보기
-            </button>
+        <div className="home-section-inner home-hero-layout">
+          <div className="home-hero-copy">
+            <span className="home-hero-eyebrow">
+              <b>NEW</b> {schoolName} 업무 지원
+            </span>
+            <h1 id="home-hero-title">
+              복잡한 학교예산 업무,
+              <strong>한눈에 쉽고 빠르게</strong>
+            </h1>
+            <p>
+              지침 확인부터 예산편성·안건설명서·결산·추경자료까지
+              <br />
+              현재 제공 중인 학교회계 업무를 한곳에서 처리하세요.
+            </p>
+            <div className="home-hero-actions">
+              <button type="button" onClick={() => onNavigate("prebudget")}>
+                업무 시작하기 <ArrowRight aria-hidden="true" />
+              </button>
+              <button type="button" onClick={() => onNavigate("guidelines")}>
+                예산 지침 보기
+              </button>
+            </div>
+            <ul className="home-hero-benefits" aria-label="서비스 특징">
+              <li>별도 설치 없이</li>
+              <li>예산 파일 그대로</li>
+              <li>쉬운 단계별 안내</li>
+            </ul>
           </div>
-          <ul className="home-hero-benefits" aria-label="서비스 특징">
-            <li>별도 설치 없이</li>
-            <li>예산 파일 그대로</li>
-            <li>쉬운 단계별 안내</li>
-          </ul>
+          <figure className="home-character">
+            <img
+              src="/characters/seoul-education-characters.png"
+              width="1940"
+              height="1962"
+              alt="환영 인사를 건네는 서울교육 캐릭터 자라나와 열리미"
+            />
+            <figcaption>{displayName}님의 예산 업무를 도와드려요.</figcaption>
+          </figure>
         </div>
-        <figure className="home-character">
-          <img
-            src="/characters/seoul-education-characters.png"
-            width="1940"
-            height="1962"
-            alt="환영 인사를 건네는 서울교육 캐릭터 자라나와 열리미"
-          />
-          <figcaption>{displayName}님의 예산 업무를 도와드려요.</figcaption>
-        </figure>
       </section>
 
-      <section className="home-quick-services" aria-label="자주 찾는 서비스">
+      <section className="home-section-inner home-quick-services" aria-label="자주 찾는 서비스">
         <div className="home-quick-intro">
           <span>자주 찾는 서비스</span>
           <strong>어떤 업무를 도와드릴까요?</strong>
@@ -147,47 +149,49 @@ export function HomePage({ displayName, schoolName, onNavigate }: HomePageProps)
       </section>
 
       <section className="home-work" aria-labelledby="home-work-title">
-        <div className="home-section-heading">
-          <div>
-            <span>ONE-STOP BUDGET</span>
-            <h2
-              id="home-work-title"
-              aria-label="예산업무, 흐름부터 문서까지 한곳에서"
-            >
-              예산 업무를 한 번에
-            </h2>
-            <p>필요한 업무를 선택하면 현재 제공 중인 화면으로 바로 이동합니다.</p>
-          </div>
-        </div>
-        <div className="home-work-grid">
-          {workCards.map((card) => (
-            <article
-              className={`home-work-card ${card.view === "supplementary" ? "wide" : ""}`}
-              data-testid="budget-step"
-              data-view={card.view}
-              key={card.view}
-            >
-              <div className="home-work-card-head">
-                <span className={`home-work-icon ${card.tone}`} aria-hidden="true">
-                  {card.icon}
-                </span>
-                <small>{card.badge}</small>
-              </div>
-              <h3>{card.title}</h3>
-              <p>{card.description}</p>
-              <button
-                type="button"
-                aria-label={card.actionLabel}
-                onClick={() => onNavigate(card.view)}
+        <div className="home-section-inner home-work-inner">
+          <div className="home-section-heading">
+            <div>
+              <span>ONE-STOP BUDGET</span>
+              <h2
+                id="home-work-title"
+                aria-label="예산업무, 흐름부터 문서까지 한곳에서"
               >
-                시작하기 <ArrowRight aria-hidden="true" />
-              </button>
-            </article>
-          ))}
+                예산 업무를 한 번에
+              </h2>
+              <p>필요한 업무를 선택하면 현재 제공 중인 화면으로 바로 이동합니다.</p>
+            </div>
+          </div>
+          <div className="home-work-grid">
+            {workCards.map((card) => (
+              <article
+                className={`home-work-card ${card.view === "supplementary" ? "wide" : ""}`}
+                data-testid="budget-step"
+                data-view={card.view}
+                key={card.view}
+              >
+                <div className="home-work-card-head">
+                  <span className={`home-work-icon ${card.tone}`} aria-hidden="true">
+                    {card.icon}
+                  </span>
+                  <small>{card.badge}</small>
+                </div>
+                <h3>{card.title}</h3>
+                <p>{card.description}</p>
+                <button
+                  type="button"
+                  aria-label={card.actionLabel}
+                  onClick={() => onNavigate(card.view)}
+                >
+                  시작하기 <ArrowRight aria-hidden="true" />
+                </button>
+              </article>
+            ))}
+          </div>
         </div>
       </section>
 
-      <section className="home-news" aria-labelledby="home-news-title">
+      <section className="home-section-inner home-news" aria-labelledby="home-news-title">
         <div className="home-section-heading">
           <div>
             <span>알림 · 자료</span>
