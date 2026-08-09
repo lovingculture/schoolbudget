@@ -8,7 +8,6 @@ import {
   LogOut,
   Menu,
   Search,
-  Settings,
   Video,
   X,
 } from "lucide-react";
@@ -115,7 +114,6 @@ export function PortalHeader({
             <button
               type="button"
               className={isWorkView ? "active" : undefined}
-              aria-haspopup="menu"
               aria-controls="portal-workflow-menu"
               aria-expanded={isWorkMenuOpen}
               onClick={() => setIsWorkMenuOpen((open) => !open)}
@@ -124,12 +122,11 @@ export function PortalHeader({
               <ChevronDown size={16} aria-hidden="true" />
             </button>
             {isWorkMenuOpen && (
-              <div id="portal-workflow-menu" className="portal-work-dropdown" role="menu">
+              <div id="portal-workflow-menu" className="portal-work-dropdown">
                 {workItems.map(([view, label]) => (
                   <button
                     key={view}
                     type="button"
-                    role="menuitem"
                     className={activeView === view ? "active" : undefined}
                     onClick={() => navigate(view)}
                   >
@@ -164,8 +161,18 @@ export function PortalHeader({
             onClick={() => navigate("search")}
           >
             <Search size={17} aria-hidden="true" />
-            통합검색
+            통합검색 준비 중
           </button>
+          {onLogout && (
+            <button
+              type="button"
+              className="portal-mobile-logout"
+              onClick={onLogout}
+            >
+              <LogOut size={17} aria-hidden="true" />
+              로그아웃
+            </button>
+          )}
         </nav>
 
         <div className="portal-profile">

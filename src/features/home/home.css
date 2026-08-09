@@ -471,31 +471,18 @@
   color: #e4f4f5;
 }
 
-.home-search-card form {
-  margin-top: 25px;
-  display: grid;
-  grid-template-columns: 1fr 44px;
-  border-radius: 11px;
-  background: #fff;
-  overflow: hidden;
-}
-
-.home-search-card input {
-  min-width: 0;
-  border: 0;
-  padding: 14px;
-  color: var(--home-navy);
-  outline-offset: -3px;
-}
-
 .home-search-card button {
-  margin: 6px;
-  display: grid;
-  place-items: center;
-  border: 0;
-  border-radius: 8px;
-  background: #1687aa;
+  margin-top: 25px;
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  border: 1px solid #ffffff66;
+  border-radius: 11px;
+  padding: 12px 15px;
+  background: #ffffff1f;
   color: #fff;
+  font-weight: 800;
+  cursor: pointer;
 }
 
 .home-search-card button svg {

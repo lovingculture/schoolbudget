@@ -42,7 +42,7 @@ describe("예산업무 포털", () => {
 
   it("홈에서 성립전예산의 Word와 PDF 출력만 안내한다", () => {
     render(<Portal displayName="김담당" schoolName="서울한빛초등학교" onLogout={() => {}} />);
-    const guidance = screen.getByText((_, element) => element?.tagName === "P" && element.textContent === "지침을 확인하고 성립전예산 요구서를 작성하면기안문과 Word·PDF가 자동으로 완성됩니다.");
+    const guidance = screen.getByText((_, element) => element?.tagName === "P" && element.textContent === "지침을 확인하고 성립전예산 요구서를 작성하면 기안문과 Word·PDF가 자동으로 완성됩니다.");
     expect(guidance).toBeVisible();
     expect(guidance).not.toHaveTextContent("Excel");
   });
@@ -147,12 +147,12 @@ describe("예산업무 포털", () => {
     const user = userEvent.setup();
     render(<Portal displayName="김담당" schoolName="서울한빛초등학교" />);
     await user.click(screen.getByRole("button", { name: "예산 업무" }));
-    expect(screen.getByRole("menuitem", { name: "예산안건 설명서" })).toBeVisible();
-    expect(screen.getByRole("menuitem", { name: "결산설명서" })).toBeVisible();
+    expect(screen.getByRole("button", { name: "예산안건 설명서" })).toBeVisible();
+    expect(screen.getByRole("button", { name: "결산설명서" })).toBeVisible();
     expect(
-      screen.getByRole("menuitem", { name: "집행실적으로 추경자료 만들기" }),
+      screen.getByRole("button", { name: "집행실적으로 추경자료 만들기" }),
     ).toBeVisible();
-    await user.click(screen.getByRole("menuitem", { name: "본예산" }));
+    await user.click(screen.getByRole("button", { name: "본예산" }));
     expect(screen.getByRole("heading", { name: "본예산 편성·검토" })).toBeVisible();
     expect(screen.getByRole("tab", { name: "세출자료 통합·검토" })).toBeVisible();
   });
@@ -161,7 +161,7 @@ describe("예산업무 포털", () => {
     const user = userEvent.setup();
     render(<Portal displayName="김담당" schoolName="서울한빛초등학교" />);
     await user.click(screen.getByRole("button", { name: "예산 업무" }));
-    await user.click(screen.getByRole("menuitem", { name: "예산안건 설명서" }));
+    await user.click(screen.getByRole("button", { name: "예산안건 설명서" }));
     expect(screen.getByRole("button", { name: "세입세출총괄표 불러오기" })).toBeVisible();
   });
 
@@ -180,7 +180,7 @@ describe("예산업무 포털", () => {
 
     for (const [label, heading] of destinations) {
       await user.click(screen.getByRole("button", { name: "예산 업무" }));
-      await user.click(screen.getByRole("menuitem", { name: label }));
+      await user.click(screen.getByRole("button", { name: label }));
       expect(screen.getByRole("heading", { name: heading })).toBeVisible();
     }
   });
@@ -205,13 +205,16 @@ describe("예산업무 포털", () => {
     expect(screen.getByText("안내 동영상을 준비하고 있습니다.")).toBeVisible();
   });
 
-  it("통합검색 상단 메뉴가 검색 입력창으로 이동하고 초점을 둔다", async () => {
+  it("통합검색 상단 메뉴가 준비 중임을 밝힌 안내 화면으로 이동한다", async () => {
     const user = userEvent.setup();
     render(<Portal displayName="김담당" schoolName="서울한빛초등학교" />);
 
-    await user.click(screen.getByRole("button", { name: "통합검색" }));
+    await user.click(screen.getByRole("button", { name: "통합검색 준비 중" }));
 
-    expect(screen.getByRole("heading", { name: "통합검색" })).toBeVisible();
-    expect(screen.getByRole("searchbox", { name: "통합검색어" })).toHaveFocus();
+    expect(screen.getByRole("heading", { name: "통합검색 준비 중" })).toBeVisible();
+    expect(
+      screen.getByText("통합검색 기능은 현재 준비 중입니다."),
+    ).toBeVisible();
+    expect(screen.queryByRole("searchbox")).not.toBeInTheDocument();
   });
 });

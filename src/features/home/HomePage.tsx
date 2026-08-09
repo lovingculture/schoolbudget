@@ -26,7 +26,7 @@ const workCards: WorkCard[] = [
     badge: "빠른 작성",
     title: "성립전예산",
     description:
-      "지침을 확인하고 성립전예산 요구서를 작성하면기안문과 Word·PDF가 자동으로 완성됩니다.",
+      "지침을 확인하고 성립전예산 요구서를 작성하면 기안문과 Word·PDF가 자동으로 완성됩니다.",
     actionLabel: "성립전예산 새로 작성",
   },
   {
@@ -224,24 +224,17 @@ export function HomePage({ displayName, schoolName, onNavigate }: HomePageProps)
             </button>
           </article>
           <aside className="home-search-card">
-            <h3>무엇을 찾고 계신가요?</h3>
-            <p>검색어를 입력하면 통합검색 화면으로 이동합니다.</p>
-            <form
-              role="search"
-              aria-label="홈 통합검색"
-              onSubmit={(event) => {
-                event.preventDefault();
-                onNavigate("search");
-              }}
+            <h3>통합검색 준비 중</h3>
+            <p>통합검색 기능은 현재 준비 중입니다.</p>
+            <button
+              type="button"
+              aria-label="통합검색 준비 중 안내 보기"
+              onClick={() => onNavigate("search")}
             >
-              <label className="visually-hidden" htmlFor="home-search-query">
-                검색어
-              </label>
-              <input id="home-search-query" type="search" placeholder="검색어를 입력하세요" />
-              <button type="submit" aria-label="통합검색 열기">
-                <Search aria-hidden="true" />
-              </button>
-            </form>
+              <Search aria-hidden="true" />
+              준비 중 안내 보기
+              <ArrowRight aria-hidden="true" />
+            </button>
           </aside>
         </div>
       </section>
