@@ -146,19 +146,41 @@ describe("예산업무 포털", () => {
   it("본예산 메뉴에서 세출 통합 화면을 연다", async () => {
     const user = userEvent.setup();
     render(<Portal displayName="김담당" schoolName="서울한빛초등학교" />);
-    expect(screen.getByRole("button", { name: "본예산" })).toBeVisible();
-    await user.click(screen.getByRole("button", { name: "본예산" }));
+    await user.click(screen.getByRole("button", { name: "예산 업무" }));
+    expect(screen.getByRole("menuitem", { name: "예산안건 설명서" })).toBeVisible();
+    expect(screen.getByRole("menuitem", { name: "결산설명서" })).toBeVisible();
+    expect(
+      screen.getByRole("menuitem", { name: "집행실적으로 추경자료 만들기" }),
+    ).toBeVisible();
+    await user.click(screen.getByRole("menuitem", { name: "본예산" }));
     expect(screen.getByRole("heading", { name: "본예산 편성·검토" })).toBeVisible();
     expect(screen.getByRole("tab", { name: "세출자료 통합·검토" })).toBeVisible();
-    expect(screen.getByRole("button", { name: "예산안건 설명서" })).toBeVisible();
-    expect(screen.getByRole("button", { name: "결산설명서" })).toBeVisible();
-    expect(screen.getByRole("button", { name: "집행실적으로 추경자료 만들기" })).toBeVisible();
   });
 
   it("예산안건 설명서 메뉴에서 총괄표 불러오기 기능을 연다", async () => {
     const user = userEvent.setup();
     render(<Portal displayName="김담당" schoolName="서울한빛초등학교" />);
-    await user.click(screen.getByRole("button", { name: "예산안건 설명서" }));
+    await user.click(screen.getByRole("button", { name: "예산 업무" }));
+    await user.click(screen.getByRole("menuitem", { name: "예산안건 설명서" }));
     expect(screen.getByRole("button", { name: "세입세출총괄표 불러오기" })).toBeVisible();
+  });
+
+  it("예산 업무 메뉴가 모든 기존 업무 화면으로 이동한다", async () => {
+    const user = userEvent.setup();
+    render(<Portal displayName="김담당" schoolName="서울한빛초등학교" />);
+
+    const destinations = [
+      ["성립전예산", "성립전예산 요구서 작성"],
+      ["본예산", "본예산 편성·검토"],
+      ["예산안건 설명서", "예산 안건설명서 자동작성"],
+      ["결산설명서", "결산 안건설명서 자동작성"],
+      ["집행실적으로 추경자료 만들기", "집행실적으로 추경자료 만들기"],
+    ] as const;
+
+    for (const [label, heading] of destinations) {
+      await user.click(screen.getByRole("button", { name: "예산 업무" }));
+      await user.click(screen.getByRole("menuitem", { name: label }));
+      expect(screen.getByRole("heading", { name: heading })).toBeVisible();
+    }
   });
 });

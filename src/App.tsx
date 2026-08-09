@@ -4,17 +4,9 @@ import {
   BookOpen,
   Calculator,
   ChevronRight,
-  ClipboardList,
   Download,
-  FileCheck2,
-  FileSpreadsheet,
-  Home,
-  LogOut,
-  Menu,
   Plus,
-  Settings,
   Sparkles,
-  TrendingDown,
   X,
 } from "lucide-react";
 import {
@@ -33,16 +25,9 @@ import { BudgetAgendaPage } from "./features/budgetAgenda/BudgetAgendaPage";
 import { GuidelinesPage } from "./features/guidelines/GuidelinesPage";
 import { PrebudgetPage } from "./features/prebudget/PrebudgetPage";
 import { MainBudgetPage } from "./features/mainBudget/MainBudgetPage";
+import { PortalHeader, type PortalHeaderView } from "./components/PortalHeader";
 
-type View =
-  | "home"
-  | "guidelines"
-  | "prebudget"
-  | "budget"
-  | "agenda"
-  | "closing"
-  | "supplementary"
-  | "settings";
+export type View = PortalHeaderView;
 
 const flow = [
   "예산지침 확인",
@@ -53,17 +38,6 @@ const flow = [
   "결산",
   "결산설명서",
 ];
-const menu = [
-  ["home", "홈", Home],
-  ["guidelines", "예산지침", BookOpen],
-  ["prebudget", "성립전예산", Calculator],
-  ["budget", "본예산", FileSpreadsheet],
-  ["agenda", "예산안건 설명서", ClipboardList],
-  ["closing", "결산설명서", FileCheck2],
-  ["supplementary", "집행실적으로 추경자료 만들기", TrendingDown],
-  ["settings", "학교 설정", Settings],
-] as const;
-
 const blankItem = (): DraftItem => ({
   id: crypto.randomUUID(),
   unitBusiness: "",
@@ -355,14 +329,12 @@ export function Portal({
   onLogout?: () => void;
 }) {
   const [view, setView] = useState<View>("home");
-  const [sidebar, setSidebar] = useState(false);
   const [items, setItems] = useState<DraftItem[]>(
     Array.from({ length: 5 }, blankItem),
   );
   const total = useMemo(() => draftTotal(items), [items]);
   const go = (next: View) => {
     setView(next);
-    setSidebar(false);
   };
 
   const updateItem = (
@@ -382,63 +354,14 @@ export function Portal({
 
   return (
     <div className="app">
-      <aside className={`sidebar ${sidebar ? "open" : ""}`}>
-        <div className="brand">
-          <span className="brandmark">예</span>
-          <div>
-            <strong>학교예산 한눈에</strong>
-            <small>예산업무 통합 포털</small>
-          </div>
-        </div>
-        <nav>
-          {menu.map(([id, label, Icon]) => (
-            <button
-              key={id}
-              className={view === id ? "active" : ""}
-              onClick={() => go(id as View)}
-            >
-              <Icon size={19} />
-              <span>{label}</span>
-            </button>
-          ))}
-        </nav>
-        <div className="sidebar-foot">
-          <div className="avatar">{displayName.slice(0, 1)}</div>
-          <div>
-            <b>{displayName}</b>
-            <small>{schoolName}</small>
-          </div>
-          {onLogout && (
-            <button aria-label="로그아웃" onClick={onLogout}>
-              <LogOut size={18} />
-            </button>
-          )}
-        </div>
-      </aside>
-      {sidebar && (
-        <button
-          className="scrim"
-          aria-label="메뉴 닫기"
-          onClick={() => setSidebar(false)}
-        />
-      )}
-      <main className="main">
-        <header>
-          <button
-            className="menu-button"
-            aria-label="메뉴 열기"
-            onClick={() => setSidebar(true)}
-          >
-            <Menu />
-          </button>
-          <div>
-            <b>{schoolName}</b>
-            <span>2026학년도</span>
-          </div>
-          <button className="notice">
-            새 지침 <b>2</b>
-          </button>
-        </header>
+      <PortalHeader
+        activeView={view}
+        displayName={displayName}
+        onNavigate={go}
+        onLogout={onLogout}
+        schoolName={schoolName}
+      />
+      <main className="main portal-main">
         {view === "home" && (
           <HomePage
             onCreate={() => go("prebudget")}
