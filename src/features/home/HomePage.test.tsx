@@ -1,0 +1,90 @@
+import { render, screen, within } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
+import { describe, expect, it } from "vitest";
+import { Portal } from "../../App";
+import { HomePage } from "./HomePage";
+
+describe("승인된 포털 홈", () => {
+  it("공식 캐릭터와 핵심 행동을 갖춘 홈 구성을 제공한다", () => {
+    render(
+      <HomePage
+        displayName="김담당"
+        schoolName="서울한빛초등학교"
+        onNavigate={() => {}}
+      />,
+    );
+
+    expect(
+      screen.getByRole("heading", {
+        name: "복잡한 학교예산 업무, 한눈에 쉽고 빠르게",
+      }),
+    ).toBeVisible();
+    expect(screen.getByRole("button", { name: "업무 시작하기" })).toBeVisible();
+    expect(screen.getByRole("button", { name: "예산 지침 보기" })).toBeVisible();
+    expect(
+      screen.getByRole("img", {
+        name: "환영 인사를 건네는 서울교육 캐릭터 자라나와 열리미",
+      }),
+    ).toHaveAttribute("src", "/characters/seoul-education-characters.png");
+    expect(screen.getByText("서울한빛초등학교 업무 지원")).toBeVisible();
+    expect(screen.getByText("김담당님의 예산 업무를 도와드려요.")).toBeVisible();
+
+    const workCards = within(
+      screen.getByRole("region", {
+        name: "예산업무, 흐름부터 문서까지 한곳에서",
+      }),
+    ).getAllByRole("article");
+    expect(workCards).toHaveLength(5);
+    expect(
+      workCards.map((card) => within(card).getByRole("heading").textContent),
+    ).toEqual([
+      "성립전예산",
+      "본예산",
+      "안건설명서 만들기",
+      "결산 설명서 만들기",
+      "추경예산자료 만들기",
+    ]);
+
+    expect(screen.getByRole("region", { name: "자주 찾는 서비스" })).toBeVisible();
+    expect(
+      screen.getByRole("button", { name: "2026 학교회계 예산편성 기본지침 보기" }),
+    ).toBeVisible();
+    expect(
+      screen.getByRole("button", { name: "처음 오셨나요? 안내 확인" }),
+    ).toBeVisible();
+    expect(
+      screen.getByRole("region", { name: "새로운 소식을 확인하세요" }),
+    ).toBeVisible();
+    expect(screen.getByText("학교예산 한눈에 이용 안내")).toBeVisible();
+    expect(screen.getByRole("search", { name: "홈 통합검색" })).toBeVisible();
+    expect(screen.getByRole("searchbox", { name: "검색어" })).toBeVisible();
+  });
+
+  it("홈의 모든 실행 항목을 실제 포털 화면에 연결한다", async () => {
+    const user = userEvent.setup();
+    render(<Portal displayName="김담당" schoolName="서울한빛초등학교" />);
+
+    const destinations = [
+      ["업무 시작하기", "성립전예산 요구서 작성"],
+      ["예산 지침 보기", "예산지침"],
+      ["성립전예산 새로 작성", "성립전예산 요구서 작성"],
+      ["본예산 시작하기", "본예산 편성·검토"],
+      ["안건설명서 만들기 시작하기", "예산 안건설명서 자동작성"],
+      ["결산 설명서 만들기 시작하기", "결산 안건설명서 자동작성"],
+      ["추경예산자료 만들기 시작하기", "집행실적으로 추경자료 만들기"],
+      ["2026 학교회계 예산편성 기본지침 보기", "예산지침"],
+      ["처음 오셨나요? 안내 확인", "자료실"],
+      ["2026학년도 학교회계 예산편성 기본지침 확인", "예산지침"],
+      ["학교예산 한눈에 이용 안내 확인", "자료실"],
+      ["통합검색 열기", "통합검색"],
+    ] as const;
+
+    for (const [action, heading] of destinations) {
+      await user.click(screen.getByRole("button", { name: action }));
+      expect(screen.getByRole("heading", { name: heading })).toBeVisible();
+      await user.click(
+        screen.getByRole("button", { name: "학교예산 한눈에 홈으로" }),
+      );
+    }
+  });
+});

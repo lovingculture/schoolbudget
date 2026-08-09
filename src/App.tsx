@@ -1,9 +1,6 @@
 import { FormEvent, useEffect, useMemo, useState } from "react";
 import type { User } from "@supabase/supabase-js";
 import {
-  BookOpen,
-  Calculator,
-  ChevronRight,
   Download,
   Plus,
   Sparkles,
@@ -26,18 +23,10 @@ import { GuidelinesPage } from "./features/guidelines/GuidelinesPage";
 import { PrebudgetPage } from "./features/prebudget/PrebudgetPage";
 import { MainBudgetPage } from "./features/mainBudget/MainBudgetPage";
 import { PortalHeader, type PortalHeaderView } from "./components/PortalHeader";
+import { HomePage } from "./features/home/HomePage";
 
 export type View = PortalHeaderView;
 
-const flow = [
-  "예산지침 확인",
-  "본예산 편성",
-  "예산안건 설명서",
-  "예산 확정·집행",
-  "성립전예산·추경",
-  "결산",
-  "결산설명서",
-];
 const blankItem = (): DraftItem => ({
   id: crypto.randomUUID(),
   unitBusiness: "",
@@ -364,8 +353,9 @@ export function Portal({
       <main className="main portal-main">
         {view === "home" && (
           <HomePage
-            onCreate={() => go("prebudget")}
-            onGuidelines={() => go("guidelines")}
+            displayName={displayName}
+            schoolName={schoolName}
+            onNavigate={go}
           />
         )}
         {view === "guidelines" && <GuidelinesPage />}
@@ -434,161 +424,6 @@ function PortalSearchPage() {
           autoFocus
           placeholder="검색어를 입력하세요"
         />
-      </section>
-    </div>
-  );
-}
-
-function HomePage({
-  onCreate,
-  onGuidelines,
-}: {
-  onCreate: () => void;
-  onGuidelines: () => void;
-}) {
-  return (
-    <div className="content home-page">
-      <section className="hero">
-        <div>
-          <span className="eyebrow">
-            <Sparkles size={16} /> 반복 업무는 줄이고, 검토는 더 정확하게
-          </span>
-          <h1>
-            예산업무, 흐름부터
-            <br />
-            문서까지 한곳에서
-          </h1>
-          <p>
-            지침을 확인하고 성립전예산 요구서를 작성하면
-            <br />
-            기안문과 Word·PDF가 자동으로 완성됩니다.
-          </p>
-          <button className="primary" onClick={onCreate}>
-            성립전예산 새로 작성 <ChevronRight size={18} />
-          </button>
-        </div>
-        <div className="hero-card">
-          <span>오늘의 업무</span>
-          <b>성립전예산 요구서</b>
-          <ul>
-            <li className="done">기본정보 입력</li>
-            <li className="current">예산항목 작성</li>
-            <li>자동점검</li>
-            <li>기안문 생성</li>
-          </ul>
-          <small>최근 저장 8월 1일 오후 2:30</small>
-        </div>
-      </section>
-      <section>
-        <div className="section-title">
-          <div>
-            <span>WORKFLOW</span>
-            <h2>예산업무 전체 흐름</h2>
-          </div>
-          <p>현재 단계와 다음 업무를 한눈에 확인하세요.</p>
-        </div>
-        <div className="flow">
-          {flow.map((step, i) => (
-            <div
-              data-testid="budget-step"
-              key={step}
-              className={i === 4 ? "focus" : ""}
-            >
-              <i>{i + 1}</i>
-              <span>{step}</span>
-              {i < flow.length - 1 && <ChevronRight />}
-            </div>
-          ))}
-        </div>
-      </section>
-      <section className="dashboard-grid">
-        <article className="quick">
-          <div className="card-head">
-            <span className="icon coral">
-              <Calculator />
-            </span>
-            <div>
-              <b>성립전예산</b>
-              <small>요구서부터 기안문까지</small>
-            </div>
-          </div>
-          <div className="stats">
-            <div>
-              <b>3</b>
-              <span>임시저장</span>
-            </div>
-            <div>
-              <b>8</b>
-              <span>작성완료</span>
-            </div>
-            <div>
-              <b>6</b>
-              <span>기안문 생성</span>
-            </div>
-          </div>
-          <button onClick={onCreate}>
-            새 문서 작성 <Plus size={17} />
-          </button>
-        </article>
-        <article className="guideline-card">
-          <div className="card-head">
-            <span className="icon blue">
-              <BookOpen />
-            </span>
-            <div>
-              <b>최신 예산지침</b>
-              <small>2026학년도 실제 예산편성 자료</small>
-            </div>
-          </div>
-          <ul>
-            <li>
-              <span>2026학년도 학교회계 예산편성 기본지침</span>
-              <time>216쪽</time>
-            </li>
-          </ul>
-          <button className="text-button" onClick={onGuidelines}>
-            지침 검색·미리보기 <ChevronRight size={16} />
-          </button>
-        </article>
-      </section>
-      <section className="recent">
-        <div className="section-title">
-          <div>
-            <span>RECENT</span>
-            <h2>최근 작업</h2>
-          </div>
-        </div>
-        <table>
-          <thead>
-            <tr>
-              <th>문서명</th>
-              <th>부서</th>
-              <th>금액</th>
-              <th>상태</th>
-              <th>최종 수정</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr>
-              <td>안전인력 봉사비 성립전예산</td>
-              <td>체육안전교육부</td>
-              <td>5,000,000원</td>
-              <td>
-                <mark>작성 완료</mark>
-              </td>
-              <td>오늘 14:30 · 김담당</td>
-            </tr>
-            <tr>
-              <td>과학실 현대화 사업비</td>
-              <td>과학정보부</td>
-              <td>12,500,000원</td>
-              <td>
-                <mark className="draft">임시저장</mark>
-              </td>
-              <td>어제 16:12 · 이주무</td>
-            </tr>
-          </tbody>
-        </table>
       </section>
     </div>
   );

@@ -1,0 +1,246 @@
+import { ArrowRight, BookOpen, CircleHelp, Search } from "lucide-react";
+import type { View } from "../../App";
+import "./home.css";
+
+type HomePageProps = {
+  displayName: string;
+  schoolName: string;
+  onNavigate: (view: View) => void;
+};
+
+type WorkCard = {
+  view: View;
+  icon: string;
+  tone: string;
+  badge: string;
+  title: string;
+  description: string;
+  actionLabel: string;
+};
+
+const workCards: WorkCard[] = [
+  {
+    view: "prebudget",
+    icon: "₩",
+    tone: "mint",
+    badge: "빠른 작성",
+    title: "성립전예산",
+    description:
+      "지침을 확인하고 성립전예산 요구서를 작성하면기안문과 Word·PDF가 자동으로 완성됩니다.",
+    actionLabel: "성립전예산 새로 작성",
+  },
+  {
+    view: "budget",
+    icon: "本",
+    tone: "blue",
+    badge: "예산 편성",
+    title: "본예산",
+    description: "부서별 세출 요구자료를 한 흐름으로 통합하고 오류를 검토하세요.",
+    actionLabel: "본예산 시작하기",
+  },
+  {
+    view: "agenda",
+    icon: "案",
+    tone: "purple",
+    badge: "자동 작성",
+    title: "안건설명서 만들기",
+    description: "세입세출예산총괄표를 불러와 예산 안건설명서를 작성하세요.",
+    actionLabel: "안건설명서 만들기 시작하기",
+  },
+  {
+    view: "closing",
+    icon: "決",
+    tone: "coral",
+    badge: "결산 업무",
+    title: "결산 설명서 만들기",
+    description: "결산 총괄표를 바탕으로 결산 안건설명서를 작성하세요.",
+    actionLabel: "결산 설명서 만들기 시작하기",
+  },
+  {
+    view: "supplementary",
+    icon: "↗",
+    tone: "green",
+    badge: "추경 검토",
+    title: "추경예산자료 만들기",
+    description: "집행실적을 분석해 감액 가능액과 추경 검토자료를 만드세요.",
+    actionLabel: "추경예산자료 만들기 시작하기",
+  },
+];
+
+export function HomePage({ displayName, schoolName, onNavigate }: HomePageProps) {
+  return (
+    <div className="content home-page-v2">
+      <section className="home-hero" aria-labelledby="home-hero-title">
+        <div className="home-hero-copy">
+          <span className="home-hero-eyebrow">
+            <b>NEW</b> {schoolName} 업무 지원
+          </span>
+          <h1 id="home-hero-title">
+            복잡한 학교예산 업무,
+            <strong>한눈에 쉽고 빠르게</strong>
+          </h1>
+          <p>
+            지침 확인부터 예산편성·안건설명서·결산·추경자료까지
+            <br />
+            현재 제공 중인 학교회계 업무를 한곳에서 처리하세요.
+          </p>
+          <div className="home-hero-actions">
+            <button type="button" onClick={() => onNavigate("prebudget")}>
+              업무 시작하기 <ArrowRight aria-hidden="true" />
+            </button>
+            <button type="button" onClick={() => onNavigate("guidelines")}>
+              예산 지침 보기
+            </button>
+          </div>
+          <ul className="home-hero-benefits" aria-label="서비스 특징">
+            <li>별도 설치 없이</li>
+            <li>예산 파일 그대로</li>
+            <li>쉬운 단계별 안내</li>
+          </ul>
+        </div>
+        <figure className="home-character">
+          <img
+            src="/characters/seoul-education-characters.png"
+            width="1940"
+            height="1962"
+            alt="환영 인사를 건네는 서울교육 캐릭터 자라나와 열리미"
+          />
+          <figcaption>{displayName}님의 예산 업무를 도와드려요.</figcaption>
+        </figure>
+      </section>
+
+      <section className="home-quick-services" aria-label="자주 찾는 서비스">
+        <div className="home-quick-intro">
+          <span>자주 찾는 서비스</span>
+          <strong>어떤 업무를 도와드릴까요?</strong>
+        </div>
+        <button
+          type="button"
+          data-testid="budget-step"
+          onClick={() => onNavigate("guidelines")}
+          aria-label="2026 학교회계 예산편성 기본지침 보기"
+        >
+          <span className="home-quick-icon blue" aria-hidden="true">
+            <BookOpen />
+          </span>
+          <span>
+            <strong>2026 학교회계<br />예산편성 기본지침</strong>
+            <small>PDF 검색·열람</small>
+          </span>
+          <ArrowRight aria-hidden="true" />
+        </button>
+        <button
+          type="button"
+          data-testid="budget-step"
+          onClick={() => onNavigate("resources")}
+          aria-label="처음 오셨나요? 안내 확인"
+        >
+          <span className="home-quick-icon green" aria-hidden="true">
+            <CircleHelp />
+          </span>
+          <span>
+            <strong>처음 오셨나요?</strong>
+            <small>이용 안내와 자료실</small>
+          </span>
+          <ArrowRight aria-hidden="true" />
+        </button>
+      </section>
+
+      <section className="home-work" aria-labelledby="home-work-title">
+        <div className="home-section-heading">
+          <div>
+            <span>ONE-STOP BUDGET</span>
+            <h2
+              id="home-work-title"
+              aria-label="예산업무, 흐름부터 문서까지 한곳에서"
+            >
+              예산 업무를 한 번에
+            </h2>
+            <p>필요한 업무를 선택하면 현재 제공 중인 화면으로 바로 이동합니다.</p>
+          </div>
+        </div>
+        <div className="home-work-grid">
+          {workCards.map((card) => (
+            <article
+              className={`home-work-card ${card.view === "supplementary" ? "wide" : ""}`}
+              data-testid="budget-step"
+              data-view={card.view}
+              key={card.view}
+            >
+              <div className="home-work-card-head">
+                <span className={`home-work-icon ${card.tone}`} aria-hidden="true">
+                  {card.icon}
+                </span>
+                <small>{card.badge}</small>
+              </div>
+              <h3>{card.title}</h3>
+              <p>{card.description}</p>
+              <button
+                type="button"
+                aria-label={card.actionLabel}
+                onClick={() => onNavigate(card.view)}
+              >
+                시작하기 <ArrowRight aria-hidden="true" />
+              </button>
+            </article>
+          ))}
+        </div>
+      </section>
+
+      <section className="home-news" aria-labelledby="home-news-title">
+        <div className="home-section-heading">
+          <div>
+            <span>알림 · 자료</span>
+            <h2 id="home-news-title">새로운 소식을 확인하세요</h2>
+          </div>
+        </div>
+        <div className="home-news-grid">
+          <article>
+            <small className="guideline">지침</small>
+            <h3>2026학년도 학교회계 예산편성 기본지침</h3>
+            <p>학교회계 예산편성 기준과 지침 원문을 확인하세요.</p>
+            <button
+              type="button"
+              onClick={() => onNavigate("guidelines")}
+              aria-label="2026학년도 학교회계 예산편성 기본지침 확인"
+            >
+              확인하기 <ArrowRight aria-hidden="true" />
+            </button>
+          </article>
+          <article>
+            <small className="guide">안내</small>
+            <h3>학교예산 한눈에 이용 안내</h3>
+            <p>현재 제공 중인 예산 지침과 업무 자료를 확인하세요.</p>
+            <button
+              type="button"
+              onClick={() => onNavigate("resources")}
+              aria-label="학교예산 한눈에 이용 안내 확인"
+            >
+              확인하기 <ArrowRight aria-hidden="true" />
+            </button>
+          </article>
+          <aside className="home-search-card">
+            <h3>무엇을 찾고 계신가요?</h3>
+            <p>검색어를 입력하면 통합검색 화면으로 이동합니다.</p>
+            <form
+              role="search"
+              aria-label="홈 통합검색"
+              onSubmit={(event) => {
+                event.preventDefault();
+                onNavigate("search");
+              }}
+            >
+              <label className="visually-hidden" htmlFor="home-search-query">
+                검색어
+              </label>
+              <input id="home-search-query" type="search" placeholder="검색어를 입력하세요" />
+              <button type="submit" aria-label="통합검색 열기">
+                <Search aria-hidden="true" />
+              </button>
+            </form>
+          </aside>
+        </div>
+      </section>
+    </div>
+  );
+}
