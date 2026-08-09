@@ -10,7 +10,9 @@ type HomePageProps = {
 
 type WorkCard = {
   view: View;
-  icon: string;
+  icon?: string;
+  imageSrc?: string;
+  imageAlt?: string;
   tone: string;
   badge: string;
   title: string;
@@ -21,7 +23,8 @@ type WorkCard = {
 const workCards: WorkCard[] = [
   {
     view: "prebudget",
-    icon: "₩",
+    imageSrc: "/characters/cards/prebudget-writing.png",
+    imageAlt: "예산안 작성 중인 서울교육 캐릭터 자라나",
     tone: "mint",
     badge: "빠른 작성",
     title: "성립전예산",
@@ -31,7 +34,8 @@ const workCards: WorkCard[] = [
   },
   {
     view: "budget",
-    icon: "本",
+    imageSrc: "/characters/cards/main-budget-good.png",
+    imageAlt: "본예산 편성을 응원하는 서울교육 캐릭터 자라나",
     tone: "blue",
     badge: "예산 편성",
     title: "본예산",
@@ -40,7 +44,8 @@ const workCards: WorkCard[] = [
   },
   {
     view: "agenda",
-    icon: "案",
+    imageSrc: "/characters/cards/budget-agenda-calm.png",
+    imageAlt: "예산안 설명서 업무를 돕는 서울교육 캐릭터 열리미",
     tone: "purple",
     badge: "자동 작성",
     title: "안건설명서 만들기",
@@ -49,7 +54,8 @@ const workCards: WorkCard[] = [
   },
   {
     view: "closing",
-    icon: "決",
+    imageSrc: "/characters/cards/closing-musical.png",
+    imageAlt: "결산 설명서 업무를 돕는 서울교육 캐릭터 열리미",
     tone: "coral",
     badge: "결산 업무",
     title: "결산 설명서 만들기",
@@ -106,7 +112,6 @@ export function HomePage({ displayName, schoolName, onNavigate }: HomePageProps)
               height="1962"
               alt="환영 인사를 건네는 서울교육 캐릭터 자라나와 열리미"
             />
-            <figcaption>{displayName}님의 예산 업무를 도와드려요.</figcaption>
           </figure>
         </div>
       </section>
@@ -171,8 +176,12 @@ export function HomePage({ displayName, schoolName, onNavigate }: HomePageProps)
                 key={card.view}
               >
                 <div className="home-work-card-head">
-                  <span className={`home-work-icon ${card.tone}`} aria-hidden="true">
-                    {card.icon}
+                  <span className={`home-work-icon ${card.tone}`}>
+                    {card.imageSrc ? (
+                      <img src={card.imageSrc} alt={card.imageAlt} />
+                    ) : (
+                      <span aria-hidden="true">{card.icon}</span>
+                    )}
                   </span>
                   <small>{card.badge}</small>
                 </div>

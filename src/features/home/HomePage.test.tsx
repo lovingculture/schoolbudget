@@ -48,7 +48,7 @@ describe("승인된 포털 홈", () => {
   });
 
   it("공식 캐릭터와 핵심 행동을 갖춘 홈 구성을 제공한다", () => {
-    render(
+    const { container } = render(
       <HomePage
         displayName="김담당"
         schoolName="서울한빛초등학교"
@@ -69,7 +69,8 @@ describe("승인된 포털 홈", () => {
       }),
     ).toHaveAttribute("src", "/characters/seoul-education-characters.png");
     expect(screen.getByText("서울한빛초등학교 업무 지원")).toBeVisible();
-    expect(screen.getByText("김담당님의 예산 업무를 도와드려요.")).toBeVisible();
+    expect(container.querySelector(".home-character figcaption")).not.toBeInTheDocument();
+    expect(screen.queryByText("김담당님의 예산 업무를 도와드려요.")).not.toBeInTheDocument();
 
     const workCards = within(
       screen.getByRole("region", {
@@ -103,6 +104,54 @@ describe("승인된 포털 홈", () => {
     ).toBeVisible();
     expect(screen.getByText("통합검색 기능은 현재 준비 중입니다.")).toBeVisible();
     expect(screen.queryByRole("searchbox")).not.toBeInTheDocument();
+  });
+
+  it("문자 아이콘 대신 예산 업무별 캐릭터 이미지를 제공합니다", () => {
+    const { container } = render(
+      <HomePage
+        displayName="김담당"
+        schoolName="서울한빛초등학교"
+        onNavigate={() => {}}
+      />,
+    );
+
+    const expectedCards = [
+      {
+        view: "prebudget",
+        src: "/characters/cards/prebudget-writing.png",
+        alt: "예산안 작성 중인 서울교육 캐릭터 자라나",
+        previousTextMark: "₩",
+      },
+      {
+        view: "budget",
+        src: "/characters/cards/main-budget-good.png",
+        alt: "본예산 편성을 응원하는 서울교육 캐릭터 자라나",
+        previousTextMark: "本",
+      },
+      {
+        view: "agenda",
+        src: "/characters/cards/budget-agenda-calm.png",
+        alt: "예산안 설명서 업무를 돕는 서울교육 캐릭터 열리미",
+        previousTextMark: "案",
+      },
+      {
+        view: "closing",
+        src: "/characters/cards/closing-musical.png",
+        alt: "결산 설명서 업무를 돕는 서울교육 캐릭터 열리미",
+        previousTextMark: "決",
+      },
+    ] as const;
+
+    for (const { view, src, alt, previousTextMark } of expectedCards) {
+      const card = container.querySelector<HTMLElement>(`[data-view="${view}"]`);
+      if (!card) throw new Error(`${view} 카드를 찾을 수 없습니다.`);
+
+      const icon = card.querySelector<HTMLElement>(".home-work-icon");
+      if (!icon) throw new Error(`${view} 카드 아이콘을 찾을 수 없습니다.`);
+
+      expect(icon).not.toHaveTextContent(previousTextMark);
+      expect(within(icon).getByRole("img", { name: alt })).toHaveAttribute("src", src);
+    }
   });
 
   it("홈의 모든 실행 항목을 실제 포털 화면에 연결한다", async () => {

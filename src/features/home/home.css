@@ -166,21 +166,6 @@
   object-fit: contain;
 }
 
-.home-character figcaption {
-  position: absolute;
-  z-index: 2;
-  top: 12px;
-  right: 0;
-  max-width: 170px;
-  padding: 14px 18px;
-  border-radius: 18px;
-  background: #fff;
-  box-shadow: 0 12px 28px #2b667818;
-  color: #4f6c7e;
-  font-size: 12px;
-  line-height: 1.55;
-}
-
 .home-quick-services {
   position: relative;
   z-index: 3;
@@ -352,6 +337,13 @@
   height: 52px;
   font-size: 22px;
   font-weight: 900;
+}
+
+.home-work-icon img {
+  width: 100%;
+  height: 100%;
+  display: block;
+  object-fit: contain;
 }
 
 .home-work-icon.mint { background: #e8f8f6; color: #008f87; }
@@ -546,11 +538,6 @@
 
   .home-character img {
     height: 330px;
-  }
-
-  .home-character figcaption {
-    top: 0;
-    right: 4px;
   }
 
   .home-quick-services {
