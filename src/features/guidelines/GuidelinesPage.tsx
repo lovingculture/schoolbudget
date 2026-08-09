@@ -2,6 +2,7 @@ import { useMemo, useRef, useState } from "react";
 import { Download, ExternalLink, Eye, FileText, Search } from "lucide-react";
 import guidelineIndex from "./guidelineIndex.json";
 import { searchGuideline, type GuidelinePage } from "./searchGuideline";
+import { downloadExpenditureTemplate } from "./buildExpenditureTemplate";
 import "./guidelines.css";
 
 export const GUIDELINE_PDF_URL = "/guidelines/2026-school-budget-guideline.pdf";
@@ -71,6 +72,18 @@ export function GuidelinesPage() {
           <button type="button" onClick={() => openPreview(1)}><Eye size={18} /> 미리보기</button>
           <a href={GUIDELINE_PDF_URL} target="_blank" rel="noreferrer"><ExternalLink size={18} /> 새 탭에서 열기</a>
           <a href={GUIDELINE_PDF_URL} download="2026학년도_학교회계_예산편성_기본지침.pdf"><Download size={18} /> PDF 내려받기</a>
+        </div>
+      </article>
+
+      <article className="guideline-document-card guideline-template-card">
+        <span className="guideline-file-icon"><Download aria-hidden="true" /></span>
+        <div className="guideline-document-info">
+          <h2>부서별 본예산 세출 요구자료 양식</h2>
+          <p>부서별 세출자료 수합용 · 매크로 없음 · XLS·XLSX 호환</p>
+        </div>
+        <div className="guideline-document-actions">
+          <button type="button" onClick={() => downloadExpenditureTemplate("xls")}><Download size={18} /> 구형 Excel 양식(XLS) 다운로드</button>
+          <button type="button" onClick={() => downloadExpenditureTemplate("xlsx")}><Download size={18} /> 일반 Excel 양식(XLSX) 다운로드</button>
         </div>
       </article>
 

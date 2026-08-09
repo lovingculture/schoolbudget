@@ -15,6 +15,13 @@ describe("예산지침 화면", () => {
     );
   });
 
+  it("부서별 세출 요구서 양식을 XLS와 XLSX로 제공한다", () => {
+    render(<GuidelinesPage />);
+    expect(screen.getByRole("heading", { name: "부서별 본예산 세출 요구자료 양식" })).toBeVisible();
+    expect(screen.getByRole("button", { name: "구형 Excel 양식(XLS) 다운로드" })).toBeVisible();
+    expect(screen.getByRole("button", { name: "일반 Excel 양식(XLSX) 다운로드" })).toBeVisible();
+  });
+
   it("본문을 검색하고 결과 페이지를 미리보기로 연다", async () => {
     const user = userEvent.setup();
     render(<GuidelinesPage />);
