@@ -1,7 +1,7 @@
 import * as XLSX from "xlsx";
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { describe, expect, it } from "vitest";
+import { beforeEach, describe, expect, it } from "vitest";
 import { MainBudgetPage } from "./MainBudgetPage";
 
 const headers = ["부서명", "세부사업명", "세부항목명", "원가통계비목명", "산출내역", "산출식", "요구금액", "사업담당자", "전년산출식", "전년요구금액", "증감"];
@@ -12,6 +12,7 @@ function expenditureFile(name: string, department: string): File {
 }
 
 describe("본예산 세출 통합 화면", () => {
+  beforeEach(() => localStorage.clear());
   it("부서별 파일을 여러 개 올려 합계와 행을 수합한다", async () => {
     const user = userEvent.setup();
     render(<MainBudgetPage />);
