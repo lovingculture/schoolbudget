@@ -6,6 +6,7 @@ import { reviewExpenditures } from "./reviewExpenditures";
 import { summarizeExpenditures } from "./summarizeExpenditures";
 import type { MainBudgetExpenditureRow } from "./types";
 import { mainBudgetStorage } from "./storage";
+import { downloadExpenditureReview, downloadIntegratedExpenditures } from "./exportExpenditures";
 import "./mainBudget.css";
 
 const money = (value: number) => `${value.toLocaleString()}원`;
@@ -50,6 +51,7 @@ export function MainBudgetPage() {
       <div className="main-budget-summary">
         <article><span>총 요구액</span><b>{money(summary.requestedTotal)}</b></article><article><span>전년 요구액</span><b>{money(summary.priorTotal)}</b></article><article><span>증감액</span><b>{money(summary.variance)}</b></article><article><span>부서 수</span><b>{summary.departmentCount}개</b></article><article><span>확인 필요</span><b>{summary.unresolvedCount + summary.reviewCount}건</b></article><article><span>오류·주의</span><b>{summary.errorCount + summary.warningCount}건</b></article>
       </div>
+      <div className="main-budget-downloads"><button type="button" disabled={!rows.length} onClick={() => downloadIntegratedExpenditures(rows)}>세출 통합본(XLSX)</button><button type="button" disabled={!rows.length} onClick={() => downloadExpenditureReview(rows)}>오류검토 보고서(XLSX)</button></div>
       <ExpenditureTable rows={rows} />
     </>}
   </div>;
