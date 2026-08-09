@@ -143,9 +143,13 @@ describe("예산업무 포털", () => {
     expect(helps.at(-1)).toHaveTextContent("학교 운영에 소요되는 일반적인 경비");
   });
 
-  it("완성된 메뉴의 준비 중 표시를 지우고 추경자료 메뉴를 제공한다", () => {
+  it("본예산 메뉴에서 세출 통합 화면을 연다", async () => {
+    const user = userEvent.setup();
     render(<Portal displayName="김담당" schoolName="서울한빛초등학교" />);
-    expect(screen.getByRole("button", { name: /본예산 준비 중/ })).toBeVisible();
+    expect(screen.getByRole("button", { name: "본예산" })).toBeVisible();
+    await user.click(screen.getByRole("button", { name: "본예산" }));
+    expect(screen.getByRole("heading", { name: "본예산 편성·검토" })).toBeVisible();
+    expect(screen.getByRole("tab", { name: "세출자료 통합·검토" })).toBeVisible();
     expect(screen.getByRole("button", { name: "예산안건 설명서" })).toBeVisible();
     expect(screen.getByRole("button", { name: "결산설명서" })).toBeVisible();
     expect(screen.getByRole("button", { name: "집행실적으로 추경자료 만들기" })).toBeVisible();

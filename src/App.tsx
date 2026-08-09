@@ -32,6 +32,7 @@ import { SupplementaryPage } from "./features/supplementary/SupplementaryPage";
 import { BudgetAgendaPage } from "./features/budgetAgenda/BudgetAgendaPage";
 import { GuidelinesPage } from "./features/guidelines/GuidelinesPage";
 import { PrebudgetPage } from "./features/prebudget/PrebudgetPage";
+import { MainBudgetPage } from "./features/mainBudget/MainBudgetPage";
 
 type View =
   | "home"
@@ -398,7 +399,6 @@ export function Portal({
             >
               <Icon size={19} />
               <span>{label}</span>
-              {id === "budget" && <em>준비 중</em>}
             </button>
           ))}
         </nav>
@@ -450,9 +450,7 @@ export function Portal({
         {view === "closing" && <ClosingPage />}
         {view === "agenda" && <BudgetAgendaPage />}
         {view === "supplementary" && <SupplementaryPage />}
-        {view === "budget" && (
-          <ComingSoon title={menu.find(([id]) => id === view)?.[1] ?? ""} />
-        )}
+        {view === "budget" && <MainBudgetPage />}
         {view === "settings" && <SettingsPage />}
       </main>
     </div>
