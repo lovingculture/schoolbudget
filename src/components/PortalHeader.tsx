@@ -23,7 +23,8 @@ export type PortalHeaderView =
   | "supplementary"
   | "settings"
   | "resources"
-  | "videos";
+  | "videos"
+  | "search";
 
 type PortalHeaderProps = {
   activeView: PortalHeaderView;
@@ -156,7 +157,12 @@ export function PortalHeader({
             <Video size={17} aria-hidden="true" />
             동영상 안내
           </button>
-          <button type="button" className="portal-search-button">
+          <button
+            type="button"
+            className={activeView === "search" ? "portal-search-button active" : "portal-search-button"}
+            aria-current={activeView === "search" ? "page" : undefined}
+            onClick={() => navigate("search")}
+          >
             <Search size={17} aria-hidden="true" />
             통합검색
           </button>

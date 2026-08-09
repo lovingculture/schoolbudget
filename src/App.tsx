@@ -375,7 +375,66 @@ export function Portal({
         {view === "supplementary" && <SupplementaryPage />}
         {view === "budget" && <MainBudgetPage />}
         {view === "settings" && <SettingsPage />}
+        {view === "resources" && <ResourcesPage onGuidelines={() => go("guidelines")} />}
+        {view === "videos" && <VideoGuideLanding />}
+        {view === "search" && <PortalSearchPage />}
       </main>
+    </div>
+  );
+}
+
+function ResourcesPage({ onGuidelines }: { onGuidelines: () => void }) {
+  return (
+    <div className="content">
+      <div className="page-title">
+        <span>RESOURCES</span>
+        <h1>자료실</h1>
+        <p>학교예산 업무에 필요한 지침과 서식을 한곳에서 확인하세요.</p>
+      </div>
+      <section className="form-card">
+        <h2>예산지침과 서식</h2>
+        <p>현재 제공 중인 예산지침과 세출 요구자료 양식을 확인할 수 있습니다.</p>
+        <button type="button" className="primary" onClick={onGuidelines}>
+          학교예산 지침 열기
+        </button>
+      </section>
+    </div>
+  );
+}
+
+function VideoGuideLanding() {
+  return (
+    <div className="content">
+      <div className="page-title">
+        <span>VIDEO GUIDE</span>
+        <h1>동영상 안내</h1>
+        <p>예산 업무 절차를 동영상으로 안내합니다.</p>
+      </div>
+      <section className="form-card">
+        <h2>동영상 자료</h2>
+        <p>안내 동영상을 준비하고 있습니다.</p>
+      </section>
+    </div>
+  );
+}
+
+function PortalSearchPage() {
+  return (
+    <div className="content">
+      <div className="page-title">
+        <span>SEARCH</span>
+        <h1>통합검색</h1>
+        <p>예산 지침과 업무 화면에서 필요한 정보를 빠르게 찾으세요.</p>
+      </div>
+      <section className="form-card">
+        <label htmlFor="portal-search-query">통합검색어</label>
+        <input
+          id="portal-search-query"
+          type="search"
+          autoFocus
+          placeholder="검색어를 입력하세요"
+        />
+      </section>
     </div>
   );
 }

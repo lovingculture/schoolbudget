@@ -175,6 +175,7 @@ describe("예산업무 포털", () => {
       ["예산안건 설명서", "예산 안건설명서 자동작성"],
       ["결산설명서", "결산 안건설명서 자동작성"],
       ["집행실적으로 추경자료 만들기", "집행실적으로 추경자료 만들기"],
+      ["학교 설정", "학교 설정"],
     ] as const;
 
     for (const [label, heading] of destinations) {
@@ -182,5 +183,35 @@ describe("예산업무 포털", () => {
       await user.click(screen.getByRole("menuitem", { name: label }));
       expect(screen.getByRole("heading", { name: heading })).toBeVisible();
     }
+  });
+
+  it("자료실 상단 메뉴가 안내와 지침 바로가기를 제공한다", async () => {
+    const user = userEvent.setup();
+    render(<Portal displayName="김담당" schoolName="서울한빛초등학교" />);
+
+    await user.click(screen.getByRole("button", { name: "자료실" }));
+
+    expect(screen.getByRole("heading", { name: "자료실" })).toBeVisible();
+    expect(screen.getByRole("button", { name: "학교예산 지침 열기" })).toBeVisible();
+  });
+
+  it("동영상 안내 상단 메뉴가 접근 가능한 안내 화면을 연다", async () => {
+    const user = userEvent.setup();
+    render(<Portal displayName="김담당" schoolName="서울한빛초등학교" />);
+
+    await user.click(screen.getByRole("button", { name: "동영상 안내" }));
+
+    expect(screen.getByRole("heading", { name: "동영상 안내" })).toBeVisible();
+    expect(screen.getByText("안내 동영상을 준비하고 있습니다.")).toBeVisible();
+  });
+
+  it("통합검색 상단 메뉴가 검색 입력창으로 이동하고 초점을 둔다", async () => {
+    const user = userEvent.setup();
+    render(<Portal displayName="김담당" schoolName="서울한빛초등학교" />);
+
+    await user.click(screen.getByRole("button", { name: "통합검색" }));
+
+    expect(screen.getByRole("heading", { name: "통합검색" })).toBeVisible();
+    expect(screen.getByRole("searchbox", { name: "통합검색어" })).toHaveFocus();
   });
 });
