@@ -3,6 +3,14 @@ import userEvent from "@testing-library/user-event";
 import { describe, expect, it } from "vitest";
 import { GUIDELINE_PDF_URL, GuidelinesPage } from "./GuidelinesPage";
 
+describe("portal workspace visual contract", () => {
+  it("wraps the guidance page in the portal workspace visual contract", () => {
+    render(<GuidelinesPage />);
+
+    expect(screen.getByRole("heading", { level: 1 }).closest(".portal-workspace")).not.toBeNull();
+  });
+});
+
 describe("예산지침 화면", () => {
   it("실제 지침 한 건만 표시한다", () => {
     render(<GuidelinesPage />);

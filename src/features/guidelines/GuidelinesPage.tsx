@@ -40,7 +40,7 @@ export function GuidelinesPage() {
   };
 
   return (
-    <div className="content guideline-page">
+    <div className="content guideline-page portal-workspace">
       <div className="page-title">
         <span>COMMON GUIDE</span>
         <h1>예산지침</h1>

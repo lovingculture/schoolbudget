@@ -4,6 +4,14 @@ import { describe, expect, it } from "vitest";
 import { VideoGuidePage } from "./VideoGuidePage";
 import { filterVideoGuides, type VideoGuide } from "./videoGuide";
 
+describe("portal workspace visual contract", () => {
+  it("wraps the video guide page in the portal workspace visual contract", () => {
+    render(<VideoGuidePage />);
+
+    expect(screen.getByRole("heading", { level: 1 }).closest(".portal-workspace")).not.toBeNull();
+  });
+});
+
 describe("동영상 안내", () => {
   it("분류와 제목 검색을 제공하고 아직 등록되지 않은 영상은 솔직하게 안내한다", () => {
     render(<VideoGuidePage />);

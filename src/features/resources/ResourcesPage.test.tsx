@@ -3,6 +3,14 @@ import { describe, expect, it } from "vitest";
 import { GUIDELINE_PDF_URL } from "../guidelines/GuidelinesPage";
 import { ResourcesPage } from "./ResourcesPage";
 
+describe("portal workspace visual contract", () => {
+  it("wraps the resources page in the portal workspace visual contract", () => {
+    render(<ResourcesPage onGuidelines={() => {}} />);
+
+    expect(screen.getByRole("heading", { level: 1 }).closest(".portal-workspace")).not.toBeNull();
+  });
+});
+
 describe("자료실", () => {
   it("예산지침 PDF와 현재 세출 요구자료 양식 다운로드를 한곳에서 제공한다", () => {
     render(<ResourcesPage onGuidelines={() => {}} />);

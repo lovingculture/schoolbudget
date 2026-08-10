@@ -8,7 +8,7 @@ type ResourcesPageProps = {
 
 export function ResourcesPage({ onGuidelines }: ResourcesPageProps) {
   return (
-    <div className="content resources-page">
+    <div className="content resources-page portal-workspace">
       <div className="page-title">
         <span>RESOURCES</span>
         <h1>자료실</h1>

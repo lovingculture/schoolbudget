@@ -13,7 +13,7 @@ export function VideoGuidePage() {
   const hasFilters = Boolean(query.trim()) || category !== "전체";
 
   return (
-    <div className="content video-guide-page">
+    <div className="content video-guide-page portal-workspace">
       <div className="page-title">
         <span>VIDEO GUIDE</span>
         <h1>동영상 안내</h1>
