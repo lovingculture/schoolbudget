@@ -54,6 +54,7 @@ describe("결산설명서 업로드 화면", () => {
   it("쉼표 문자열 금액의 xlsx 업로드 후 편집 화면을 표시한다", async () => {
     const user = userEvent.setup();
     render(<ClosingPage />);
+    expect(screen.getByRole("heading", { level: 1 }).closest(".portal-workspace")).not.toBeNull();
     const file = fileWithArrayBuffer("세입세출결산총괄표.xlsx", createValidClosingXlsx());
 
     await user.upload(screen.getByLabelText("세입세출결산총괄표 파일"), file);
@@ -61,6 +62,7 @@ describe("결산설명서 업로드 화면", () => {
     expect(await screen.findByText("서울옥정초등학교")).toBeVisible();
     expect(screen.getAllByText("2,724,818,217원").length).toBeGreaterThan(0);
     expect(screen.queryByRole("alert")).not.toBeInTheDocument();
+    expect(document.querySelector(".closing-a4-page")?.classList.contains("portal-workspace")).toBe(false);
   });
 
   it("확장자만 xlsx인 파일에 실제 형식 오류를 표시한다", async () => {

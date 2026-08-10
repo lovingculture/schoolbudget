@@ -98,5 +98,64 @@
   color: var(--workspace-navy);
 }
 
+.portal-workspace .budget-agenda-guide,
+.portal-workspace .budget-agenda-validation,
+.portal-workspace .closing-source-summary,
+.portal-workspace .closing-validation,
+.portal-workspace .closing-privacy {
+  border-color: var(--workspace-border);
+  border-radius: 18px;
+  box-shadow: 0 10px 28px rgb(20 51 78 / 5%);
+}
+.portal-workspace .budget-agenda-guide,
+.portal-workspace .closing-privacy {
+  background: linear-gradient(135deg, var(--workspace-sky), var(--workspace-mint));
+  color: var(--workspace-navy);
+}
+.portal-workspace .budget-agenda-guide-icon {
+  background: #d9f2f5;
+  color: var(--workspace-teal);
+}
+.portal-workspace .budget-agenda-upload,
+.portal-workspace .closing-dropzone {
+  border-color: var(--workspace-blue);
+  border-radius: 20px;
+  background: linear-gradient(135deg, white, var(--workspace-sky));
+  color: var(--workspace-navy);
+}
+.portal-workspace .budget-agenda-upload.dragging,
+.portal-workspace .closing-dropzone.dragging {
+  border-color: var(--workspace-teal);
+  background: var(--workspace-mint);
+}
+.portal-workspace .budget-agenda-upload h2,
+.portal-workspace .closing-dropzone > strong,
+.portal-workspace .budget-agenda-validation h2,
+.portal-workspace .closing-validation h2 {
+  color: var(--workspace-navy);
+}
+.portal-workspace .budget-agenda-validation,
+.portal-workspace .closing-source-summary,
+.portal-workspace .closing-validation { background: white; }
+.portal-workspace .budget-agenda-validation .ok,
+.portal-workspace .closing-validation .ok {
+  background: var(--workspace-mint);
+  color: #177245;
+}
+.portal-workspace .closing-money-grid > div {
+  border: 1px solid var(--workspace-border);
+  background: linear-gradient(135deg, var(--workspace-sky), white);
+}
+.portal-workspace .closing-money-grid b { color: var(--workspace-navy); }
+.portal-workspace .budget-agenda-downloads,
+.portal-workspace .closing-downloads {
+  border: 1px solid var(--workspace-border);
+  box-shadow: 0 12px 28px rgb(20 51 78 / 7%);
+}
+.portal-workspace .budget-agenda-downloads { background: var(--workspace-navy); }
+.portal-workspace .closing-download-buttons button { background: var(--workspace-navy); }
+.portal-workspace .closing-download-buttons button:nth-child(2) { background: var(--workspace-blue); }
+.portal-workspace .closing-download-buttons button:nth-child(3) { background: var(--workspace-teal); }
+
 /* Do not target .prebudget-paper, .closing-a4-page, or .budget-agenda-a4-page. */
 @media (max-width: 760px) { .portal-workspace { padding-inline: 18px; } }

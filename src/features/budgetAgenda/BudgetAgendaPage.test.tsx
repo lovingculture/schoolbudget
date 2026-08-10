@@ -6,6 +6,7 @@ import { BudgetAgendaPage } from "./BudgetAgendaPage";
 describe("예산 안건설명서 화면", () => {
   it("에듀파인 파일 불러오기 절차를 안내한다", () => {
     render(<BudgetAgendaPage />);
+    expect(screen.getByRole("heading", { level: 1 }).closest(".portal-workspace")).not.toBeNull();
     expect(screen.getByText(/에듀파인 예산현황의 세입세출총괄표를 다운로드한 후/)).toBeInTheDocument();
     expect(screen.getByText(/자동으로 만들어지는 입력 화면에서 안건번호/)).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "세입세출총괄표 불러오기" })).toBeInTheDocument();
@@ -32,6 +33,7 @@ describe("예산 안건설명서 화면", () => {
     const workspace = agendaNumber.closest(".budget-agenda-workspace");
     expect(workspace).toHaveClass("budget-agenda-workspace-vertical");
     expect(workspace?.querySelector(".budget-agenda-editor")?.nextElementSibling).toHaveClass("budget-agenda-preview");
+    expect(document.querySelector(".budget-agenda-a4-page")?.classList.contains("portal-workspace")).toBe(false);
     expect(screen.getByRole("heading", { name: "2026학년도 서울옥정초등학교 회계 1차 추경예산(안)" })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "한글(HWPX) 내려받기" })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "PDF 내려받기" })).toBeInTheDocument();

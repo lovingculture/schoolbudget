@@ -57,7 +57,7 @@ export function ClosingPage() {
   };
 
   if (source && draft && originalDraft) {
-    return <div className="content closing-page">
+    return <div className="content closing-page portal-workspace">
       <div className="page-title"><span>CLOSING AGENDA</span><h1>결산 안건설명서 자동작성</h1><p>에듀파인 자료를 확인했습니다. 자동검증 결과를 확인한 후 내용을 수정하세요.</p></div>
       <section className="closing-source-summary">
         <div className="closing-source-title"><span className="icon blue"><FileSpreadsheet/></span><div><strong>{source.schoolName}</strong><small>{source.fiscalYear}학년도 세입세출결산총괄표</small></div><button className="secondary" onClick={() => { setSource(null); setDraft(null); setOriginalDraft(null); }}>다른 파일 선택</button></div>
@@ -70,7 +70,7 @@ export function ClosingPage() {
     </div>;
   }
 
-  return <div className="content closing-page">
+  return <div className="content closing-page portal-workspace">
     <div className="page-title"><span>CLOSING AGENDA</span><h1>결산 안건설명서 자동작성</h1><p>에듀파인 결산자료를 올리면 공식 안건설명서를 자동으로 만듭니다.</p></div>
     <div
       className={dragging ? "closing-dropzone dragging" : "closing-dropzone"}

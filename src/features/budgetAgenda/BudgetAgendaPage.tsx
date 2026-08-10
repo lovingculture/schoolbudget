@@ -36,7 +36,7 @@ export function BudgetAgendaPage() {
     void load(event.dataTransfer.files?.[0]);
   };
   const validation = draft ? validateBudgetAgenda(draft) : [];
-  return <div className="content budget-agenda-page">
+  return <div className="content budget-agenda-page portal-workspace">
     <div className="page-title">
       <span>예산안건 설명서</span>
       <h1>예산 안건설명서 자동작성</h1>
