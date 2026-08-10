@@ -3,6 +3,7 @@ import { resolve } from "node:path";
 import { describe, expect, it } from "vitest";
 
 const css = readFileSync(resolve("src/features/portal/portalWorkspace.css"), "utf8");
+const activeCss = css.replace(/\/\*[\s\S]*?\*\//g, "");
 
 describe("portal workspace visual contract", () => {
   it("scopes the home palette and controls to portal workspaces", () => {
@@ -14,8 +15,8 @@ describe("portal workspace visual contract", () => {
   });
 
   it("keeps generated A4 document surfaces out of shared overrides", () => {
-    expect(css).toContain(".prebudget-paper");
-    expect(css).toContain(".closing-a4-page");
-    expect(css).toContain(".budget-agenda-a4-page");
+    expect(activeCss).not.toContain(".prebudget-paper");
+    expect(activeCss).not.toContain(".closing-a4-page");
+    expect(activeCss).not.toContain(".budget-agenda-a4-page");
   });
 });
