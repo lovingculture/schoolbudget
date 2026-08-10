@@ -93,7 +93,7 @@ export function SupplementaryPage() {
     }
   };
 
-  if (!source) return <div className="content supplementary-page">
+  if (!source) return <div className="content supplementary-page portal-workspace">
     <div className="page-title"><span>SUPPLEMENTARY BUDGET</span><h1>집행실적으로 추경자료 만들기</h1><p>에듀파인 102-2 자료를 올리면 추경 검토자료를 자동으로 정리합니다.</p></div>
     <section className="supplementary-guide"><b>에듀파인에서 파일 받는 경로</b><p>학교회계 → 사업관리 → 사업관리카드 → 집행실적 엑셀저장(실시간)</p><span>자료코드 <strong>102-2</strong>를 선택한 후 엑셀로 내려받아 주세요.</span></section>
     <div className={dragging ? "supplementary-dropzone dragging" : "supplementary-dropzone"}
@@ -109,7 +109,7 @@ export function SupplementaryPage() {
     <section className="closing-privacy"><b>학교 자료는 안전하게</b><p>선택한 파일은 이 브라우저 안에서만 처리되며 서버에 업로드하거나 저장하지 않습니다.</p></section>
   </div>;
 
-  return <div className="content supplementary-page">
+  return <div className="content supplementary-page portal-workspace">
     <div className="page-title"><span>SUPPLEMENTARY BUDGET</span><h1>집행실적으로 추경자료 만들기</h1><p>예산액(4)을 기준으로 계산했습니다. 집행예정액과 추경(안)을 입력해 검토하세요.</p></div>
     <section className="supplementary-source">
       <div><span className="icon blue"><FileSpreadsheet/></span><div><strong>{source.schoolName}</strong><small>{source.fiscalYear}회계연도 · 집행기준일 {displayDate(source.executionDate)} · {source.rows.length.toLocaleString()}건</small></div></div>

@@ -39,7 +39,7 @@ export function MainBudgetPage() {
     setBusy(false);
   };
 
-  return <div className="content main-budget-page">
+  return <div className="content main-budget-page portal-workspace">
     <div className="page-title"><span>MAIN BUDGET</span><h1>본예산 편성·검토</h1><p>부서별 세출 요구자료를 수합하고 오류를 확인합니다.</p></div>
     <div className="main-budget-tabs" role="tablist" aria-label="본예산 자료 구분">
       <button role="tab" aria-selected={tab === "expenditure"} onClick={() => setTab("expenditure")}>세출자료 통합·검토</button>

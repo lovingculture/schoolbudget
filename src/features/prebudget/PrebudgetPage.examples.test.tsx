@@ -68,6 +68,12 @@ describe("성립전예산 예시 통합", () => {
     expect(screen.queryByRole("button", { name: "Excel" })).not.toBeInTheDocument();
   });
 
+  it("keeps the exported document outside the interactive workspace", async () => {
+    await renderValidPreview();
+
+    expect(document.querySelector(".prebudget-paper")?.classList.contains("portal-workspace")).toBe(false);
+  });
+
   it("불러온 예시의 계산요소를 수정하면 항목 금액과 합계를 다시 계산한다", async () => {
     const draft = validDraft();
     draft.exampleSourceId = "loaded-example";

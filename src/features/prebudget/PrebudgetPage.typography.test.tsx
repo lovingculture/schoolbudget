@@ -18,7 +18,7 @@ describe("성립전예산 작성 화면 글자 크기", () => {
       <PrebudgetPage initialSchoolName="서울한빛초등학교" storage={storage} />,
     );
 
-    expect(container.querySelector(".content.prebudget-page")).not.toBeNull();
+    expect(container.querySelector(".content.prebudget-page.portal-workspace")).not.toBeNull();
   });
 
   it("라벨 입력값 설명과 중요 안내의 최소 크기를 선언한다", () => {
