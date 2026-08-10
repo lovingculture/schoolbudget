@@ -26,6 +26,7 @@ import { PortalHeader, type PortalHeaderView } from "./components/PortalHeader";
 import { HomePage } from "./features/home/HomePage";
 import { ResourcesPage as PortalResourcesPage } from "./features/resources/ResourcesPage";
 import { VideoGuidePage } from "./features/videos/VideoGuidePage";
+import "./features/portal/portalWorkspace.css";
 
 export type View = PortalHeaderView;
 
