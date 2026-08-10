@@ -2,6 +2,9 @@
   --workspace-navy: #14334e;
   --workspace-blue: #188bc1;
   --workspace-teal: #1596a3;
+  --workspace-teal-text: #0b5f66;
+  --workspace-primary-blue: #006a8e;
+  --workspace-primary-teal: #006d72;
   --workspace-sky: #eef8fc;
   --workspace-mint: #effaf7;
   --workspace-border: #d8e5eb;
@@ -9,7 +12,7 @@
 }
 
 .portal-workspace .page-title h1 { color: var(--workspace-navy); letter-spacing: -0.04em; }
-.portal-workspace .page-title > span { color: var(--workspace-teal); font-weight: 800; }
+.portal-workspace .page-title > span { color: var(--workspace-teal-text); font-weight: 800; }
 .portal-workspace .form-card,
 .portal-workspace .guideline-document-card,
 .portal-workspace .resource-card,
@@ -18,7 +21,7 @@
 .portal-workspace input,
 .portal-workspace select,
 .portal-workspace textarea { min-height: 44px; font-size: 16px; }
-.portal-workspace .primary { background: linear-gradient(135deg, var(--workspace-blue), var(--workspace-teal)); }
+.portal-workspace .primary { background: linear-gradient(135deg, var(--workspace-primary-blue), var(--workspace-primary-teal)); color: white; }
 .portal-workspace :focus-visible { outline: 3px solid rgb(24 139 193 / 42%); outline-offset: 3px; }
 
 .portal-workspace .guideline-search,
@@ -32,13 +35,20 @@
   border-radius: 14px;
   background: var(--workspace-sky);
 }
-.portal-workspace .guideline-preview-heading span { color: var(--workspace-teal); }
+.portal-workspace .guideline-preview-heading span { color: var(--workspace-teal-text); }
 .portal-workspace .resource-card-actions,
 .portal-workspace .video-guide-toolbar { gap: 12px; }
 .portal-workspace .resource-card-actions > :not(.primary) {
   border-color: var(--workspace-border);
   background: var(--workspace-mint);
   color: var(--workspace-navy);
+}
+.portal-workspace .resource-card-actions a,
+.portal-workspace .guideline-document-actions a {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 44px;
 }
 .portal-workspace .guideline-no-results,
 .portal-workspace .guideline-preview-error,
@@ -47,7 +57,8 @@
   background: linear-gradient(135deg, var(--workspace-sky), var(--workspace-mint));
   color: var(--workspace-navy);
 }
-.portal-workspace .video-guide-placeholder { background: var(--workspace-sky); color: var(--workspace-teal); }
+.portal-workspace .video-guide-placeholder { background: var(--workspace-sky); color: var(--workspace-teal-text); }
+.portal-workspace .resource-card-type { color: var(--workspace-teal-text); }
 
 .portal-workspace .steps,
 .portal-workspace .main-budget-tabs,
@@ -87,7 +98,7 @@
   box-shadow: 0 8px 24px rgb(20 51 78 / 5%);
 }
 .portal-workspace .main-budget-summary span,
-.portal-workspace .supplementary-kpis span { color: var(--workspace-teal); font-weight: 700; }
+.portal-workspace .supplementary-kpis span { color: var(--workspace-teal-text); font-weight: 700; }
 .portal-workspace .main-budget-summary b,
 .portal-workspace .supplementary-kpis b { display: block; margin-top: 6px; font-size: 1.25rem; }
 .portal-workspace .supplementary-source { display: flex; align-items: center; justify-content: space-between; }
@@ -115,7 +126,7 @@
 }
 .portal-workspace .budget-agenda-guide-icon {
   background: #d9f2f5;
-  color: var(--workspace-teal);
+  color: var(--workspace-teal-text);
 }
 .portal-workspace .budget-agenda-upload,
 .portal-workspace .closing-dropzone {
@@ -155,8 +166,8 @@
 }
 .portal-workspace .budget-agenda-downloads { background: var(--workspace-navy); }
 .portal-workspace .closing-download-buttons button { background: var(--workspace-navy); }
-.portal-workspace .closing-download-buttons button:nth-child(2) { background: var(--workspace-blue); }
-.portal-workspace .closing-download-buttons button:nth-child(3) { background: var(--workspace-teal); }
+.portal-workspace .closing-download-buttons button:nth-child(2) { background: var(--workspace-primary-blue); }
+.portal-workspace .closing-download-buttons button:nth-child(3) { background: var(--workspace-primary-teal); }
 
 /* Do not target .prebudget-paper, .closing-a4-page, or .budget-agenda-a4-page. */
 @media (max-width: 760px) { .portal-workspace { padding-inline: 18px; } }

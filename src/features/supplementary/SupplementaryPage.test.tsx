@@ -33,9 +33,9 @@ describe("집행실적으로 추경자료 만들기 화면", () => {
   beforeEach(() => { mockedDownload.mockReset(); });
 
   it("renders the supplementary workflow in the shared workspace", () => {
-    const { container } = render(<SupplementaryPage />);
+    render(<SupplementaryPage />);
 
-    expect(container.querySelector(".content.supplementary-page.portal-workspace")).not.toBeNull();
+    expect(screen.getByRole("heading", { level: 1 }).closest(".portal-workspace")).not.toBeNull();
   });
 
   it("에듀파인 다운로드 경로와 102-2 업로드 안내를 보여준다", () => {

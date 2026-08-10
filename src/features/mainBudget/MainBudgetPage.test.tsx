@@ -14,9 +14,9 @@ function expenditureFile(name: string, department: string): File {
 describe("본예산 세출 통합 화면", () => {
   beforeEach(() => localStorage.clear());
   it("renders the budget workflow in the shared workspace", () => {
-    const { container } = render(<MainBudgetPage />);
+    render(<MainBudgetPage />);
 
-    expect(container.querySelector(".content.main-budget-page.portal-workspace")).not.toBeNull();
+    expect(screen.getByRole("heading", { level: 1 }).closest(".portal-workspace")).not.toBeNull();
   });
   it("부서별 파일을 여러 개 올려 합계와 행을 수합한다", async () => {
     const user = userEvent.setup();
