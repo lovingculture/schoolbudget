@@ -76,6 +76,7 @@
   grid-template-columns: repeat(auto-fit, minmax(145px, 1fr));
   gap: 12px;
 }
+.portal-workspace.main-budget-page { grid-template-columns: minmax(0, 1fr); }
 .portal-workspace .main-budget-summary article,
 .portal-workspace .supplementary-kpis > div,
 .portal-workspace .supplementary-source {

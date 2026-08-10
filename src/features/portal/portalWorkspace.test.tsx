@@ -19,4 +19,8 @@ describe("portal workspace visual contract", () => {
     expect(activeCss).not.toContain(".closing-a4-page");
     expect(activeCss).not.toContain(".budget-agenda-a4-page");
   });
+
+  it("lets the main-budget table scroll within the workspace instead of widening the page", () => {
+    expect(css).toMatch(/\.portal-workspace\.main-budget-page\s*\{[^}]*grid-template-columns:\s*minmax\(0,\s*1fr\)/);
+  });
 });
