@@ -17,6 +17,8 @@ const storage: DraftStorage = { load: () => null, save: vi.fn(), clear: vi.fn() 
 const validDraft = () => {
   const draft = createPrebudgetDraft("서울우리학교");
   draft.title = "맞춤형늘봄교실 성립전예산 편성 요청";
+  draft.department = "체육안전교육부";
+  draft.requester = "김담당";
   draft.officialDocument = "교육지원과-2222(2026. 7. 1.)";
   draft.items[0] = {
     ...draft.items[0],
@@ -70,7 +72,10 @@ describe("성립전예산 예시 통합", () => {
   });
   it("필요한 담당자 입력만 표시한다", () => {
     render(<PrebudgetPage initialSchoolName="서울우리학교" storage={storage} />);
-    expect(screen.getByRole("textbox", { name: "사업담당자" })).toHaveValue("김담당");
+    expect(screen.getByRole("textbox", { name: "부서명" })).toHaveValue("");
+    expect(screen.getByRole("textbox", { name: "부서명" })).toHaveAttribute("placeholder", "예: 체육안전교육부");
+    expect(screen.getByRole("textbox", { name: "사업담당자" })).toHaveValue("");
+    expect(screen.getByRole("textbox", { name: "사업담당자" })).toHaveAttribute("placeholder", "예: 김담당");
     expect(screen.getByRole("textbox", { name: "품의권한 부여자" })).toHaveValue("");
     for (const removed of ["교부기관", "사업기간", "편성 사유", "관련 근거"]) {
       expect(screen.queryByLabelText(removed)).not.toBeInTheDocument();

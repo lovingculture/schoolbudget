@@ -7,7 +7,8 @@ describe("성립전예산 초안", () => {
     expect(draft.schoolName).toBe("서울한빛초등학교");
     expect(draft.title).toBe("");
     expect(draft.source).toBe("목적사업비(교육청)");
-    expect(draft.requester).toBe("김담당");
+    expect(draft.department).toBe("");
+    expect(draft.requester).toBe("");
     expect(draft.approvalGranter).toBe("");
     expect(draft).not.toHaveProperty("grantingAgency");
     expect(draft).not.toHaveProperty("projectPeriod");
@@ -28,7 +29,7 @@ describe("legacy draft normalization", () => {
       basis: "기존 근거",
     });
 
-    expect(result.requester).toBe("김담당");
+    expect(result.requester).toBe("");
     expect(result.approvalGranter).toBe("");
     expect(result).not.toHaveProperty("grantingAgency");
     expect(result).not.toHaveProperty("projectPeriod");

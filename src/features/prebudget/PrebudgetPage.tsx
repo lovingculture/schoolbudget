@@ -267,6 +267,7 @@ export function PrebudgetPage({
             부서명
             <input
               value={draft.department}
+              placeholder="예: 체육안전교육부"
               onChange={(e) => field("department", e.target.value)}
             />
           </label>
@@ -274,6 +275,7 @@ export function PrebudgetPage({
             사업담당자
             <input
               value={draft.requester}
+              placeholder="예: 김담당"
               onChange={(e) => field("requester", e.target.value)}
             />
           </label>

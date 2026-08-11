@@ -4,7 +4,7 @@ import type { PrebudgetFormDraft, PrebudgetSource } from "./types";
 export const createBlankPrebudgetItem = (): DraftItem => ({ id: crypto.randomUUID(), unitBusiness: "", business: "", detail: "", category: "일반수용비", description: "", unitPrice: 0, quantity: 0, count: 0, note: "" });
 
 export function createPrebudgetDraft(initialSchoolName: string): PrebudgetFormDraft {
-  return { schoolName: initialSchoolName === "○○초등학교" ? "" : initialSchoolName, fiscalYear: 2026, source: "목적사업비(교육청)", title: "", department: "체육안전교육부", requester: "김담당", approvalGranter: "", officialDocument: "", items: Array.from({ length: 5 }, createBlankPrebudgetItem), schoolLevel: "공통", reviewRequiredFields: [] };
+  return { schoolName: initialSchoolName === "○○초등학교" ? "" : initialSchoolName, fiscalYear: 2026, source: "목적사업비(교육청)", title: "", department: "", requester: "", approvalGranter: "", officialDocument: "", items: Array.from({ length: 5 }, createBlankPrebudgetItem), schoolLevel: "공통", reviewRequiredFields: [] };
 }
 
 const isRecord = (value: unknown): value is Record<string, unknown> => typeof value === "object" && value !== null;
@@ -36,6 +36,8 @@ export function normalizePrebudgetDraft(value: unknown, initialSchoolName = ""):
   }
   if (draft.schoolName === "학교예산 업무공간" || draft.schoolName === "○○초등학교") draft.schoolName = "";
   if (draft.title === "안전인력 봉사비 성립전예산" || draft.title === "안전인력봉사비 성립전예산 편성 요청") draft.title = "";
+  if (draft.department === "체육안전교육부") draft.department = "";
+  if (draft.requester === "김담당") draft.requester = "";
   const fiscalYear = value.fiscalYear;
   const normalizedFiscalYear = typeof fiscalYear === "number" ? fiscalYear : typeof fiscalYear === "string" && fiscalYear.trim() ? Number(fiscalYear) : Number.NaN;
   if (Number.isFinite(normalizedFiscalYear)) draft.fiscalYear = normalizedFiscalYear;
