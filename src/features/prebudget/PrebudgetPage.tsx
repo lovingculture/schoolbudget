@@ -374,6 +374,8 @@ export function PrebudgetPage({
                 <label className="description">
                   산출내역
                   <input
+                    aria-label="산출내역"
+                    placeholder="예: 안전인력 봉사활동비"
                     value={item.description ?? ""}
                     onChange={(e) =>
                       updateItem(i, "description", e.target.value)
@@ -388,7 +390,8 @@ export function PrebudgetPage({
                         <input
                           aria-label={["단가", "수량", "횟수"][n]}
                           type="number"
-                          value={item[key] ?? 0}
+                          placeholder={["예: 40,000", "예: 1", "예: 20"][n]}
+                          value={item[key] || ""}
                           onChange={(e) =>
                             updateItem(i, key, Number(e.target.value))
                           }

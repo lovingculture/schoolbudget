@@ -40,6 +40,18 @@ async function renderValidPreview() {
 }
 
 describe("성립전예산 예시 통합", () => {
+  it("빈 예산항목에 산출내역과 계산요소 예시를 흐린 안내문으로 표시한다", () => {
+    render(<PrebudgetPage initialSchoolName="○○초등학교" />);
+
+    expect(screen.getAllByLabelText("산출내역")[0]).toHaveAttribute(
+      "placeholder",
+      "예: 안전인력 봉사활동비",
+    );
+    expect(screen.getAllByLabelText("단가")[0]).toHaveAttribute("placeholder", "예: 40,000");
+    expect(screen.getAllByLabelText("수량")[0]).toHaveAttribute("placeholder", "예: 1");
+    expect(screen.getAllByLabelText("횟수")[0]).toHaveAttribute("placeholder", "예: 20");
+    expect(screen.getAllByLabelText("단가")[0]).toHaveValue(null);
+  });
   it("필요한 담당자 입력만 표시한다", () => {
     render(<PrebudgetPage initialSchoolName="서울우리학교" storage={storage} />);
     expect(screen.getByRole("textbox", { name: "사업담당자" })).toHaveValue("김담당");
