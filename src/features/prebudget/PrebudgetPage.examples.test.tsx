@@ -1,4 +1,4 @@
-import { render, screen, waitFor } from "@testing-library/react";
+import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
 import type { DraftStorage } from "./storage";
@@ -50,7 +50,23 @@ describe("성립전예산 예시 통합", () => {
     expect(screen.getAllByLabelText("단가")[0]).toHaveAttribute("placeholder", "예: 40,000");
     expect(screen.getAllByLabelText("수량")[0]).toHaveAttribute("placeholder", "예: 1");
     expect(screen.getAllByLabelText("횟수")[0]).toHaveAttribute("placeholder", "예: 20");
-    expect(screen.getAllByLabelText("단가")[0]).toHaveValue(null);
+    expect(screen.getAllByLabelText("단가")[0]).toHaveValue("");
+  });
+
+  it("계산요소를 천 단위 콤마로 표시하고 클릭하면 기존 값을 전체 선택한다", () => {
+    const draft = validDraft();
+    draft.items[0] = { ...draft.items[0], unitPrice: 20000, quantity: 1000, count: 2 };
+    const loadedStorage: DraftStorage = { load: () => draft, save: vi.fn(), clear: vi.fn() };
+    render(<PrebudgetPage initialSchoolName="○○초등학교" storage={loadedStorage} />);
+
+    const unitPrice = screen.getAllByLabelText("단가")[0] as HTMLInputElement;
+    const quantity = screen.getAllByLabelText("수량")[0] as HTMLInputElement;
+    expect(unitPrice).toHaveValue("20,000");
+    expect(quantity).toHaveValue("1,000");
+
+    const select = vi.spyOn(unitPrice, "select");
+    fireEvent.focus(unitPrice);
+    expect(select).toHaveBeenCalledOnce();
   });
   it("필요한 담당자 입력만 표시한다", () => {
     render(<PrebudgetPage initialSchoolName="서울우리학교" storage={storage} />);

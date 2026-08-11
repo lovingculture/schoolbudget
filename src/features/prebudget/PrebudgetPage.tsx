@@ -389,12 +389,14 @@ export function PrebudgetPage({
                         {["단가", "수량", "횟수"][n]}
                         <input
                           aria-label={["단가", "수량", "횟수"][n]}
-                          type="number"
+                          type="text"
+                          inputMode="numeric"
                           placeholder={["예: 40,000", "예: 1", "예: 20"][n]}
-                          value={item[key] || ""}
+                          value={item[key] ? Number(item[key]).toLocaleString("ko-KR") : ""}
                           onChange={(e) =>
-                            updateItem(i, key, Number(e.target.value))
+                            updateItem(i, key, Number(e.target.value.replace(/[^0-9]/g, "")))
                           }
+                          onFocus={(e) => e.currentTarget.select()}
                         />
                       </label>
                     ),
