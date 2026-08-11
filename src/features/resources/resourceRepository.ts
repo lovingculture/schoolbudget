@@ -1,4 +1,5 @@
 import type { BudgetResource, BudgetResourceInput, ResourceCategory } from "./resourceTypes";
+import { canonicalMimeForFilename } from "./resourceUpload";
 
 const RESOURCE_BUCKET = "budget-resources";
 const RESOURCE_TABLE = "budget_resources";
@@ -11,7 +12,7 @@ type ResourceRow = {
 };
 
 type ResourceRepositoryClient = {
-  storage: { from(bucket: string): { upload(path: string, file: File, options: { upsert: boolean }): Promise<QueryResult<unknown>>; remove(paths: string[]): Promise<QueryResult<unknown>> } };
+  storage: { from(bucket: string): { upload(path: string, file: File, options: { upsert: boolean; contentType: string }): Promise<QueryResult<unknown>>; remove(paths: string[]): Promise<QueryResult<unknown>> } };
   from(table: string): {
     select(columns: string): { eq(column: string, value: boolean | string): {
       order(column: string, options: { ascending: boolean }): Promise<QueryResult<ResourceRow[]>>;
@@ -63,7 +64,10 @@ export function createResourceRepository(client: ResourceRepositoryClient) {
 
   async function upload(path: string, file: File) {
     try {
-      const result = await bucket().upload(path, file, { upsert: false });
+      const result = await bucket().upload(path, file, {
+        upsert: false,
+        contentType: canonicalMimeForFilename(file.name),
+      });
       if (result.error) throw result.error;
     } catch (error) {
       throw new ResourceRepositoryError("파일을 업로드하지 못했습니다.", error);

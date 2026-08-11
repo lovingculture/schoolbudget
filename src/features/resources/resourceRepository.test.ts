@@ -49,7 +49,7 @@ describe("createResourceRepository", () => {
 
     await repository.create(input, file, "admin-1");
 
-    expect(storage.upload).toHaveBeenCalledWith(expect.stringMatching(/^2026\/[^/]+\.pdf$/), file, { upsert: false });
+    expect(storage.upload).toHaveBeenCalledWith(expect.stringMatching(/^2026\/[^/]+\.pdf$/), file, { upsert: false, contentType: "application/pdf" });
     expect(table.insert).toHaveBeenCalledWith(expect.objectContaining({ created_by: "admin-1", storage_path: expect.stringMatching(/^2026\/[^/]+\.pdf$/) }));
   });
 
@@ -81,7 +81,7 @@ describe("createResourceRepository", () => {
     expect(table.select).toHaveBeenCalledWith("storage_path");
     expect(publicOnly).toHaveBeenCalledWith("id", "resource-1");
     expect(currentResource).toHaveBeenCalledTimes(1);
-    expect(storage.upload).toHaveBeenCalledWith(expect.stringMatching(/^2026\/[^/]+\.pdf$/), replacement, { upsert: false });
+    expect(storage.upload).toHaveBeenCalledWith(expect.stringMatching(/^2026\/[^/]+\.pdf$/), replacement, { upsert: false, contentType: "application/pdf" });
     expect(storage.remove).toHaveBeenCalledWith(["2026/old.pdf"]);
   });
 
