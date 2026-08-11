@@ -1,7 +1,7 @@
 import { useMemo, useRef, useState } from "react";
 import { Download, ExternalLink, Eye, FileText, Search } from "lucide-react";
 import guidelineIndex from "./guidelineIndex.json";
-import { GUIDELINE_PDF_URL, GUIDELINE_TITLE } from "./GuidelinesPage";
+import { GUIDELINE_PDF_URL, GUIDELINE_TITLE } from "./guidelineConstants";
 import { searchGuideline, type GuidelinePage } from "./searchGuideline";
 
 const pages = guidelineIndex as GuidelinePage[];

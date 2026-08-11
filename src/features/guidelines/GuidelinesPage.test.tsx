@@ -1,13 +1,36 @@
 import { render, screen } from "@testing-library/react";
+import { readFileSync } from "node:fs";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it } from "vitest";
 import { GUIDELINE_PDF_URL, GuidelinesPage } from "./GuidelinesPage";
+
+const guidelineStyles = readFileSync("src/features/guidelines/guidelines.css", "utf8");
 
 describe("portal workspace visual contract", () => {
   it("wraps the guidance page in the portal workspace visual contract", () => {
     render(<GuidelinesPage />);
 
     expect(screen.getByRole("heading", { level: 1 }).closest(".portal-workspace")).not.toBeNull();
+  });
+
+  it("keeps the mobile year selector within a 390px search panel", () => {
+    const style = document.createElement("style");
+    style.textContent = guidelineStyles;
+    document.head.append(style);
+
+    try {
+      const mobileRule = Array.from((style.sheet as CSSStyleSheet).cssRules)
+        .find((rule): rule is CSSMediaRule => rule instanceof CSSMediaRule && rule.conditionText === "(max-width:650px)");
+      const selectRule = Array.from(mobileRule?.cssRules ?? [])
+        .find((rule): rule is CSSStyleRule => "selectorText" in rule && rule.selectorText === ".guideline-search select");
+
+      expect(selectRule).toBeDefined();
+      expect(selectRule!.style.getPropertyValue("width")).toBe("calc(100% - 38px)");
+      expect(selectRule!.style.getPropertyValue("margin-left")).toBe("38px");
+      expect(selectRule!.style.getPropertyValue("box-sizing")).toBe("border-box");
+    } finally {
+      style.remove();
+    }
   });
 });
 
