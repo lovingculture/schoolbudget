@@ -42,7 +42,7 @@ const blankItem = (): DraftItem => ({
   note: "",
 });
 
-type PortalProfile = { displayName: string; schoolName: string };
+type PortalProfile = { displayName: string; schoolName: string; isAdmin: boolean };
 const KAKAO_AUTH_ENABLED = false;
 
 export const kakaoOAuthOptions = (redirectTo: string) => ({
@@ -52,7 +52,7 @@ export const kakaoOAuthOptions = (redirectTo: string) => ({
 
 export default function App() {
   if (!KAKAO_AUTH_ENABLED) {
-    return <Portal displayName="예산담당자" schoolName="○○초등학교" />;
+    return <Portal displayName="예산담당자" schoolName="○○초등학교" userId="demo-user" />;
   }
   return <AuthenticatedApp />;
 }
@@ -76,7 +76,7 @@ function AuthenticatedApp() {
       }
       const { data, error: profileError } = await supabase
         .from("profiles")
-        .select("school_id, display_name")
+        .select("school_id, display_name, is_admin")
         .eq("user_id", nextUser.id)
         .maybeSingle();
       if (!active) return;
@@ -95,6 +95,7 @@ function AuthenticatedApp() {
           setProfile({
             displayName: data.display_name,
             schoolName: school?.name ?? "소속 학교",
+            isAdmin: data.is_admin === true,
           });
       }
       setLoading(false);
@@ -156,7 +157,7 @@ function AuthenticatedApp() {
       setBusy(false);
       return;
     }
-    setProfile({ displayName, schoolName: school.name });
+    setProfile({ displayName, schoolName: school.name, isAdmin: false });
     setBusy(false);
   };
 
@@ -187,6 +188,8 @@ function AuthenticatedApp() {
     <Portal
       displayName={profile.displayName}
       schoolName={profile.schoolName}
+      isAdmin={profile.isAdmin}
+      userId={user.id}
       onLogout={() => supabase.auth.signOut()}
     />
   );
@@ -313,10 +316,14 @@ export function SchoolSetupPage({
 export function Portal({
   displayName,
   schoolName,
+  isAdmin = false,
+  userId,
   onLogout,
 }: {
   displayName: string;
   schoolName: string;
+  isAdmin?: boolean;
+  userId?: string;
   onLogout?: () => void;
 }) {
   const [view, setView] = useState<View>("home");
@@ -360,14 +367,14 @@ export function Portal({
             onNavigate={go}
           />
         )}
-        {view === "guidelines" && <BudgetResourceLibraryPage isAdmin={false} userId={displayName} />}
+        {view === "guidelines" && <BudgetResourceLibraryPage isAdmin={isAdmin} userId={userId ?? ""} />}
         {view === "prebudget" && <PrebudgetPage initialSchoolName={schoolName} />}
         {view === "closing" && <ClosingPage />}
         {view === "agenda" && <BudgetAgendaPage />}
         {view === "supplementary" && <SupplementaryPage />}
         {view === "budget" && <MainBudgetPage />}
         {view === "settings" && <SettingsPage />}
-        {view === "resources" && <BudgetResourceLibraryPage isAdmin={false} userId={displayName} />}
+        {view === "resources" && <BudgetResourceLibraryPage isAdmin={isAdmin} userId={userId ?? ""} />}
         {view === "videos" && <VideoGuidePage />}
         {view === "search" && <PortalSearchPage />}
       </main>

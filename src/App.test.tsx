@@ -205,6 +205,22 @@ describe("예산업무 포털", () => {
     expect(screen.getByRole("searchbox", { name: "자료 검색" })).toBeVisible();
   });
 
+  it("관리자는 예산 자료실에서 자료 등록을 볼 수 있다", async () => {
+    const user = userEvent.setup();
+    render(
+      <Portal
+        displayName="김담당"
+        schoolName="서울한빛초등학교"
+        userId="authenticated-user-id"
+        isAdmin
+      />,
+    );
+
+    await user.click(screen.getByRole("button", { name: "예산 자료실" }));
+
+    expect(screen.getByRole("button", { name: "자료 등록" })).toBeVisible();
+  });
+
   it("동영상 안내 상단 메뉴가 접근 가능한 안내 화면을 연다", async () => {
     const user = userEvent.setup();
     render(<Portal displayName="김담당" schoolName="서울한빛초등학교" />);
