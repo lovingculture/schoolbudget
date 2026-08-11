@@ -437,7 +437,7 @@ function Prebudget({
           </label>
           <label className="wide">
             문서 제목
-            <input defaultValue="안전인력 봉사비 성립전예산" />
+            <input defaultValue="안전인력봉사비 성립전예산 편성 요청" />
           </label>
           <label>
             부서명

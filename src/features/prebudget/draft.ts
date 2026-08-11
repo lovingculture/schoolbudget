@@ -4,7 +4,7 @@ import type { PrebudgetFormDraft, PrebudgetSource } from "./types";
 export const createBlankPrebudgetItem = (): DraftItem => ({ id: crypto.randomUUID(), unitBusiness: "", business: "", detail: "", category: "일반수용비", description: "", unitPrice: 0, quantity: 0, count: 0, note: "" });
 
 export function createPrebudgetDraft(initialSchoolName: string): PrebudgetFormDraft {
-  return { schoolName: initialSchoolName, fiscalYear: 2026, source: "목적사업비(교육청)", title: "안전인력 봉사비 성립전예산", department: "체육안전교육부", requester: "김담당", approvalGranter: "", officialDocument: "", items: Array.from({ length: 5 }, createBlankPrebudgetItem), schoolLevel: "공통", reviewRequiredFields: [] };
+  return { schoolName: initialSchoolName, fiscalYear: 2026, source: "목적사업비(교육청)", title: "안전인력봉사비 성립전예산 편성 요청", department: "체육안전교육부", requester: "김담당", approvalGranter: "", officialDocument: "", items: Array.from({ length: 5 }, createBlankPrebudgetItem), schoolLevel: "공통", reviewRequiredFields: [] };
 }
 
 const isRecord = (value: unknown): value is Record<string, unknown> => typeof value === "object" && value !== null;
