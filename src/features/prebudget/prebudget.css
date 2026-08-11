@@ -13,6 +13,8 @@
 .prebudget-page select,
 .prebudget-page textarea { min-height: 44px; }
 .prebudget-page button { min-height: 44px; }
+.prebudget-page input::placeholder,
+.prebudget-page textarea::placeholder { color: #718395; opacity: 1; font-weight: 500; }
 .prebudget-page .prebudget-hero { display: grid; grid-template-columns: minmax(0, 1fr) minmax(180px, 220px); align-items: center; gap: 28px; padding: 30px 36px; border: 1px solid var(--prebudget-border); border-radius: 22px; background: linear-gradient(120deg, var(--prebudget-sky), var(--prebudget-mint)); overflow: hidden; }
 .prebudget-page .prebudget-hero-copy > span { color: var(--prebudget-teal-text); font-size: 12px; font-weight: 800; letter-spacing: .14em; }
 .prebudget-page .prebudget-hero h1 { margin: 8px 0 12px; color: var(--prebudget-navy); font-size: clamp(30px, 4vw, 46px); }

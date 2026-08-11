@@ -5,7 +5,7 @@ describe("성립전예산 초안", () => {
   it("기본 초안에 학교명과 빈 예산항목 5개를 만들고 빈 항목을 출력에서 제외한다", () => {
     const draft = createPrebudgetDraft("서울한빛초등학교");
     expect(draft.schoolName).toBe("서울한빛초등학교");
-    expect(draft.title).toBe("안전인력봉사비 성립전예산 편성 요청");
+    expect(draft.title).toBe("");
     expect(draft.source).toBe("목적사업비(교육청)");
     expect(draft.requester).toBe("김담당");
     expect(draft.approvalGranter).toBe("");
@@ -87,5 +87,9 @@ describe("legacy draft normalization", () => {
       reviewRequiredFields: ["grantingAgency", "officialDocument", "projectPeriod"],
     });
     expect(result.reviewRequiredFields).toEqual(["officialDocument"]);
+  });
+
+  it("기존 기본 예시값은 실제 입력값이 아닌 빈칸으로 복원한다", () => {
+    expect(normalizePrebudgetDraft({ schoolName: "학교예산 업무공간", title: "안전인력 봉사비 성립전예산" })).toMatchObject({ schoolName: "", title: "" });
   });
 });

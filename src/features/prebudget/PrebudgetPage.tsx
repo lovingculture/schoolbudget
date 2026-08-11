@@ -1,10 +1,29 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Clipboard, Download, FileText, Plus, X } from "lucide-react";
-import { DEFAULT_ACCOUNT_CATEGORIES, PREBUDGET_BUSINESS_OPTIONS, calculateRequestedAmount, getAccountCategoryDescription, getDetailBusinesses } from "../../domain/prebudget";
+import {
+  DEFAULT_ACCOUNT_CATEGORIES,
+  PREBUDGET_BUSINESS_OPTIONS,
+  calculateRequestedAmount,
+  getAccountCategoryDescription,
+  getDetailBusinesses,
+} from "../../domain/prebudget";
 import type { DraftItem } from "../../domain/prebudget";
-import { createPrebudgetDocument, type PrebudgetDocument } from "./createDocument";
-import { activePrebudgetItems, createBlankPrebudgetItem, createPrebudgetDraft } from "./draft";
-import { downloadBlob, exportPrebudgetHwpx, exportPrebudgetPdf, exportPrebudgetWord, prebudgetFilename } from "./exporters";
+import {
+  createPrebudgetDocument,
+  type PrebudgetDocument,
+} from "./createDocument";
+import {
+  activePrebudgetItems,
+  createBlankPrebudgetItem,
+  createPrebudgetDraft,
+} from "./draft";
+import {
+  downloadBlob,
+  exportPrebudgetHwpx,
+  exportPrebudgetPdf,
+  exportPrebudgetWord,
+  prebudgetFilename,
+} from "./exporters";
 import { createBrowserDraftStorage, type DraftStorage } from "./storage";
 import type { PrebudgetFormDraft } from "./types";
 import { validatePrebudgetForm } from "./validation";
@@ -12,60 +31,476 @@ import { applyPrebudgetExample } from "./examples/applyExample";
 import { PREBUDGET_EXAMPLES } from "./examples/data";
 import { PrebudgetExampleLibrary } from "./examples/PrebudgetExampleLibrary";
 import { PrebudgetFundingGuide } from "./examples/PrebudgetFundingGuide";
-import type { ExampleFundingCategory, PrebudgetExample } from "./examples/types";
+import type {
+  ExampleFundingCategory,
+  PrebudgetExample,
+} from "./examples/types";
 import { PrebudgetHeader } from "./PrebudgetHeader";
 import "./prebudget.css";
 
-export function PrebudgetPage({ initialSchoolName, storage = createBrowserDraftStorage() }: { initialSchoolName: string; storage?: DraftStorage }) {
-  const [draft, setDraft] = useState<PrebudgetFormDraft>(() => storage.load() ?? createPrebudgetDraft(initialSchoolName));
-  const [view, setView] = useState<"form" | "funding-guide" | "examples">("form");
-  const [exampleCategory, setExampleCategory] = useState<ExampleFundingCategory>("목적사업비");
-  const [message, setMessage] = useState(""); const [issues, setIssues] = useState<string[]>([]); const [document, setDocument] = useState<PrebudgetDocument | null>(null); const [workingExport, setWorkingExport] = useState<"hwpx" | null>(null); const previewRef = useRef<HTMLElement>(null);
-  const total = useMemo(() => activePrebudgetItems(draft.items).reduce((sum, i) => sum + calculateRequestedAmount(i), 0), [draft.items]);
-  const blank = useMemo(() => createPrebudgetDraft(initialSchoolName), [initialSchoolName]);
+export function PrebudgetPage({
+  initialSchoolName,
+  storage = createBrowserDraftStorage(),
+}: {
+  initialSchoolName: string;
+  storage?: DraftStorage;
+}) {
+  const [draft, setDraft] = useState<PrebudgetFormDraft>(
+    () => storage.load() ?? createPrebudgetDraft(initialSchoolName),
+  );
+  const [view, setView] = useState<"form" | "funding-guide" | "examples">(
+    "form",
+  );
+  const [exampleCategory, setExampleCategory] =
+    useState<ExampleFundingCategory>("목적사업비");
+  const [message, setMessage] = useState("");
+  const [issues, setIssues] = useState<string[]>([]);
+  const [document, setDocument] = useState<PrebudgetDocument | null>(null);
+  const [workingExport, setWorkingExport] = useState<"hwpx" | null>(null);
+  const previewRef = useRef<HTMLElement>(null);
+  const total = useMemo(
+    () =>
+      activePrebudgetItems(draft.items).reduce(
+        (sum, i) => sum + calculateRequestedAmount(i),
+        0,
+      ),
+    [draft.items],
+  );
+  const blank = useMemo(
+    () => createPrebudgetDraft(initialSchoolName),
+    [initialSchoolName],
+  );
   useEffect(() => {
-    globalThis.document.querySelectorAll(".category-help").forEach((node) => node.setAttribute("aria-label", "비목 설명"));
+    globalThis.document
+      .querySelectorAll(".category-help")
+      .forEach((node) => node.setAttribute("aria-label", "비목 설명"));
   }, [draft.items]);
-  const field = <K extends keyof PrebudgetFormDraft>(key: K, value: PrebudgetFormDraft[K]) => setDraft((d) => {
-    const reviewRequiredFields = typeof value === "string" && !/(○○|0000|20XX)/.test(value) ? d.reviewRequiredFields.filter((fieldName) => fieldName !== key) : d.reviewRequiredFields;
-    return { ...d, [key]: value, reviewRequiredFields };
-  });
-  const updateItem = (index: number, key: keyof DraftItem, value: string | number) => setDraft((current) => ({
-    ...current,
-    items: current.items.map((item, i) => {
-      if (i !== index) return item;
-      if (key === "unitBusiness") return { ...item, unitBusiness: String(value), business: "" };
-      if (key === "unitPrice" || key === "quantity" || key === "count") {
-        const { manualAmount: _manualAmount, ...calculatedItem } = item;
-        return { ...calculatedItem, [key]: value };
-      }
-      return { ...item, [key]: value };
-    }),
-  }));
-  const save = () => { const savedAt = new Date().toISOString(); const next = { ...draft, savedAt }; storage.save(next); setDraft(next); setMessage(`이 브라우저에 임시저장했습니다. (${new Date(savedAt).toLocaleString("ko-KR")})`); };
-  const generate = () => { const nextIssues = validatePrebudgetForm(draft); setIssues(nextIssues.map((i) => i.message)); if (nextIssues.length) { setDocument(null); setMessage("입력 내용을 확인해 주세요."); return; } const next = createPrebudgetDocument(draft); setDocument(next); setMessage("자동점검을 통과했습니다."); setTimeout(() => previewRef.current?.scrollIntoView({ behavior: "smooth" }), 0); };
-  const hasMeaningfulDraft = draft.title !== blank.title || draft.officialDocument.trim() !== "" || activePrebudgetItems(draft.items).length > 0;
+  const field = <K extends keyof PrebudgetFormDraft>(
+    key: K,
+    value: PrebudgetFormDraft[K],
+  ) =>
+    setDraft((d) => {
+      const reviewRequiredFields =
+        typeof value === "string" && !/(○○|0000|20XX)/.test(value)
+          ? d.reviewRequiredFields.filter((fieldName) => fieldName !== key)
+          : d.reviewRequiredFields;
+      return { ...d, [key]: value, reviewRequiredFields };
+    });
+  const updateItem = (
+    index: number,
+    key: keyof DraftItem,
+    value: string | number,
+  ) =>
+    setDraft((current) => ({
+      ...current,
+      items: current.items.map((item, i) => {
+        if (i !== index) return item;
+        if (key === "unitBusiness")
+          return { ...item, unitBusiness: String(value), business: "" };
+        if (key === "unitPrice" || key === "quantity" || key === "count") {
+          const { manualAmount: _manualAmount, ...calculatedItem } = item;
+          return { ...calculatedItem, [key]: value };
+        }
+        return { ...item, [key]: value };
+      }),
+    }));
+  const save = () => {
+    const savedAt = new Date().toISOString();
+    const next = { ...draft, savedAt };
+    storage.save(next);
+    setDraft(next);
+    setMessage(
+      `이 브라우저에 임시저장했습니다. (${new Date(savedAt).toLocaleString("ko-KR")})`,
+    );
+  };
+  const generate = () => {
+    const nextIssues = validatePrebudgetForm(draft);
+    setIssues(nextIssues.map((i) => i.message));
+    if (nextIssues.length) {
+      setDocument(null);
+      setMessage("입력 내용을 확인해 주세요.");
+      return;
+    }
+    const next = createPrebudgetDocument(draft);
+    setDocument(next);
+    setMessage("자동점검을 통과했습니다.");
+    setTimeout(
+      () => previewRef.current?.scrollIntoView({ behavior: "smooth" }),
+      0,
+    );
+  };
+  const hasMeaningfulDraft =
+    draft.title !== blank.title ||
+    draft.officialDocument.trim() !== "" ||
+    activePrebudgetItems(draft.items).length > 0;
   const useExample = (example: PrebudgetExample) => {
-    if (hasMeaningfulDraft && !window.confirm("현재 작성 중인 내용이 예시 내용으로 바뀝니다. 계속하시겠습니까?")) { setView("form"); return; }
-    setDraft((current) => applyPrebudgetExample(current, example)); setDocument(null); setIssues([]); setMessage("예시를 불러왔습니다. 확인 필요 항목을 실제 공문에 맞게 수정해 주세요."); setView("form");
+    if (
+      hasMeaningfulDraft &&
+      !window.confirm(
+        "현재 작성 중인 내용이 예시 내용으로 바뀝니다. 계속하시겠습니까?",
+      )
+    ) {
+      setView("form");
+      return;
+    }
+    setDraft((current) => applyPrebudgetExample(current, example));
+    setDocument(null);
+    setIssues([]);
+    setMessage(
+      "예시를 불러왔습니다. 확인 필요 항목을 실제 공문에 맞게 수정해 주세요.",
+    );
+    setView("form");
   };
   const downloadHwpx = async () => {
     if (!document || workingExport) return;
-    setWorkingExport("hwpx"); setMessage("");
+    setWorkingExport("hwpx");
+    setMessage("");
     try {
-      downloadBlob(await exportPrebudgetHwpx(document), prebudgetFilename(document.title, "hwpx"));
+      downloadBlob(
+        await exportPrebudgetHwpx(document),
+        prebudgetFilename(document.title, "hwpx"),
+      );
     } catch {
       setMessage("한글(HWPX) 파일을 만들지 못했습니다. 다시 시도해 주세요.");
     } finally {
       setWorkingExport(null);
     }
   };
-  if (view === "funding-guide") return <div className="content portal-workspace"><PrebudgetFundingGuide onSelect={(category) => { setExampleCategory(category); setView("examples"); }} onUnsure={() => setMessage("교부공문 발신기관·제목, 구청 보조금 교부결정서 또는 가정통신문과 징수계획을 확인하세요. 포털이 재원을 임의로 결정하지 않습니다.")} />{message && <p className="prebudget-message" role="status">{message}</p>}<button type="button" onClick={() => setView("form")}>직접 작성으로 돌아가기</button></div>;
-  if (view === "examples") return <div className="content portal-workspace"><PrebudgetExampleLibrary examples={PREBUDGET_EXAMPLES} initialScope={exampleCategory} onUseExample={useExample} onBack={() => setView("funding-guide")} /></div>;
-  return <div className="content prebudget-page portal-workspace"><PrebudgetHeader documentReady={Boolean(document)} onOpenExamples={() => setView("funding-guide")} />{draft.exampleSourceId && draft.reviewRequiredFields.length > 0 && <section className="prebudget-errors" aria-label="확인 필요 항목"><b>예시를 복사한 초안입니다</b><p>실제 공문과 금액을 확인하기 전에는 확정 문서로 사용하지 마세요.</p><ul>{draft.reviewRequiredFields.map((name) => <li key={name}>{({ officialDocument: "관련 공문" } as Record<string,string>)[name] ?? name} 확인 필요</li>)}</ul></section>}
-  <section className="form-card"><h2>기본정보</h2><div className="form-grid"><label>학교명<input value={draft.schoolName} onChange={(e) => field("schoolName", e.target.value)} /></label><label>회계연도<input type="number" value={draft.fiscalYear} onChange={(e) => field("fiscalYear", Number(e.target.value))} /></label><label>재원구분<select value={draft.source} onChange={(e) => field("source", e.target.value as PrebudgetFormDraft["source"])}><option>보조금(구청)</option><option>목적사업비(교육청)</option><option>수익자부담경비(학부모)</option></select></label><label className="wide">문서 제목<input value={draft.title} onChange={(e) => field("title", e.target.value)} /></label><label>부서명<input value={draft.department} onChange={(e) => field("department", e.target.value)} /></label><label>사업담당자<input value={draft.requester} onChange={(e) => field("requester", e.target.value)} /></label><label>품의권한 부여자<input value={draft.approvalGranter} onChange={(e) => field("approvalGranter", e.target.value)} /></label><label className="wide">관련 공문<input value={draft.officialDocument} onChange={(e) => field("officialDocument", e.target.value)} placeholder="예: 교육지원과-1234(2026. 8. 1.)" /></label></div></section>
-  <section className="form-card"><div className="card-title-row"><div><h2>예산항목</h2><p>산출기초를 입력하면 요구금액이 자동 계산됩니다.</p></div><button className="secondary" onClick={() => field("items", [...draft.items, createBlankPrebudgetItem()])}><Plus size={16}/> 항목 추가</button></div><div className="item-list">{draft.items.map((item, i) => <div className="budget-item" key={item.id}><div className="item-number">{i + 1}</div><div className="item-fields"><label>단위사업<select value={item.unitBusiness ?? ""} onChange={(e) => updateItem(i, "unitBusiness", e.target.value)}><option value="">선택하세요</option>{PREBUDGET_BUSINESS_OPTIONS.map(([v]) => <option key={v}>{v}</option>)}</select></label><label>세부사업<select value={item.business ?? ""} disabled={!item.unitBusiness} onChange={(e) => updateItem(i, "business", e.target.value)}><option value="">{item.unitBusiness ? "선택하세요" : "단위사업을 먼저 선택하세요"}</option>{getDetailBusinesses(item.unitBusiness).map((v) => <option key={v}>{v}</option>)}</select></label><label>세부항목<input value={item.detail ?? ""} onChange={(e) => updateItem(i, "detail", e.target.value)} /></label><div className="category-field"><label>원가통계비목<select value={item.category} onChange={(e) => updateItem(i, "category", e.target.value)}>{DEFAULT_ACCOUNT_CATEGORIES.map(([v]) => <option key={v}>{v}</option>)}</select></label><aside className="category-help"><b>비목 설명</b><p>{getAccountCategoryDescription(item.category)}</p></aside></div><label className="description">산출내역<input value={item.description ?? ""} onChange={(e) => updateItem(i, "description", e.target.value)} /></label><div className="formula">{(["unitPrice", "quantity", "count"] as const).map((key, n) => <label key={key}>{["단가", "수량", "횟수"][n]}<input aria-label={["단가", "수량", "횟수"][n]} type="number" value={item[key] ?? 0} onChange={(e) => updateItem(i, key, Number(e.target.value))} /></label>)}<output>{calculateRequestedAmount(item).toLocaleString()}원</output></div></div><button className="remove" aria-label={`${i + 1}번 항목 삭제`} onClick={() => field("items", draft.items.filter((_, x) => x !== i))}><X size={17}/></button></div>)}</div><button className="add-row" onClick={() => field("items", [...draft.items, createBlankPrebudgetItem()])}><Plus size={17}/> 예산항목 추가</button><div className="total"><span>예산요구액 합계</span><strong>{total.toLocaleString()}원</strong></div></section>
-  {message && <p className="prebudget-message" role="status">{message}</p>}{issues.length > 0 && <div className="prebudget-errors" role="alert"><b>자동점검 결과</b><ul>{issues.map((v) => <li key={v}>{v}</li>)}</ul></div>}<div className="actions"><button className="secondary" onClick={save}>임시저장</button><button className="primary" onClick={generate}><Download size={17}/> 자동점검 후 기안문 생성</button></div>
-  {document && <section className="prebudget-preview-section" ref={previewRef}><div className="prebudget-downloads"><div><span>AUTO DRAFT</span><h2>기안문 미리보기</h2><p>복사하거나 한글(HWPX)·Word·PDF로 내려받을 수 있습니다.</p></div><div><button onClick={() => navigator.clipboard.writeText(document.copyText)}><Clipboard/> 전체 복사</button><button disabled={workingExport === "hwpx"} onClick={() => void downloadHwpx()}><FileText/> 한글(HWPX)</button><button onClick={async () => { const f = await exportPrebudgetWord(document); downloadBlob(f.blob, f.filename); }}><FileText/> Word</button><button onClick={async () => { if (previewRef.current) { const f = await exportPrebudgetPdf(previewRef.current.querySelector(".prebudget-paper")!, document.title); downloadBlob(f.blob, f.filename); } }}><Download/> PDF</button></div></div><article className="prebudget-paper"><h1>{document.title}</h1><pre>{document.bodyLines.join("\n")}</pre></article></section>}
-  </div>;
+  if (view === "funding-guide")
+    return (
+      <div className="content portal-workspace">
+        <PrebudgetFundingGuide
+          onSelect={(category) => {
+            setExampleCategory(category);
+            setView("examples");
+          }}
+          onUnsure={() =>
+            setMessage(
+              "교부공문 발신기관·제목, 구청 보조금 교부결정서 또는 가정통신문과 징수계획을 확인하세요. 포털이 재원을 임의로 결정하지 않습니다.",
+            )
+          }
+        />
+        {message && (
+          <p className="prebudget-message" role="status">
+            {message}
+          </p>
+        )}
+        <button type="button" onClick={() => setView("form")}>
+          직접 작성으로 돌아가기
+        </button>
+      </div>
+    );
+  if (view === "examples")
+    return (
+      <div className="content portal-workspace">
+        <PrebudgetExampleLibrary
+          examples={PREBUDGET_EXAMPLES}
+          initialScope={exampleCategory}
+          onUseExample={useExample}
+          onBack={() => setView("funding-guide")}
+        />
+      </div>
+    );
+  return (
+    <div className="content prebudget-page portal-workspace">
+      <PrebudgetHeader
+        documentReady={Boolean(document)}
+        onOpenExamples={() => setView("funding-guide")}
+      />
+      {draft.exampleSourceId && draft.reviewRequiredFields.length > 0 && (
+        <section className="prebudget-errors" aria-label="확인 필요 항목">
+          <b>예시를 복사한 초안입니다</b>
+          <p>실제 공문과 금액을 확인하기 전에는 확정 문서로 사용하지 마세요.</p>
+          <ul>
+            {draft.reviewRequiredFields.map((name) => (
+              <li key={name}>
+                {({ officialDocument: "관련 공문" } as Record<string, string>)[
+                  name
+                ] ?? name}{" "}
+                확인 필요
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
+      <section className="form-card">
+        <h2>기본정보</h2>
+        <div className="form-grid">
+          <label>
+            학교명
+            <input
+              value={draft.schoolName}
+              placeholder="○○초등학교"
+              onChange={(e) => field("schoolName", e.target.value)}
+            />
+          </label>
+          <label>
+            회계연도
+            <input
+              type="number"
+              value={draft.fiscalYear}
+              onChange={(e) => field("fiscalYear", Number(e.target.value))}
+            />
+          </label>
+          <label>
+            재원구분
+            <select
+              value={draft.source}
+              onChange={(e) =>
+                field("source", e.target.value as PrebudgetFormDraft["source"])
+              }
+            >
+              <option>보조금(구청)</option>
+              <option>목적사업비(교육청)</option>
+              <option>수익자부담경비(학부모)</option>
+            </select>
+          </label>
+          <label className="wide">
+            문서 제목
+            <input
+              value={draft.title}
+              placeholder="안전인력봉사비 성립전예산 편성 요청"
+              onChange={(e) => field("title", e.target.value)}
+            />
+          </label>
+          <label>
+            부서명
+            <input
+              value={draft.department}
+              onChange={(e) => field("department", e.target.value)}
+            />
+          </label>
+          <label>
+            사업담당자
+            <input
+              value={draft.requester}
+              onChange={(e) => field("requester", e.target.value)}
+            />
+          </label>
+          <label>
+            품의권한 부여자
+            <input
+              value={draft.approvalGranter}
+              onChange={(e) => field("approvalGranter", e.target.value)}
+            />
+          </label>
+          <label className="wide">
+            관련 공문
+            <input
+              value={draft.officialDocument}
+              onChange={(e) => field("officialDocument", e.target.value)}
+              placeholder="예: 교육지원과-1234(2026. 8. 1.)"
+            />
+          </label>
+        </div>
+      </section>
+      <section className="form-card">
+        <div className="card-title-row">
+          <div>
+            <h2>예산항목</h2>
+            <p>산출기초를 입력하면 요구금액이 자동 계산됩니다.</p>
+          </div>
+          <button
+            className="secondary"
+            onClick={() =>
+              field("items", [...draft.items, createBlankPrebudgetItem()])
+            }
+          >
+            <Plus size={16} /> 항목 추가
+          </button>
+        </div>
+        <div className="item-list">
+          {draft.items.map((item, i) => (
+            <div className="budget-item" key={item.id}>
+              <div className="item-number">{i + 1}</div>
+              <div className="item-fields">
+                <label>
+                  단위사업
+                  <select
+                    value={item.unitBusiness ?? ""}
+                    onChange={(e) =>
+                      updateItem(i, "unitBusiness", e.target.value)
+                    }
+                  >
+                    <option value="">선택하세요</option>
+                    {PREBUDGET_BUSINESS_OPTIONS.map(([v]) => (
+                      <option key={v}>{v}</option>
+                    ))}
+                  </select>
+                </label>
+                <label>
+                  세부사업
+                  <select
+                    value={item.business ?? ""}
+                    disabled={!item.unitBusiness}
+                    onChange={(e) => updateItem(i, "business", e.target.value)}
+                  >
+                    <option value="">
+                      {item.unitBusiness
+                        ? "선택하세요"
+                        : "단위사업을 먼저 선택하세요"}
+                    </option>
+                    {getDetailBusinesses(item.unitBusiness).map((v) => (
+                      <option key={v}>{v}</option>
+                    ))}
+                  </select>
+                </label>
+                <label>
+                  세부항목
+                  <input
+                    value={item.detail ?? ""}
+                    onChange={(e) => updateItem(i, "detail", e.target.value)}
+                  />
+                </label>
+                <div className="category-field">
+                  <label>
+                    원가통계비목
+                    <select
+                      value={item.category}
+                      onChange={(e) =>
+                        updateItem(i, "category", e.target.value)
+                      }
+                    >
+                      {DEFAULT_ACCOUNT_CATEGORIES.map(([v]) => (
+                        <option key={v}>{v}</option>
+                      ))}
+                    </select>
+                  </label>
+                  <aside className="category-help">
+                    <b>비목 설명</b>
+                    <p>{getAccountCategoryDescription(item.category)}</p>
+                  </aside>
+                </div>
+                <label className="description">
+                  산출내역
+                  <input
+                    value={item.description ?? ""}
+                    onChange={(e) =>
+                      updateItem(i, "description", e.target.value)
+                    }
+                  />
+                </label>
+                <div className="formula">
+                  {(["unitPrice", "quantity", "count"] as const).map(
+                    (key, n) => (
+                      <label key={key}>
+                        {["단가", "수량", "횟수"][n]}
+                        <input
+                          aria-label={["단가", "수량", "횟수"][n]}
+                          type="number"
+                          value={item[key] ?? 0}
+                          onChange={(e) =>
+                            updateItem(i, key, Number(e.target.value))
+                          }
+                        />
+                      </label>
+                    ),
+                  )}
+                  <output>
+                    {calculateRequestedAmount(item).toLocaleString()}원
+                  </output>
+                </div>
+              </div>
+              <button
+                className="remove"
+                aria-label={`${i + 1}번 항목 삭제`}
+                onClick={() =>
+                  field(
+                    "items",
+                    draft.items.filter((_, x) => x !== i),
+                  )
+                }
+              >
+                <X size={17} />
+              </button>
+            </div>
+          ))}
+        </div>
+        <button
+          className="add-row"
+          onClick={() =>
+            field("items", [...draft.items, createBlankPrebudgetItem()])
+          }
+        >
+          <Plus size={17} /> 예산항목 추가
+        </button>
+        <div className="total">
+          <span>예산요구액 합계</span>
+          <strong>{total.toLocaleString()}원</strong>
+        </div>
+      </section>
+      {message && (
+        <p className="prebudget-message" role="status">
+          {message}
+        </p>
+      )}
+      {issues.length > 0 && (
+        <div className="prebudget-errors" role="alert">
+          <b>자동점검 결과</b>
+          <ul>
+            {issues.map((v) => (
+              <li key={v}>{v}</li>
+            ))}
+          </ul>
+        </div>
+      )}
+      <div className="actions">
+        <button className="secondary" onClick={save}>
+          임시저장
+        </button>
+        <button className="primary" onClick={generate}>
+          <Download size={17} /> 자동점검 후 기안문 생성
+        </button>
+      </div>
+      {document && (
+        <section className="prebudget-preview-section" ref={previewRef}>
+          <div className="prebudget-downloads">
+            <div>
+              <span>AUTO DRAFT</span>
+              <h2>기안문 미리보기</h2>
+              <p>복사하거나 한글(HWPX)·Word·PDF로 내려받을 수 있습니다.</p>
+            </div>
+            <div>
+              <button
+                onClick={() => navigator.clipboard.writeText(document.copyText)}
+              >
+                <Clipboard /> 전체 복사
+              </button>
+              <button
+                disabled={workingExport === "hwpx"}
+                onClick={() => void downloadHwpx()}
+              >
+                <FileText /> 한글(HWPX)
+              </button>
+              <button
+                onClick={async () => {
+                  const f = await exportPrebudgetWord(document);
+                  downloadBlob(f.blob, f.filename);
+                }}
+              >
+                <FileText /> Word
+              </button>
+              <button
+                onClick={async () => {
+                  if (previewRef.current) {
+                    const f = await exportPrebudgetPdf(
+                      previewRef.current.querySelector(".prebudget-paper")!,
+                      document.title,
+                    );
+                    downloadBlob(f.blob, f.filename);
+                  }
+                }}
+              >
+                <Download /> PDF
+              </button>
+            </div>
+          </div>
+          <article className="prebudget-paper">
+            <h1>{document.title}</h1>
+            <pre>{document.bodyLines.join("\n")}</pre>
+          </article>
+        </section>
+      )}
+    </div>
+  );
 }

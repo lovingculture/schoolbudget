@@ -51,7 +51,10 @@ describe("예산업무 포털", () => {
     const user = userEvent.setup();
     render(<App />);
     await user.click(screen.getByRole("button", { name: "성립전예산 새로 작성" }));
-    expect(screen.getByLabelText("학교명")).toHaveValue("○○초등학교");
+    expect(screen.getByLabelText("학교명")).toHaveValue("");
+    expect(screen.getByLabelText("학교명")).toHaveAttribute("placeholder", "○○초등학교");
+    expect(screen.getByLabelText("문서 제목")).toHaveValue("");
+    expect(screen.getByLabelText("문서 제목")).toHaveAttribute("placeholder", "안전인력봉사비 성립전예산 편성 요청");
   });
 
   it("성립전예산 입력 금액의 합계를 계산한다", async () => {

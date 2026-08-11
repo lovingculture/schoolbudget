@@ -16,6 +16,7 @@ const storage: DraftStorage = { load: () => null, save: vi.fn(), clear: vi.fn() 
 
 const validDraft = () => {
   const draft = createPrebudgetDraft("서울우리학교");
+  draft.title = "맞춤형늘봄교실 성립전예산 편성 요청";
   draft.officialDocument = "교육지원과-2222(2026. 7. 1.)";
   draft.items[0] = {
     ...draft.items[0],
