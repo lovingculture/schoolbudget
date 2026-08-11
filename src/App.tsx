@@ -57,7 +57,7 @@ export default function App() {
   return <AuthenticatedApp />;
 }
 
-function AuthenticatedApp() {
+export function AuthenticatedApp() {
   const [user, setUser] = useState<User | null>(null);
   const [profile, setProfile] = useState<PortalProfile | null>(null);
   const [loading, setLoading] = useState(true);
