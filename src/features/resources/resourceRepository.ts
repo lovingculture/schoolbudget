@@ -13,7 +13,10 @@ type ResourceRow = {
 type ResourceRepositoryClient = {
   storage: { from(bucket: string): { upload(path: string, file: File, options: { upsert: boolean }): Promise<QueryResult<unknown>>; remove(paths: string[]): Promise<QueryResult<unknown>> } };
   from(table: string): {
-    select(columns: string): { eq(column: string, value: boolean): { order(column: string, options: { ascending: boolean }): Promise<QueryResult<ResourceRow[]>> } };
+    select(columns: string): { eq(column: string, value: boolean | string): {
+      order(column: string, options: { ascending: boolean }): Promise<QueryResult<ResourceRow[]>>;
+      maybeSingle(): Promise<QueryResult<Pick<ResourceRow, "storage_path">>>;
+    } };
     insert(values: Record<string, unknown>): Promise<QueryResult<unknown>>;
     update(values: Record<string, unknown>): { eq(column: string, value: string): Promise<QueryResult<unknown>> };
     delete(): { eq(column: string, value: string): Promise<QueryResult<unknown>> };
@@ -68,7 +71,10 @@ export function createResourceRepository(client: ResourceRepositoryClient) {
   }
 
   async function removeBestEffort(path: string) {
-    try { await bucket().remove([path]); }
+    try {
+      const removal = await bucket().remove([path]);
+      if (removal.error) throw removal.error;
+    }
     catch { /* The original persistence error remains the useful error. */ }
   }
 
@@ -95,28 +101,32 @@ export function createResourceRepository(client: ResourceRepositoryClient) {
       }
     },
 
-    async update(resource: BudgetResource, input: BudgetResourceInput, replacementFile?: File): Promise<void> {
+    async update(id: string, input: BudgetResourceInput, replacementFile?: File): Promise<void> {
+      let oldStoragePath: string | undefined;
+      if (replacementFile) {
+        try {
+          const current = await table().select("storage_path").eq("id", id).maybeSingle();
+          if (current.error || !current.data) throw current.error ?? new Error("resource not found");
+          oldStoragePath = current.data.storage_path;
+        } catch (error) {
+          throw new ResourceRepositoryError("기존 파일 정보를 불러오지 못했습니다.", error);
+        }
+      }
+
       const replacementPath = replacementFile ? storagePath(input.schoolYear, replacementFile) : undefined;
       if (replacementFile && replacementPath) {
         await upload(replacementPath, replacementFile);
       }
 
       try {
-        const update = await table().update({ ...metadata(input), ...(replacementFile && replacementPath ? fileMetadata(replacementPath, replacementFile) : {}) }).eq("id", resource.id);
+        const update = await table().update({ ...metadata(input), ...(replacementFile && replacementPath ? fileMetadata(replacementPath, replacementFile) : {}) }).eq("id", id);
         if (update.error) throw update.error;
       } catch (error) {
         if (replacementPath) await removeBestEffort(replacementPath);
         throw new ResourceRepositoryError("자료 정보를 수정하지 못했습니다.", error);
       }
 
-      if (replacementPath) {
-        try {
-          const removal = await bucket().remove([resource.storagePath]);
-          if (removal.error) throw removal.error;
-        } catch (error) {
-          throw new ResourceRepositoryError("기존 파일을 삭제하지 못했습니다.", error);
-        }
-      }
+      if (oldStoragePath) await removeBestEffort(oldStoragePath);
     },
 
     async remove(resource: BudgetResource): Promise<void> {

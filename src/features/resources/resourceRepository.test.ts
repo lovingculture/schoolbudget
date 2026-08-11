@@ -34,11 +34,12 @@ function repositoryHarness() {
   const deleteEq = vi.fn().mockResolvedValue({ data: null, error: null });
   const deleteRows = vi.fn(() => ({ eq: deleteEq }));
   const order = vi.fn().mockResolvedValue({ data: [], error: null });
-  const publicOnly = vi.fn(() => ({ order }));
+  const currentResource = vi.fn().mockResolvedValue({ data: { storage_path: "2026/old.pdf" }, error: null });
+  const publicOnly = vi.fn(() => ({ order, maybeSingle: currentResource }));
   const select = vi.fn(() => ({ eq: publicOnly }));
   const table = { insert, update, delete: deleteRows, select };
   const client = { storage: { from: vi.fn(() => storage) }, from: vi.fn(() => table) };
-  return { repository: createResourceRepository(client), client, storage, table, order, updateEq, deleteEq };
+  return { repository: createResourceRepository(client), client, storage, table, order, publicOnly, currentResource, updateEq, deleteEq };
 }
 
 describe("createResourceRepository", () => {
@@ -64,19 +65,22 @@ describe("createResourceRepository", () => {
   it("updates resource metadata without uploading another file", async () => {
     const { repository, storage, table, updateEq } = repositoryHarness();
 
-    await repository.update(resource(), { ...input, title: "수정한 지침" });
+    await repository.update("resource-1", { ...input, title: "수정한 지침" });
 
     expect(storage.upload).not.toHaveBeenCalled();
     expect(table.update).toHaveBeenCalledWith(expect.objectContaining({ title: "수정한 지침" }));
     expect(updateEq).toHaveBeenCalledWith("id", "resource-1");
   });
 
-  it("replaces a resource file and removes the previous object after metadata succeeds", async () => {
-    const { repository, storage } = repositoryHarness();
+  it("keeps the ID-based update API while loading and removing the previous object after metadata succeeds", async () => {
+    const { repository, storage, table, publicOnly, currentResource } = repositoryHarness();
     const replacement = resourceFile("replacement.pdf");
 
-    await repository.update(resource(), input, replacement);
+    await repository.update("resource-1", input, replacement);
 
+    expect(table.select).toHaveBeenCalledWith("storage_path");
+    expect(publicOnly).toHaveBeenCalledWith("id", "resource-1");
+    expect(currentResource).toHaveBeenCalledTimes(1);
     expect(storage.upload).toHaveBeenCalledWith(expect.stringMatching(/^2026\/[^/]+\.pdf$/), replacement, { upsert: false });
     expect(storage.remove).toHaveBeenCalledWith(["2026/old.pdf"]);
   });
@@ -85,7 +89,7 @@ describe("createResourceRepository", () => {
     const { repository, storage, table } = repositoryHarness();
     storage.upload.mockResolvedValue({ data: null, error: new Error("upload failed") });
 
-    await expect(repository.update(resource(), input, resourceFile())).rejects.toThrow("파일을 업로드하지 못했습니다.");
+    await expect(repository.update("resource-1", input, resourceFile())).rejects.toThrow("파일을 업로드하지 못했습니다.");
 
     expect(table.update).not.toHaveBeenCalled();
     expect(storage.remove).not.toHaveBeenCalled();
@@ -104,7 +108,7 @@ describe("createResourceRepository", () => {
     const { repository, storage, table } = repositoryHarness();
     table.update.mockImplementation(() => ({ eq: vi.fn().mockRejectedValue(new Error("update rejected")) }));
 
-    await expect(repository.update(resource(), input, resourceFile())).rejects.toThrow("자료 정보를 수정하지 못했습니다.");
+    await expect(repository.update("resource-1", input, resourceFile())).rejects.toThrow("자료 정보를 수정하지 못했습니다.");
 
     expect(storage.remove).toHaveBeenCalledWith([expect.stringMatching(/^2026\/[^/]+\.pdf$/)]);
     expect(storage.remove).not.toHaveBeenCalledWith(["2026/old.pdf"]);
@@ -114,10 +118,17 @@ describe("createResourceRepository", () => {
     const { repository, storage, table } = repositoryHarness();
     storage.upload.mockRejectedValue(new Error("upload rejected"));
 
-    await expect(repository.update(resource(), input, resourceFile())).rejects.toThrow("파일을 업로드하지 못했습니다.");
+    await expect(repository.update("resource-1", input, resourceFile())).rejects.toThrow("파일을 업로드하지 못했습니다.");
 
     expect(table.update).not.toHaveBeenCalled();
     expect(storage.remove).not.toHaveBeenCalled();
+  });
+
+  it("does not reject a committed replacement when old-object cleanup fails", async () => {
+    const { repository, storage } = repositoryHarness();
+    storage.remove.mockResolvedValue({ data: null, error: new Error("old removal failed") });
+
+    await expect(repository.update("resource-1", input, resourceFile())).resolves.toBeUndefined();
   });
 
   it("removes storage before deleting the metadata row", async () => {
