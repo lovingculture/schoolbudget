@@ -1,0 +1,74 @@
+.prebudget-page {
+  --prebudget-navy: #14334e;
+  --prebudget-blue: #188bc1;
+  --prebudget-teal: #1596a3;
+  --prebudget-teal-text: #0b5f66;
+  --prebudget-sky: #eef8fc;
+  --prebudget-mint: #effaf7;
+  --prebudget-border: #d8e5eb;
+  color: var(--prebudget-navy);
+  font-family: "Noto Sans KR", sans-serif;
+}
+.prebudget-page input,
+.prebudget-page select,
+.prebudget-page textarea { min-height: 44px; }
+.prebudget-page button { min-height: 44px; }
+.prebudget-page .prebudget-hero { display: grid; grid-template-columns: minmax(0, 1fr) minmax(180px, 220px); align-items: center; gap: 28px; padding: 30px 36px; border: 1px solid var(--prebudget-border); border-radius: 22px; background: linear-gradient(120deg, var(--prebudget-sky), var(--prebudget-mint)); overflow: hidden; }
+.prebudget-page .prebudget-hero-copy > span { color: var(--prebudget-teal-text); font-size: 12px; font-weight: 800; letter-spacing: .14em; }
+.prebudget-page .prebudget-hero h1 { margin: 8px 0 12px; color: var(--prebudget-navy); font-size: clamp(30px, 4vw, 46px); }
+.prebudget-page .prebudget-hero p { max-width: 680px; margin: 0; color: #47647a; font-size: 17px; line-height: 1.8; }
+.prebudget-page .prebudget-hero img { width: 100%; max-height: 210px; object-fit: contain; }
+.prebudget-page .prebudget-steps { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; margin: 18px 0; padding: 0; list-style: none; }
+.prebudget-page .prebudget-steps li { display: flex; align-items: center; gap: 10px; min-height: 58px; padding: 10px 14px; border: 1px solid var(--prebudget-border); border-radius: 15px; background: #fff; }
+.prebudget-page .prebudget-steps li b { display: grid; place-items: center; width: 30px; height: 30px; border-radius: 50%; background: #edf2f5; color: #61788a; }
+.prebudget-page .prebudget-steps li[data-status="complete"] b { background: var(--prebudget-teal-text); color: white; }
+.prebudget-page .prebudget-example-start { display: flex; align-items: center; justify-content: space-between; gap: 18px; margin-bottom: 22px; padding: 20px 22px; border: 1px solid var(--prebudget-border); border-radius: 18px; background: white; }
+.prebudget-page .prebudget-example-start strong { font-size: 18px; }
+.prebudget-page .prebudget-example-start p { margin: 5px 0 0; color: #5b7182; }
+.prebudget-page.prebudget-guide,
+.prebudget-page.prebudget-example-library,
+.prebudget-page.prebudget-example-detail { padding: clamp(22px, 4vw, 38px); border: 1px solid var(--prebudget-border); border-radius: 22px; background: linear-gradient(145deg, #fff, var(--prebudget-sky)); color: var(--prebudget-navy); }
+.prebudget-page .prebudget-guide-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
+.prebudget-page .prebudget-guide-grid > [role="listitem"] { display: flex; }
+.prebudget-page .prebudget-guide-card,
+.prebudget-page .prebudget-example-card { border: 1px solid var(--prebudget-border); border-radius: 18px; background: white; }
+.prebudget-page .prebudget-guide-card { display: flex; width: 100%; flex-direction: column; align-items: flex-start; gap: 9px; padding: 20px; text-align: left; }
+.prebudget-page .prebudget-guide-card-kicker { color: var(--prebudget-teal-text); font-size: 12px; font-weight: 800; }
+.prebudget-page .prebudget-guide-card:hover,
+.prebudget-page .prebudget-guide-card:focus-visible { border-color: var(--prebudget-teal); background: var(--prebudget-mint); }
+.prebudget-page .prebudget-example-notice { padding: 16px; border-radius: 14px; background: #fff8df; color: #6b5511; }
+.prebudget-page .prebudget-example-filters { padding: 16px; border-radius: 16px; background: var(--prebudget-mint); }
+.prebudget-page .prebudget-example-grid { gap: 14px; }
+.prebudget-page .prebudget-example-card { padding: 20px; box-shadow: 0 8px 24px rgb(20 51 78 / 5%); }
+.prebudget-page .prebudget-example-card > span { color: var(--prebudget-teal-text); font-weight: 700; }
+.prebudget-page .prebudget-example-detail .primary { background: linear-gradient(135deg, #006a8e, #006d72); color: white; }
+.prebudget-page .form-card { border-color: var(--prebudget-border); border-radius: 20px; box-shadow: 0 12px 32px rgb(20 51 78 / 6%); }
+.prebudget-page .form-grid label,
+.prebudget-page .item-fields label { color: var(--prebudget-navy); font-size: 16px; }
+.prebudget-page .form-grid input,
+.prebudget-page .form-grid select,
+.prebudget-page .item-fields input,
+.prebudget-page .item-fields select { border-color: var(--prebudget-border); font-size: 16px; }
+.prebudget-page .category-help { border-color: var(--prebudget-border); background: var(--prebudget-mint); }
+.prebudget-page .category-help b { color: var(--prebudget-teal-text); font-size: 16px; }
+.prebudget-page .category-help p { color: var(--prebudget-navy); font-size: 15px; }
+.prebudget-page .formula output { background: var(--prebudget-mint); color: var(--prebudget-teal-text); }
+.prebudget-page .total strong { color: var(--prebudget-teal-text); font-size: 28px; }
+.prebudget-page .prebudget-errors > b { font-size: 18px; }
+.prebudget-page .prebudget-message { border-color: #b8e4d8; background: var(--prebudget-mint); color: #174f48; }
+.prebudget-page .prebudget-errors { border-color: #f0cbbf; background: #fff4ef; color: #78351f; }
+.prebudget-page .primary { background: linear-gradient(135deg, #006a8e, #006d72); color: white; }
+.prebudget-page .actions { padding: 18px 0; }
+.prebudget-page .prebudget-downloads { border-color: var(--prebudget-border); background: linear-gradient(135deg, var(--prebudget-navy), #0b5f66); color: white; }
+.prebudget-page .prebudget-downloads button { border-color: rgb(255 255 255 / 45%); color: var(--prebudget-navy); }
+@media (max-width: 760px) {
+  .prebudget-page .prebudget-hero { grid-template-columns: 1fr; padding: 22px; text-align: center; }
+  .prebudget-page .prebudget-hero img { width: 120px; max-height: 130px; margin: 8px auto 0; }
+  .prebudget-page .prebudget-steps { grid-template-columns: 1fr 1fr; }
+  .prebudget-page .prebudget-example-start { align-items: stretch; flex-direction: column; }
+  .prebudget-page .prebudget-guide-grid { grid-template-columns: 1fr; }
+  .prebudget-page .form-grid,
+  .prebudget-page .item-fields { grid-template-columns: 1fr; }
+  .prebudget-page .prebudget-downloads { align-items: stretch; flex-direction: column; }
+  .prebudget-page .prebudget-downloads > div:last-child { display: grid; grid-template-columns: 1fr; }
+}

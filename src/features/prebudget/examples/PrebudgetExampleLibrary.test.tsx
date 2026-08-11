@@ -25,4 +25,19 @@ describe("초보자용 성립전예산 예시 화면", () => {
     expect(screen.getByRole("heading", { name: "작성 전에 준비하세요" })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "이 예시로 작성하기" })).toBeInTheDocument();
   });
+
+  it("예시 목록과 상세 미리보기를 명확한 영역으로 제공한다", async () => {
+    const user = userEvent.setup();
+    render(<PrebudgetExampleLibrary examples={PREBUDGET_EXAMPLES} initialScope="전체" onUseExample={vi.fn()} onBack={vi.fn()} />);
+    expect(screen.getByRole("region", { name: "성립전예산 예시 찾기" })).toHaveClass("prebudget-example-library");
+    await user.type(screen.getByRole("searchbox", { name: "예시 검색" }), "돌봄");
+    await user.click(screen.getAllByRole("button", { name: "자세히 보기" })[0]);
+    expect(screen.getByRole("button", { name: "이 예시로 작성하기" })).toBeVisible();
+    expect(screen.getByRole("button", { name: "다른 예시 보기" })).toBeVisible();
+  });
+
+  it("재원 안내의 네 선택지를 목록 구조로 제공한다", () => {
+    render(<PrebudgetFundingGuide onSelect={vi.fn()} onUnsure={vi.fn()} />);
+    expect(screen.getByRole("list").children).toHaveLength(4);
+  });
 });

@@ -10,7 +10,7 @@ const storage: DraftStorage = {
   clear: vi.fn(),
 };
 
-const styles = readFileSync("src/styles.css", "utf8");
+const styles = readFileSync("src/features/prebudget/prebudget.css", "utf8");
 
 describe("성립전예산 작성 화면 글자 크기", () => {
   it("작성 화면에만 전용 범위를 적용한다", () => {
@@ -37,5 +37,6 @@ describe("성립전예산 작성 화면 글자 크기", () => {
     expect(styles).toMatch(
       /\.prebudget-page \.prebudget-errors\s*>\s*b[^}]*font-size:\s*18px/,
     );
+    expect(styles).toMatch(/\.prebudget-page \.total strong[^}]*font-size:\s*(?:26|28|30)px/);
   });
 });
