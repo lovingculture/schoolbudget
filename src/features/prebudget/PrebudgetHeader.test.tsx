@@ -10,6 +10,12 @@ describe("성립전예산 홈 일치형 상단", () => {
 
     expect(screen.getByRole("region", { name: "성립전예산 작성 안내" })).toBeVisible();
     expect(screen.getByRole("heading", { name: "성립전예산 요구서 작성" })).toBeVisible();
+    expect(screen.getByText("Pre-Approval Budget Preparation")).toBeVisible();
+    expect(
+      screen.getByText(
+        "교부된 사업비 또는 수익자부담금의 산출내역을 작성하여, 성립전예산 요구서 편성부터 기안문 생성까지 한번에 처리할 수 있습니다.",
+      ),
+    ).toBeVisible();
     expect(screen.getByRole("img", { name: "문서를 작성하는 서울시교육청 캐릭터 자라나" })).toHaveAttribute("src", "/characters/cards/prebudget-writing.png");
     expect(screen.getByLabelText("성립전예산 작성 단계").children).toHaveLength(4);
     await userEvent.setup().click(screen.getByRole("button", { name: "예시에서 시작하기" }));
