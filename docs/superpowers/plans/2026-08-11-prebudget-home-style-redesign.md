@@ -15,6 +15,8 @@
 - 기본 글꼴은 `Noto Sans KR`이며 작성 입력과 버튼 글자는 16px 이상, 주요 클릭 영역은 최소 44px이다.
 - 기존 16개 예시, 사업 분류, 원가통계비목, 계산, 임시저장, 자동점검, 기안문 생성 로직을 변경하지 않는다.
 - `.prebudget-paper`의 A4 크기·여백·글꼴·문안과 HWPX·Word·PDF 생성 로직을 변경하지 않는다.
+- 상단 캐릭터는 `public/characters/cards/prebudget-writing.png` 공식 자산만 사용하고 색·비율을 변형하지 않는다.
+- 예시는 상세 미리보기를 확인한 뒤 `이 예시로 작성하기`를 눌러야만 초안에 적용한다.
 - 성립전예산 Excel 다운로드를 추가하지 않는다.
 - 새 CSS는 `.prebudget-page` 또는 성립전 전용 클래스 아래로 제한한다.
 - 1440px와 390px에서 페이지 수준 가로 넘침이 없어야 하며 일반 크기 텍스트는 WCAG AA 대비를 충족해야 한다.
@@ -67,6 +69,7 @@ describe("성립전예산 홈 일치형 상단", () => {
 
     expect(screen.getByRole("region", { name: "성립전예산 작성 안내" })).toBeVisible();
     expect(screen.getByRole("heading", { name: "성립전예산 요구서 작성" })).toBeVisible();
+    expect(screen.getByRole("img", { name: "문서를 작성하는 서울시교육청 캐릭터 자라나" })).toHaveAttribute("src", "/characters/cards/prebudget-writing.png");
     expect(screen.getByLabelText("성립전예산 작성 단계").children).toHaveLength(4);
     await userEvent.setup().click(screen.getByRole("button", { name: "예시에서 시작하기" }));
     expect(onOpenExamples).toHaveBeenCalledOnce();
@@ -163,6 +166,7 @@ export function PrebudgetHeader({ documentReady, onOpenExamples }: {
         <h1>{PREBUDGET_COPY.title}</h1>
         <p>{PREBUDGET_COPY.description}</p>
       </div>
+      <img src="/characters/cards/prebudget-writing.png" alt="문서를 작성하는 서울시교육청 캐릭터 자라나" />
     </section>
     <ol className="prebudget-steps" aria-label="성립전예산 작성 단계">
       {PREBUDGET_COPY.steps.map((step, index) => <li
@@ -211,14 +215,20 @@ export function PrebudgetHeader({ documentReady, onOpenExamples }: {
 .prebudget-page textarea,
 .prebudget-page button { min-height: 44px; }
 .prebudget-hero {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(180px, 220px);
+  align-items: center;
   padding: 30px;
   border: 1px solid var(--prebudget-border);
   border-radius: 22px;
   background: linear-gradient(120deg, var(--prebudget-sky), var(--prebudget-mint));
 }
+.prebudget-hero img { width: 100%; max-height: 210px; object-fit: contain; }
 .prebudget-steps { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; padding: 0; list-style: none; }
 .prebudget-example-start { display: flex; align-items: center; justify-content: space-between; gap: 18px; padding: 20px; border: 1px solid var(--prebudget-border); border-radius: 18px; background: white; }
 @media (max-width: 760px) {
+  .prebudget-hero { grid-template-columns: 1fr; text-align: center; }
+  .prebudget-hero img { width: 120px; max-height: 130px; margin: 12px auto 0; }
   .prebudget-steps { grid-template-columns: 1fr 1fr; }
   .prebudget-example-start { align-items: stretch; flex-direction: column; }
 }
@@ -273,6 +283,7 @@ it("홈 카드형 목록에서도 검색하고 예시 상세를 선택한다", a
   expect(screen.getAllByRole("article").length).toBeGreaterThan(0);
   await user.click(screen.getAllByRole("button", { name: "자세히 보기" })[0]);
   expect(screen.getByRole("button", { name: "이 예시로 작성하기" })).toBeVisible();
+  expect(screen.getByRole("button", { name: "다른 예시 보기" })).toBeVisible();
 });
 ```
 
@@ -317,7 +328,7 @@ Expected: 예시 라이브러리에 명명된 `region`이 없어 새 구조 테�
 </div>
 ```
 
-`PrebudgetExampleLibrary.tsx`의 목록 루트에 `aria-label="성립전예산 예시 찾기"`를 추가하고 기존 `.notice`를 `.prebudget-example-notice`로 교체한다. 검색 상태, `filtered`, `selected`, `onUseExample` 호출은 변경하지 않는다.
+`PrebudgetExampleLibrary.tsx`의 목록 루트에 `aria-label="성립전예산 예시 찾기"`를 추가하고 기존 `.notice`를 `.prebudget-example-notice`로 교체한다. 상세 화면의 `← 예시 목록` 문구는 `다른 예시 보기`로 바꾸되 `setSelected(undefined)` 동작을 유지한다. 검색 상태, `filtered`, `selected`, `onUseExample` 호출은 변경하지 않는다. 상세에서 `이 예시로 작성하기`를 누르기 전에는 `onUseExample`을 호출하지 않는 기존 데이터 흐름을 회귀 테스트로 고정한다.
 
 - [ ] **Step 4: 예시 카드·검색·주의·상세 CSS 구현**
 
@@ -496,8 +507,10 @@ npm.cmd run dev -- --host 127.0.0.1
 
 ```text
 홈과 성립전 화면의 네이비·하늘색·민트색이 일치한다.
+상단 오른쪽에 공식 자라나 캐릭터가 한 번만 보이고 원본 비율이 유지된다.
 예시에서 시작하기가 첫 화면에서 쉽게 보인다.
-재원 선택 → 예시 검색 → 예시 적용이 정상이다.
+재원 선택 → 예시 검색 → 상세 미리보기 → 예시 적용이 정상이다.
+미리보기 전후에는 초안이 바뀌지 않고 적용 후 모든 입력값을 수정할 수 있다.
 단가·수량·횟수 변경 시 항목 금액과 전체 합계가 즉시 일치한다.
 임시저장 후 새로고침하면 입력값이 복원된다.
 자동점검 후 기안문이 생성된다.
