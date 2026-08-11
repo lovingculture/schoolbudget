@@ -19,12 +19,11 @@ import { supabase } from "./lib/supabase";
 import { ClosingPage } from "./features/closing/ClosingPage";
 import { SupplementaryPage } from "./features/supplementary/SupplementaryPage";
 import { BudgetAgendaPage } from "./features/budgetAgenda/BudgetAgendaPage";
-import { GuidelinesPage } from "./features/guidelines/GuidelinesPage";
 import { PrebudgetPage } from "./features/prebudget/PrebudgetPage";
 import { MainBudgetPage } from "./features/mainBudget/MainBudgetPage";
 import { PortalHeader, type PortalHeaderView } from "./components/PortalHeader";
 import { HomePage } from "./features/home/HomePage";
-import { ResourcesPage as PortalResourcesPage } from "./features/resources/ResourcesPage";
+import { BudgetResourceLibraryPage } from "./features/resources/BudgetResourceLibraryPage";
 import { VideoGuidePage } from "./features/videos/VideoGuidePage";
 import "./features/portal/portalWorkspace.css";
 
@@ -361,14 +360,14 @@ export function Portal({
             onNavigate={go}
           />
         )}
-        {view === "guidelines" && <GuidelinesPage />}
+        {view === "guidelines" && <BudgetResourceLibraryPage isAdmin={false} userId={displayName} />}
         {view === "prebudget" && <PrebudgetPage initialSchoolName={schoolName} />}
         {view === "closing" && <ClosingPage />}
         {view === "agenda" && <BudgetAgendaPage />}
         {view === "supplementary" && <SupplementaryPage />}
         {view === "budget" && <MainBudgetPage />}
         {view === "settings" && <SettingsPage />}
-        {view === "resources" && <PortalResourcesPage onGuidelines={() => go("guidelines")} />}
+        {view === "resources" && <BudgetResourceLibraryPage isAdmin={false} userId={displayName} />}
         {view === "videos" && <VideoGuidePage />}
         {view === "search" && <PortalSearchPage />}
       </main>

@@ -95,7 +95,7 @@ export function HomePage({ displayName, schoolName, onNavigate }: HomePageProps)
               <button type="button" onClick={() => onNavigate("prebudget")}>
                 업무 시작하기 <ArrowRight aria-hidden="true" />
               </button>
-              <button type="button" onClick={() => onNavigate("guidelines")}>
+              <button type="button" onClick={() => onNavigate("resources")}>
                 예산 지침 보기
               </button>
             </div>
@@ -124,7 +124,7 @@ export function HomePage({ displayName, schoolName, onNavigate }: HomePageProps)
         <button
           type="button"
           data-testid="budget-step"
-          onClick={() => onNavigate("guidelines")}
+          onClick={() => onNavigate("resources")}
           aria-label="2026 학교회계 예산편성 기본지침 보기"
         >
           <span className="home-quick-icon blue" aria-hidden="true">
@@ -214,7 +214,7 @@ export function HomePage({ displayName, schoolName, onNavigate }: HomePageProps)
             <p>학교회계 예산편성 기준과 지침 원문을 확인하세요.</p>
             <button
               type="button"
-              onClick={() => onNavigate("guidelines")}
+              onClick={() => onNavigate("resources")}
               aria-label="2026학년도 학교회계 예산편성 기본지침 확인"
             >
               확인하기 <ArrowRight aria-hidden="true" />

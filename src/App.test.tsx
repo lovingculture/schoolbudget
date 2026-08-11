@@ -195,14 +195,14 @@ describe("예산업무 포털", () => {
     }
   });
 
-  it("자료실 상단 메뉴가 안내와 지침 바로가기를 제공한다", async () => {
+  it("예산 자료실 상단 메뉴가 지침 검색과 자료 다운로드를 제공한다", async () => {
     const user = userEvent.setup();
     render(<Portal displayName="김담당" schoolName="서울한빛초등학교" />);
 
-    await user.click(screen.getByRole("button", { name: "자료실" }));
+    await user.click(screen.getByRole("button", { name: "예산 자료실" }));
 
-    expect(screen.getByRole("heading", { name: "자료실" })).toBeVisible();
-    expect(screen.getByRole("button", { name: "학교예산 지침 열기" })).toBeVisible();
+    expect(screen.getByRole("heading", { name: "예산 자료실" })).toBeVisible();
+    expect(screen.getByRole("searchbox", { name: "자료 검색" })).toBeVisible();
   });
 
   it("동영상 안내 상단 메뉴가 접근 가능한 안내 화면을 연다", async () => {

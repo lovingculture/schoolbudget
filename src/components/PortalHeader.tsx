@@ -1,6 +1,5 @@
 import { useState } from "react";
 import {
-  BookOpen,
   ChevronDown,
   CircleUserRound,
   FolderOpen,
@@ -101,15 +100,6 @@ export function PortalHeader({
             <Home size={17} aria-hidden="true" />
             홈
           </button>
-          <button
-            type="button"
-            className={activeView === "guidelines" ? "active" : undefined}
-            aria-current={activeView === "guidelines" ? "page" : undefined}
-            onClick={() => navigate("guidelines")}
-          >
-            <BookOpen size={17} aria-hidden="true" />
-            학교예산 지침
-          </button>
           <div className="portal-work-menu">
             <button
               type="button"
@@ -143,7 +133,7 @@ export function PortalHeader({
             onClick={() => navigate("resources")}
           >
             <FolderOpen size={17} aria-hidden="true" />
-            자료실
+            예산 자료실
           </button>
           <button
             type="button"
