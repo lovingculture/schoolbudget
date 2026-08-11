@@ -13,7 +13,7 @@ describe("성립전예산 홈 일치형 상단", () => {
     expect(screen.getByText("Pre-Approval Budget Preparation")).toBeVisible();
     expect(
       screen.getByText(
-        "교부된 사업비 또는 수익자부담금의 산출내역을 작성하여, 성립전예산 요구서 편성부터 기안문 생성까지 한번에 처리할 수 있습니다.",
+        "교부된 사업비 또는 수익자부담금의 산출내역을 작성하여, 성립전예산 요구서 편성 및 기안문 생성까지 한번에 처리할 수 있습니다.",
       ),
     ).toBeVisible();
     expect(screen.getByRole("img", { name: "문서를 작성하는 서울시교육청 캐릭터 자라나" })).toHaveAttribute("src", "/characters/cards/prebudget-writing.png");
