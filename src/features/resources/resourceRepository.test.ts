@@ -64,11 +64,60 @@ describe("createResourceRepository", () => {
   it("updates resource metadata without uploading another file", async () => {
     const { repository, storage, table, updateEq } = repositoryHarness();
 
-    await repository.update("resource-1", { ...input, title: "수정한 지침" });
+    await repository.update(resource(), { ...input, title: "수정한 지침" });
 
     expect(storage.upload).not.toHaveBeenCalled();
     expect(table.update).toHaveBeenCalledWith(expect.objectContaining({ title: "수정한 지침" }));
     expect(updateEq).toHaveBeenCalledWith("id", "resource-1");
+  });
+
+  it("replaces a resource file and removes the previous object after metadata succeeds", async () => {
+    const { repository, storage } = repositoryHarness();
+    const replacement = resourceFile("replacement.pdf");
+
+    await repository.update(resource(), input, replacement);
+
+    expect(storage.upload).toHaveBeenCalledWith(expect.stringMatching(/^2026\/[^/]+\.pdf$/), replacement, { upsert: false });
+    expect(storage.remove).toHaveBeenCalledWith(["2026/old.pdf"]);
+  });
+
+  it("keeps the previous object when replacement upload returns an error", async () => {
+    const { repository, storage, table } = repositoryHarness();
+    storage.upload.mockResolvedValue({ data: null, error: new Error("upload failed") });
+
+    await expect(repository.update(resource(), input, resourceFile())).rejects.toThrow("파일을 업로드하지 못했습니다.");
+
+    expect(table.update).not.toHaveBeenCalled();
+    expect(storage.remove).not.toHaveBeenCalled();
+  });
+
+  it("cleans up a newly uploaded object when create persistence rejects", async () => {
+    const { repository, storage, table } = repositoryHarness();
+    table.insert.mockRejectedValue(new Error("insert rejected"));
+
+    await expect(repository.create(input, resourceFile(), "admin-1")).rejects.toThrow("자료 정보를 저장하지 못했습니다.");
+
+    expect(storage.remove).toHaveBeenCalledWith([expect.stringMatching(/^2026\/[^/]+\.pdf$/)]);
+  });
+
+  it("cleans up a newly uploaded object when replacement persistence rejects", async () => {
+    const { repository, storage, table } = repositoryHarness();
+    table.update.mockImplementation(() => ({ eq: vi.fn().mockRejectedValue(new Error("update rejected")) }));
+
+    await expect(repository.update(resource(), input, resourceFile())).rejects.toThrow("자료 정보를 수정하지 못했습니다.");
+
+    expect(storage.remove).toHaveBeenCalledWith([expect.stringMatching(/^2026\/[^/]+\.pdf$/)]);
+    expect(storage.remove).not.toHaveBeenCalledWith(["2026/old.pdf"]);
+  });
+
+  it("wraps a rejected replacement upload without touching the previous object", async () => {
+    const { repository, storage, table } = repositoryHarness();
+    storage.upload.mockRejectedValue(new Error("upload rejected"));
+
+    await expect(repository.update(resource(), input, resourceFile())).rejects.toThrow("파일을 업로드하지 못했습니다.");
+
+    expect(table.update).not.toHaveBeenCalled();
+    expect(storage.remove).not.toHaveBeenCalled();
   });
 
   it("removes storage before deleting the metadata row", async () => {
@@ -81,6 +130,24 @@ describe("createResourceRepository", () => {
     expect(deleteEq).toHaveBeenCalledWith("id", "resource-1");
   });
 
+  it("does not delete metadata when storage removal fails", async () => {
+    const { repository, storage, table } = repositoryHarness();
+    storage.remove.mockResolvedValue({ data: null, error: new Error("remove failed") });
+
+    await expect(repository.remove(resource())).rejects.toThrow("파일을 삭제하지 못했습니다.");
+
+    expect(table.delete).not.toHaveBeenCalled();
+  });
+
+  it("wraps a metadata deletion error after the storage object is removed", async () => {
+    const { repository, storage, deleteEq } = repositoryHarness();
+    deleteEq.mockResolvedValue({ data: null, error: new Error("delete failed") });
+
+    await expect(repository.remove(resource())).rejects.toThrow("자료 정보를 삭제하지 못했습니다.");
+
+    expect(storage.remove).toHaveBeenCalledWith(["2026/old.pdf"]);
+  });
+
   it("returns public rows as budget resources", async () => {
     const { repository, order } = repositoryHarness();
     order.mockResolvedValue({ data: [{
@@ -90,5 +157,12 @@ describe("createResourceRepository", () => {
     }], error: null });
 
     await expect(repository.listPublic()).resolves.toEqual([resource({ title: "지침", description: "설명", storagePath: "2026/guide.pdf", sizeBytes: 12 })]);
+  });
+
+  it("wraps a public-list query error", async () => {
+    const { repository, order } = repositoryHarness();
+    order.mockResolvedValue({ data: null, error: new Error("list failed") });
+
+    await expect(repository.listPublic()).rejects.toThrow("공개 자료를 불러오지 못했습니다.");
   });
 });

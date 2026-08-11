@@ -58,45 +58,81 @@ export function createResourceRepository(client: ResourceRepositoryClient) {
   const table = () => client.from(RESOURCE_TABLE);
   const bucket = () => client.storage.from(RESOURCE_BUCKET);
 
+  async function upload(path: string, file: File) {
+    try {
+      const result = await bucket().upload(path, file, { upsert: false });
+      if (result.error) throw result.error;
+    } catch (error) {
+      throw new ResourceRepositoryError("파일을 업로드하지 못했습니다.", error);
+    }
+  }
+
+  async function removeBestEffort(path: string) {
+    try { await bucket().remove([path]); }
+    catch { /* The original persistence error remains the useful error. */ }
+  }
+
   return {
     async listPublic(): Promise<BudgetResource[]> {
-      const { data, error } = await table().select("*").eq("is_public", true).order("created_at", { ascending: false });
-      if (error) throw new ResourceRepositoryError("공개 자료를 불러오지 못했습니다.", error);
-      return (data ?? []).map(rowToResource);
+      try {
+        const { data, error } = await table().select("*").eq("is_public", true).order("created_at", { ascending: false });
+        if (error) throw error;
+        return (data ?? []).map(rowToResource);
+      } catch (error) {
+        throw new ResourceRepositoryError("공개 자료를 불러오지 못했습니다.", error);
+      }
     },
 
     async create(input: BudgetResourceInput, file: File, userId: string): Promise<void> {
       const path = storagePath(input.schoolYear, file);
-      const upload = await bucket().upload(path, file, { upsert: false });
-      if (upload.error) throw new ResourceRepositoryError("파일을 업로드하지 못했습니다.", upload.error);
-
-      const insert = await table().insert({ ...metadata(input), ...fileMetadata(path, file), created_by: userId });
-      if (insert.error) {
-        await bucket().remove([path]);
-        throw new ResourceRepositoryError("자료 정보를 저장하지 못했습니다.", insert.error);
+      await upload(path, file);
+      try {
+        const insert = await table().insert({ ...metadata(input), ...fileMetadata(path, file), created_by: userId });
+        if (insert.error) throw insert.error;
+      } catch (error) {
+        await removeBestEffort(path);
+        throw new ResourceRepositoryError("자료 정보를 저장하지 못했습니다.", error);
       }
     },
 
-    async update(id: string, input: BudgetResourceInput, replacementFile?: File): Promise<void> {
+    async update(resource: BudgetResource, input: BudgetResourceInput, replacementFile?: File): Promise<void> {
       const replacementPath = replacementFile ? storagePath(input.schoolYear, replacementFile) : undefined;
       if (replacementFile && replacementPath) {
-        const upload = await bucket().upload(replacementPath, replacementFile, { upsert: false });
-        if (upload.error) throw new ResourceRepositoryError("파일을 업로드하지 못했습니다.", upload.error);
+        await upload(replacementPath, replacementFile);
       }
 
-      const update = await table().update({ ...metadata(input), ...(replacementFile && replacementPath ? fileMetadata(replacementPath, replacementFile) : {}) }).eq("id", id);
-      if (update.error) {
-        if (replacementPath) await bucket().remove([replacementPath]);
-        throw new ResourceRepositoryError("자료 정보를 수정하지 못했습니다.", update.error);
+      try {
+        const update = await table().update({ ...metadata(input), ...(replacementFile && replacementPath ? fileMetadata(replacementPath, replacementFile) : {}) }).eq("id", resource.id);
+        if (update.error) throw update.error;
+      } catch (error) {
+        if (replacementPath) await removeBestEffort(replacementPath);
+        throw new ResourceRepositoryError("자료 정보를 수정하지 못했습니다.", error);
+      }
+
+      if (replacementPath) {
+        try {
+          const removal = await bucket().remove([resource.storagePath]);
+          if (removal.error) throw removal.error;
+        } catch (error) {
+          throw new ResourceRepositoryError("기존 파일을 삭제하지 못했습니다.", error);
+        }
       }
     },
 
     async remove(resource: BudgetResource): Promise<void> {
-      const storageRemoval = await bucket().remove([resource.storagePath]);
-      if (storageRemoval.error) throw new ResourceRepositoryError("파일을 삭제하지 못했습니다.", storageRemoval.error);
+      try {
+        const storageRemoval = await bucket().remove([resource.storagePath]);
+        if (storageRemoval.error) throw storageRemoval.error;
+      } catch (error) {
+        throw new ResourceRepositoryError("파일을 삭제하지 못했습니다.", error);
+      }
 
-      const deletion = await table().delete().eq("id", resource.id);
-      if (deletion.error) throw new ResourceRepositoryError("자료 정보를 삭제하지 못했습니다.", deletion.error);
+      try {
+        const deletion = await table().delete().eq("id", resource.id);
+        if (deletion.error) throw deletion.error;
+      } catch (error) {
+        throw new ResourceRepositoryError("자료 정보를 삭제하지 못했습니다.", error);
+      }
     },
   };
 }
