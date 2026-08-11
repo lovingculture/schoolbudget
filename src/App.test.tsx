@@ -47,6 +47,13 @@ describe("예산업무 포털", () => {
     expect(guidance).not.toHaveTextContent("Excel");
   });
 
+  it("학교 설정 전 성립전예산 학교명 예시를 ○○초등학교로 표시한다", async () => {
+    const user = userEvent.setup();
+    render(<App />);
+    await user.click(screen.getByRole("button", { name: "성립전예산 새로 작성" }));
+    expect(screen.getByLabelText("학교명")).toHaveValue("○○초등학교");
+  });
+
   it("성립전예산 입력 금액의 합계를 계산한다", async () => {
     const user = userEvent.setup();
     render(<Portal displayName="김담당" schoolName="서울한빛초등학교" onLogout={() => {}} />);

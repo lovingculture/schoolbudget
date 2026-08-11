@@ -53,7 +53,7 @@ export const kakaoOAuthOptions = (redirectTo: string) => ({
 
 export default function App() {
   if (!KAKAO_AUTH_ENABLED) {
-    return <Portal displayName="예산담당자" schoolName="학교예산 업무공간" />;
+    return <Portal displayName="예산담당자" schoolName="○○초등학교" />;
   }
   return <AuthenticatedApp />;
 }
