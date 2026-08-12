@@ -6,6 +6,7 @@ const activeDraft = () => {
   const draft = createPrebudgetDraft("학교");
   Object.assign(draft, {
     title: "학생안전 인력 운영 성립전예산 편성",
+    department: "체육안전교육부",
     requester: "김담당",
     approvalGranter: "이담당",
     officialDocument: "교육지원과-1111(2022. 1. 1.)",

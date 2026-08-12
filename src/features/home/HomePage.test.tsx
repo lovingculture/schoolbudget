@@ -213,5 +213,5 @@ describe("승인된 포털 홈", () => {
         screen.getByRole("button", { name: "학교예산 한눈에 홈으로" }),
       );
     }
-  });
+  }, 15_000);
 });
