@@ -11,8 +11,8 @@ type ResourceRow = {
   is_public: boolean; created_by: string; created_at: string; updated_at: string;
 };
 
-type ResourceRepositoryClient = {
-  storage: { from(bucket: string): { upload(path: string, file: File, options: { upsert: boolean; contentType: string }): Promise<QueryResult<unknown>>; remove(paths: string[]): Promise<QueryResult<unknown>> } };
+export type ResourceRepositoryClient = {
+  storage: { from(bucket: string): { upload(path: string, file: File, options: { upsert: boolean; contentType: string }): Promise<QueryResult<unknown>>; remove(paths: string[]): Promise<QueryResult<unknown>>; download(path: string): Promise<QueryResult<Blob>> } };
   from(table: string): {
     select(columns: string): { eq(column: string, value: boolean | string): {
       order(column: string, options: { ascending: boolean }): Promise<QueryResult<ResourceRow[]>>;
@@ -148,5 +148,22 @@ export function createResourceRepository(client: ResourceRepositoryClient) {
         throw new ResourceRepositoryError("자료 정보를 삭제하지 못했습니다.", error);
       }
     },
+
+    async download(resource: BudgetResource): Promise<void> {
+      try {
+        const result = await bucket().download(resource.storagePath);
+        if (result.error || !result.data) throw result.error ?? new Error("empty download");
+        const url = URL.createObjectURL(result.data);
+        const anchor = document.createElement("a");
+        anchor.href = url;
+        anchor.download = resource.originalFilename;
+        anchor.click();
+        URL.revokeObjectURL(url);
+      } catch (error) {
+        throw new ResourceRepositoryError("파일을 내려받지 못했습니다.", error);
+      }
+    },
   };
 }
+
+export type ResourceRepository = ReturnType<typeof createResourceRepository>;

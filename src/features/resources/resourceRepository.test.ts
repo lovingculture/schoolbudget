@@ -27,6 +27,7 @@ function repositoryHarness() {
   const storage = {
     upload: vi.fn().mockResolvedValue({ data: { path: "uploaded" }, error: null }),
     remove: vi.fn().mockResolvedValue({ data: ["removed"], error: null }),
+    download: vi.fn().mockResolvedValue({ data: new Blob(["resource"]), error: null }),
   };
   const insert = vi.fn().mockResolvedValue({ data: null, error: null });
   const updateEq = vi.fn().mockResolvedValue({ data: null, error: null });
@@ -175,5 +176,21 @@ describe("createResourceRepository", () => {
     order.mockResolvedValue({ data: null, error: new Error("list failed") });
 
     await expect(repository.listPublic()).rejects.toThrow("공개 자료를 불러오지 못했습니다.");
+  });
+
+  it("downloads a private object through the authenticated storage client", async () => {
+    const { repository, storage } = repositoryHarness();
+    Object.defineProperty(URL, "createObjectURL", { configurable: true, value: vi.fn() });
+    Object.defineProperty(URL, "revokeObjectURL", { configurable: true, value: vi.fn() });
+    const createObjectURL = vi.spyOn(URL, "createObjectURL").mockReturnValue("blob:resource");
+    const revokeObjectURL = vi.spyOn(URL, "revokeObjectURL").mockImplementation(() => undefined);
+    const click = vi.spyOn(HTMLAnchorElement.prototype, "click").mockImplementation(() => undefined);
+
+    await repository.download(resource());
+
+    expect(storage.download).toHaveBeenCalledWith("2026/old.pdf");
+    expect(createObjectURL).toHaveBeenCalled();
+    expect(click).toHaveBeenCalled();
+    expect(revokeObjectURL).toHaveBeenCalledWith("blob:resource");
   });
 });
