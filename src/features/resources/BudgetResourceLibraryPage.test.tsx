@@ -9,6 +9,18 @@ const sampleResource: BudgetResource = {
   originalFilename: "reference.pdf", storagePath: "2026/reference.pdf", mimeType: "application/pdf", sizeBytes: 12,
   isPublic: true, createdBy: "admin-1", createdAt: "2026-01-01", updatedAt: "2026-01-01",
 };
+const guideResource: BudgetResource = {
+  ...sampleResource,
+  id: "r2",
+  title: "2025 예산편성 지침",
+  description: "기본 지침 안내",
+  category: "guide",
+  schoolYear: 2025,
+  originalFilename: "guide.xlsx",
+  mimeType: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+  sizeBytes: 1536,
+  createdAt: "2025-12-31T12:00:00Z",
+};
 
 function repository(resources = [sampleResource]) {
   return {
@@ -45,6 +57,45 @@ describe("예산 자료실", () => {
     expect(await screen.findByRole("heading", { name: "학교회계 참고자료" })).toBeVisible();
     await user.click(screen.getByRole("button", { name: "다운로드: 학교회계 참고자료" }));
     expect(repo.download).toHaveBeenCalledWith(sampleResource);
+  });
+
+  it("동적 자료를 제목과 설명으로 검색하고 분류 및 학년도로 필터링한다", async () => {
+    const user = userEvent.setup();
+    render(<BudgetResourceLibraryPage isAdmin={false} userId="user-1" repository={repository([sampleResource, guideResource])} />);
+    await screen.findByRole("heading", { name: "학교회계 참고자료" });
+
+    const search = screen.getByRole("searchbox", { name: "등록 자료 검색" });
+    await user.type(search, "기본 지침");
+    expect(screen.getByRole("heading", { name: "2025 예산편성 지침" })).toBeVisible();
+    expect(screen.queryByRole("heading", { name: "학교회계 참고자료" })).not.toBeInTheDocument();
+
+    await user.clear(search);
+    await user.selectOptions(screen.getByRole("combobox", { name: "자료 분류" }), "reference");
+    expect(screen.getByRole("heading", { name: "학교회계 참고자료" })).toBeVisible();
+    expect(screen.queryByRole("heading", { name: "2025 예산편성 지침" })).not.toBeInTheDocument();
+
+    await user.selectOptions(screen.getByRole("combobox", { name: "자료 분류" }), "all");
+    await user.selectOptions(screen.getByRole("combobox", { name: "학년도" }), "2025");
+    expect(screen.getByRole("heading", { name: "2025 예산편성 지침" })).toBeVisible();
+    expect(screen.queryByRole("heading", { name: "학교회계 참고자료" })).not.toBeInTheDocument();
+  });
+
+  it("자료 카드에 분류, 학년도, 형식, 등록일, 파일 크기를 표시한다", async () => {
+    render(<BudgetResourceLibraryPage isAdmin={false} userId="user-1" repository={repository([guideResource])} />);
+    const article = (await screen.findByRole("heading", { name: "2025 예산편성 지침" })).closest("article");
+    expect(article).toHaveTextContent("지침");
+    expect(article).toHaveTextContent("2025학년도");
+    expect(article).toHaveTextContent("XLSX");
+    expect(article).toHaveTextContent("2025. 12. 31.");
+    expect(article).toHaveTextContent("1.5 KB");
+  });
+
+  it("필터 결과가 없을 때 접근 가능한 안내를 표시한다", async () => {
+    const user = userEvent.setup();
+    render(<BudgetResourceLibraryPage isAdmin={false} userId="user-1" repository={repository([sampleResource])} />);
+    await screen.findByRole("heading", { name: "학교회계 참고자료" });
+    await user.type(screen.getByRole("searchbox", { name: "등록 자료 검색" }), "없는 자료");
+    expect(screen.getByRole("status")).toHaveTextContent("조건에 맞는 등록 자료가 없습니다.");
   });
 
   it("관리자가 자료를 등록하고 목록을 새로 불러온다", async () => {

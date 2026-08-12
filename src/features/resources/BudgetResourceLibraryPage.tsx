@@ -5,10 +5,26 @@ import { GuidelineSearchPanel } from "../guidelines/GuidelineSearchPanel";
 import { supabase } from "../../lib/supabase";
 import { ResourceAdminDialog } from "./ResourceAdminDialog";
 import { createResourceRepository, type ResourceRepository, type ResourceRepositoryClient } from "./resourceRepository";
-import type { BudgetResource, BudgetResourceInput } from "./resourceTypes";
+import type { BudgetResource, BudgetResourceInput, ResourceCategory } from "./resourceTypes";
 import "./budgetResourceLibrary.css";
 
 type Props = { isAdmin: boolean; userId: string; repository?: ResourceRepository };
+
+const CATEGORY_LABELS: Record<ResourceCategory, string> = {
+  guide: "지침",
+  template: "양식",
+  reference: "참고자료",
+};
+
+function fileFormat(filename: string) {
+  return filename.split(".").at(-1)?.toUpperCase() || "파일";
+}
+
+function fileSize(bytes: number) {
+  if (bytes < 1024) return `${bytes} B`;
+  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(bytes % 1024 === 0 ? 0 : 1)} KB`;
+  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+}
 
 function StaticResourceCards() {
   return (
@@ -41,6 +57,9 @@ export function BudgetResourceLibraryPage({ isAdmin, userId, repository }: Props
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(true);
   const [status, setStatus] = useState("");
+  const [query, setQuery] = useState("");
+  const [category, setCategory] = useState<ResourceCategory | "all">("all");
+  const [schoolYear, setSchoolYear] = useState("all");
   const load = useCallback(async () => {
     setLoading(true);
     try {
@@ -54,6 +73,21 @@ export function BudgetResourceLibraryPage({ isAdmin, userId, repository }: Props
   }, [isAdmin, repo]);
 
   useEffect(() => { void load(); }, [load]);
+
+  const schoolYears = useMemo(
+    () => [...new Set(resources.map((resource) => resource.schoolYear))].sort((a, b) => b - a),
+    [resources],
+  );
+  const filteredResources = useMemo(() => {
+    const normalizedQuery = query.trim().toLocaleLowerCase("ko");
+    return resources.filter((resource) => {
+      const matchesQuery = !normalizedQuery
+        || `${resource.title} ${resource.description}`.toLocaleLowerCase("ko").includes(normalizedQuery);
+      return matchesQuery
+        && (category === "all" || resource.category === category)
+        && (schoolYear === "all" || resource.schoolYear === Number(schoolYear));
+    });
+  }, [category, query, resources, schoolYear]);
 
   const save = async (input: BudgetResourceInput, file?: File) => {
     const wasCreating = editing === "create";
@@ -97,13 +131,43 @@ export function BudgetResourceLibraryPage({ isAdmin, userId, repository }: Props
       <StaticResourceCards />
       {loading && <p role="status" aria-live="polite">자료 목록을 불러오는 중입니다.</p>}
       {resources.length > 0 && (
-        <section className="resource-library-cards resource-dynamic-list" aria-label="등록 자료">
-          {resources.map((resource) => (
+        <section className="resource-library-dynamic" aria-labelledby="registered-resources-title">
+          <h2 id="registered-resources-title">등록 자료</h2>
+          <div className="resource-library-filters" role="search" aria-label="등록 자료 검색 및 필터">
+            <label>
+              <span>자료 검색</span>
+              <input type="search" aria-label="등록 자료 검색" value={query} onChange={(event) => setQuery(event.target.value)} placeholder="제목 또는 설명을 검색하세요" />
+            </label>
+            <label>
+              <span>분류</span>
+              <select aria-label="자료 분류" value={category} onChange={(event) => setCategory(event.target.value as ResourceCategory | "all")}>
+                <option value="all">전체 분류</option>
+                <option value="guide">지침</option>
+                <option value="template">양식</option>
+                <option value="reference">참고자료</option>
+              </select>
+            </label>
+            <label>
+              <span>학년도</span>
+              <select aria-label="학년도" value={schoolYear} onChange={(event) => setSchoolYear(event.target.value)}>
+                <option value="all">전체 학년도</option>
+                {schoolYears.map((year) => <option key={year} value={year}>{year}학년도</option>)}
+              </select>
+            </label>
+          </div>
+          {filteredResources.length > 0 && <div className="resource-library-cards resource-dynamic-list">
+          {filteredResources.map((resource) => (
             <article className="guideline-document-card" key={resource.id}>
               <span className="guideline-file-icon"><FileText aria-hidden="true" /></span>
               <div className="guideline-document-info">
                 <h2>{resource.title}</h2>
-                <p>{resource.schoolYear}학년도 · {resource.originalFilename}</p>
+                <p className="resource-library-metadata">
+                  <span>{CATEGORY_LABELS[resource.category]}</span>
+                  <span>{resource.schoolYear}학년도</span>
+                  <span>{fileFormat(resource.originalFilename)}</span>
+                  <span>{new Intl.DateTimeFormat("ko-KR", { year: "numeric", month: "2-digit", day: "2-digit" }).format(new Date(resource.createdAt))}</span>
+                  <span>{fileSize(resource.sizeBytes)}</span>
+                </p>
                 {resource.description && <p>{resource.description}</p>}
               </div>
               <div className="guideline-document-actions">
@@ -115,6 +179,8 @@ export function BudgetResourceLibraryPage({ isAdmin, userId, repository }: Props
               </div>
             </article>
           ))}
+          </div>}
+          {filteredResources.length === 0 && <p role="status" className="resource-library-empty">조건에 맞는 등록 자료가 없습니다.</p>}
         </section>
       )}
       {!loading && resources.length === 0 && <p className="resource-library-empty">등록된 자료가 없습니다.</p>}

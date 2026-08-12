@@ -1,12 +1,13 @@
 import { render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it } from "vitest";
-import App, { kakaoOAuthOptions, LoginPage, Portal, SchoolSetupPage } from "./App";
+import { kakaoOAuthOptions, LoginPage, Portal, resolveKakaoAuthEnabled, SchoolSetupPage } from "./App";
 
 describe("예산업무 포털", () => {
-  it("카카오 연결 보류 중에는 웹페이지를 바로 보여준다", () => {
-    render(<App />);
-    expect(screen.getByRole("heading", { name: "예산업무, 흐름부터 문서까지 한곳에서" })).toBeVisible();
+  it("인증 설정이 없으면 로그인 모드를 사용하고 false를 명시한 개발 환경에서만 데모 모드를 사용한다", () => {
+    expect(resolveKakaoAuthEnabled(undefined)).toBe(true);
+    expect(resolveKakaoAuthEnabled("true")).toBe(true);
+    expect(resolveKakaoAuthEnabled("false")).toBe(false);
   });
 
   it("일반 카카오 앱에서는 이메일을 제외한 동의항목만 요청한다", () => {
@@ -49,7 +50,7 @@ describe("예산업무 포털", () => {
 
   it("학교 설정 전 성립전예산 학교명 예시를 ○○초등학교로 표시한다", async () => {
     const user = userEvent.setup();
-    render(<App />);
+    render(<Portal displayName="예산담당자" schoolName="" />);
     await user.click(screen.getByRole("button", { name: "성립전예산 새로 작성" }));
     expect(screen.getByLabelText("학교명")).toHaveValue("");
     expect(screen.getByLabelText("학교명")).toHaveAttribute("placeholder", "○○초등학교");

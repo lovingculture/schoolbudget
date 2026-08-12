@@ -12,6 +12,22 @@ describe("validateResourceInput", () => {
     ]);
   });
 
+  it("rejects titles longer than 150 trimmed characters", () => {
+    expect(validateResourceInput({ title: "가".repeat(151), category: "guide", schoolYear: 2026 })).toContain(
+      "자료 제목은 150자 이하로 입력하세요.",
+    );
+    expect(validateResourceInput({ title: `  ${"가".repeat(150)}  `, category: "guide", schoolYear: 2026 })).toEqual([]);
+  });
+
+  it("rejects school years outside 2000 through 2100", () => {
+    expect(validateResourceInput({ title: "자료", category: "guide", schoolYear: 1999 })).toContain(
+      "학년도는 2000년부터 2100년 사이로 입력하세요.",
+    );
+    expect(validateResourceInput({ title: "자료", category: "guide", schoolYear: 2101 })).toContain(
+      "학년도는 2000년부터 2100년 사이로 입력하세요.",
+    );
+  });
+
   it("rejects files larger than 30MB", () => {
     expect(validateResourceInput({ title: "자료", category: "guide", schoolYear: 2026, file: resourceFile("guide.pdf", 30 * 1024 * 1024 + 1) })).toContain(
       "파일은 30MB 이하만 등록할 수 있습니다.",

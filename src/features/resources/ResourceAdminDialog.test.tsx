@@ -4,6 +4,23 @@ import { describe, expect, it, vi } from "vitest";
 import { ResourceAdminDialog } from "./ResourceAdminDialog";
 
 describe("ResourceAdminDialog", () => {
+  it("열리면 제목 입력에 초점을 두고 Escape로 닫아 이전 초점을 복원한다", async () => {
+    const user = userEvent.setup();
+    const trigger = document.createElement("button");
+    trigger.textContent = "자료 등록 열기";
+    document.body.appendChild(trigger);
+    trigger.focus();
+    const onCancel = vi.fn();
+    const { unmount } = render(<ResourceAdminDialog mode="create" onSubmit={vi.fn()} onCancel={onCancel} />);
+
+    expect(screen.getByLabelText("자료 제목")).toHaveFocus();
+    await user.keyboard("{Escape}");
+    expect(onCancel).toHaveBeenCalledTimes(1);
+    unmount();
+    expect(trigger).toHaveFocus();
+    trigger.remove();
+  });
+
   it("등록할 파일과 제목을 검증한 뒤 입력값을 전달한다", async () => {
     const user = userEvent.setup();
     const onSubmit = vi.fn().mockResolvedValue(undefined);

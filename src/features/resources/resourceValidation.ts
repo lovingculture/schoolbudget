@@ -28,7 +28,12 @@ function isAllowedFile(file: File) {
 
 export function validateResourceInput(input: ResourceValidationInput): string[] {
   const errors: string[] = [];
-  if (!input.title.trim()) errors.push("자료 제목을 입력하세요.");
+  const title = input.title.trim();
+  if (!title) errors.push("자료 제목을 입력하세요.");
+  else if (title.length > 150) errors.push("자료 제목은 150자 이하로 입력하세요.");
+  if (!Number.isInteger(input.schoolYear) || input.schoolYear < 2000 || input.schoolYear > 2100) {
+    errors.push("학년도는 2000년부터 2100년 사이로 입력하세요.");
+  }
   if (input.file && input.file.size > MAX_RESOURCE_BYTES) errors.push("파일은 30MB 이하만 등록할 수 있습니다.");
   if (input.file && !isAllowedFile(input.file)) {
     errors.push("PDF, XLS, XLSX, DOCX, HWP, HWPX 파일만 등록할 수 있습니다.");

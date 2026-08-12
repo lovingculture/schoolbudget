@@ -208,6 +208,8 @@ describe("createResourceRepository", () => {
     expect(storage.download).toHaveBeenCalledWith("2026/old.pdf");
     expect(createObjectURL).toHaveBeenCalled();
     expect(click).toHaveBeenCalled();
+    expect(revokeObjectURL).not.toHaveBeenCalled();
+    await new Promise((resolve) => setTimeout(resolve, 0));
     expect(revokeObjectURL).toHaveBeenCalledWith("blob:resource");
   });
 });

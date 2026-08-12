@@ -43,7 +43,12 @@ const blankItem = (): DraftItem => ({
 });
 
 type PortalProfile = { displayName: string; schoolName: string; isAdmin: boolean };
-const KAKAO_AUTH_ENABLED = false;
+
+export function resolveKakaoAuthEnabled(configuredValue: string | undefined) {
+  return configuredValue?.trim().toLowerCase() !== "false";
+}
+
+const KAKAO_AUTH_ENABLED = resolveKakaoAuthEnabled(import.meta.env.VITE_KAKAO_AUTH_ENABLED);
 
 export const kakaoOAuthOptions = (redirectTo: string) => ({
   redirectTo,

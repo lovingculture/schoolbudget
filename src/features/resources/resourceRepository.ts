@@ -170,7 +170,7 @@ export function createResourceRepository(client: ResourceRepositoryClient) {
         anchor.href = url;
         anchor.download = resource.originalFilename;
         anchor.click();
-        URL.revokeObjectURL(url);
+        window.setTimeout(() => URL.revokeObjectURL(url), 0);
       } catch (error) {
         throw new ResourceRepositoryError("파일을 내려받지 못했습니다.", error);
       }
