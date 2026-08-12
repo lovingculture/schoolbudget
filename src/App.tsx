@@ -45,10 +45,8 @@ const blankItem = (): DraftItem => ({
 type PortalProfile = { displayName: string; schoolName: string; isAdmin: boolean };
 
 export function resolveKakaoAuthEnabled(configuredValue: string | undefined) {
-  return configuredValue?.trim().toLowerCase() !== "false";
+  return configuredValue?.trim().toLowerCase() === "true";
 }
-
-const KAKAO_AUTH_ENABLED = resolveKakaoAuthEnabled(import.meta.env.VITE_KAKAO_AUTH_ENABLED);
 
 export const kakaoOAuthOptions = (redirectTo: string) => ({
   redirectTo,
@@ -56,9 +54,6 @@ export const kakaoOAuthOptions = (redirectTo: string) => ({
 });
 
 export default function App() {
-  if (!KAKAO_AUTH_ENABLED) {
-    return <Portal displayName="예산담당자" schoolName="○○초등학교" userId="demo-user" />;
-  }
   return <AuthenticatedApp />;
 }
 
@@ -166,14 +161,14 @@ export function AuthenticatedApp() {
     setBusy(false);
   };
 
-  if (loading)
+  if (loading || !user)
     return (
-      <div className="auth-loading">
-        <span className="brandmark">예</span>
-        <p>로그인 정보를 확인하고 있습니다.</p>
-      </div>
+      <Portal
+        displayName="예산담당자"
+        schoolName="○○초등학교"
+        onAdminLogin={login}
+      />
     );
-  if (!user) return <LoginPage onLogin={login} busy={busy} error={error} />;
   if (!profile) {
     const displayName =
       user.user_metadata?.name ||
@@ -324,12 +319,14 @@ export function Portal({
   isAdmin = false,
   userId,
   onLogout,
+  onAdminLogin,
 }: {
   displayName: string;
   schoolName: string;
   isAdmin?: boolean;
   userId?: string;
   onLogout?: () => void;
+  onAdminLogin?: () => void;
 }) {
   const [view, setView] = useState<View>("home");
   const [items, setItems] = useState<DraftItem[]>(
@@ -372,14 +369,14 @@ export function Portal({
             onNavigate={go}
           />
         )}
-        {view === "guidelines" && <BudgetResourceLibraryPage isAdmin={isAdmin} userId={userId ?? ""} />}
+        {view === "guidelines" && <BudgetResourceLibraryPage isAdmin={isAdmin} userId={userId ?? ""} onAdminLogin={onAdminLogin} />}
         {view === "prebudget" && <PrebudgetPage initialSchoolName={schoolName} />}
         {view === "closing" && <ClosingPage />}
         {view === "agenda" && <BudgetAgendaPage />}
         {view === "supplementary" && <SupplementaryPage />}
         {view === "budget" && <MainBudgetPage />}
         {view === "settings" && <SettingsPage />}
-        {view === "resources" && <BudgetResourceLibraryPage isAdmin={isAdmin} userId={userId ?? ""} />}
+        {view === "resources" && <BudgetResourceLibraryPage isAdmin={isAdmin} userId={userId ?? ""} onAdminLogin={onAdminLogin} />}
         {view === "videos" && <VideoGuidePage />}
         {view === "search" && <PortalSearchPage />}
       </main>

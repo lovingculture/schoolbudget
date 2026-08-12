@@ -45,13 +45,14 @@ describe("budget resource library review SQL", () => {
     }
   });
 
-  it("uses a private bucket and grants authenticated reads only for public resources or admins", () => {
+  it("uses a private bucket, allows anonymous public reads, and reserves private reads for admins", () => {
     expect(sql).toContain(
       "values ('budget-resources', 'budget-resources', false, 31457280, array[",
     );
     expect(sql).toMatch(
-      /create policy "authenticated read public resource files" on storage\.objects\s+for select to authenticated using \(bucket_id = 'budget-resources' and \(exists \(\s+select 1 from public\.budget_resources r where r\.storage_path = name and r\.is_public\s+\) or exists \(\s+select 1 from public\.profiles p where p\.user_id = \(select auth\.uid\(\)\) and p\.is_admin\s+\)\)\);/s,
+      /create policy "authenticated read public resource files" on storage\.objects\s+for select to anon, authenticated using \(bucket_id = 'budget-resources' and \(exists \(\s+select 1 from public\.budget_resources r where r\.storage_path = name and r\.is_public\s+\) or exists \(\s+select 1 from public\.profiles p where p\.user_id = \(select auth\.uid\(\)\) and p\.is_admin\s+\)\)\);/s,
     );
+    expect(sql).toContain("grant select on public.budget_resources to anon;");
   });
 
   it("keeps Storage and the client upload contract on the same MIME types", () => {

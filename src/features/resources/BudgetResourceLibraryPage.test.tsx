@@ -33,6 +33,22 @@ function repository(resources = [sampleResource]) {
   };
 }
 
+it("비로그인 사용자는 공개 자료를 보고 관리자 기능에서만 로그인을 요청한다", async () => {
+  const user = userEvent.setup();
+  const onAdminLogin = vi.fn();
+  render(
+    <BudgetResourceLibraryPage
+      isAdmin={false}
+      userId=""
+      repository={repository([])}
+      onAdminLogin={onAdminLogin}
+    />,
+  );
+
+  await user.click(screen.getByRole("button", { name: "관리자 로그인" }));
+  expect(onAdminLogin).toHaveBeenCalledTimes(1);
+});
+
 describe("예산 자료실", () => {
   it("지침 검색과 정적 자료를 하나의 화면에 제공한다", () => {
     render(<BudgetResourceLibraryPage isAdmin={false} userId="user-1" repository={repository([])} />);

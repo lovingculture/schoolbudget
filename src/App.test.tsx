@@ -5,7 +5,7 @@ import { kakaoOAuthOptions, LoginPage, Portal, resolveKakaoAuthEnabled, SchoolSe
 
 describe("예산업무 포털", () => {
   it("인증 설정이 없으면 로그인 모드를 사용하고 false를 명시한 개발 환경에서만 데모 모드를 사용한다", () => {
-    expect(resolveKakaoAuthEnabled(undefined)).toBe(true);
+    expect(resolveKakaoAuthEnabled(undefined)).toBe(false);
     expect(resolveKakaoAuthEnabled("true")).toBe(true);
     expect(resolveKakaoAuthEnabled("false")).toBe(false);
   });
@@ -46,6 +46,23 @@ describe("예산업무 포털", () => {
     const guidance = screen.getByText((_, element) => element?.tagName === "P" && element.textContent === "지침을 확인하고 성립전예산 요구서를 작성하면 기안문과 Word·PDF가 자동으로 완성됩니다.");
     expect(guidance).toBeVisible();
     expect(guidance).not.toHaveTextContent("Excel");
+  });
+
+  it("공개 포털은 로그인 화면 없이 열리고 자료실 관리자 기능에서만 로그인을 요청한다", async () => {
+    const user = userEvent.setup();
+    let loginRequested = false;
+    render(
+      <Portal
+        displayName="예산담당자"
+        schoolName="○○초등학교"
+        onAdminLogin={() => { loginRequested = true; }}
+      />,
+    );
+
+    expect(screen.queryByRole("button", { name: "카카오로 시작하기" })).not.toBeInTheDocument();
+    await user.click(screen.getByRole("button", { name: "예산 자료실" }));
+    await user.click(screen.getByRole("button", { name: "관리자 로그인" }));
+    expect(loginRequested).toBe(true);
   });
 
   it("학교 설정 전 성립전예산 학교명 예시를 ○○초등학교로 표시한다", async () => {

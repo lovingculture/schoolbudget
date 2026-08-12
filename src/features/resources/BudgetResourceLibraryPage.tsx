@@ -8,7 +8,12 @@ import { createResourceRepository, type ResourceRepository, type ResourceReposit
 import type { BudgetResource, BudgetResourceInput, ResourceCategory } from "./resourceTypes";
 import "./budgetResourceLibrary.css";
 
-type Props = { isAdmin: boolean; userId: string; repository?: ResourceRepository };
+type Props = {
+  isAdmin: boolean;
+  userId: string;
+  repository?: ResourceRepository;
+  onAdminLogin?: () => void;
+};
 
 const CATEGORY_LABELS: Record<ResourceCategory, string> = {
   guide: "지침",
@@ -50,7 +55,7 @@ function StaticResourceCards() {
   );
 }
 
-export function BudgetResourceLibraryPage({ isAdmin, userId, repository }: Props) {
+export function BudgetResourceLibraryPage({ isAdmin, userId, repository, onAdminLogin }: Props) {
   const repo = useMemo(() => repository ?? createResourceRepository(supabase as unknown as ResourceRepositoryClient), [repository]);
   const [resources, setResources] = useState<BudgetResource[]>([]);
   const [editing, setEditing] = useState<BudgetResource | "create" | null>(null);
@@ -189,6 +194,11 @@ export function BudgetResourceLibraryPage({ isAdmin, userId, repository }: Props
       {isAdmin && (
         <button className="resource-library-register" type="button" onClick={() => setEditing("create")}>
           자료 등록
+        </button>
+      )}
+      {!isAdmin && onAdminLogin && (
+        <button className="resource-library-register" type="button" onClick={onAdminLogin}>
+          관리자 로그인
         </button>
       )}
       {editing && (

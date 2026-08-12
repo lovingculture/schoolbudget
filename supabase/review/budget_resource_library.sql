@@ -22,11 +22,12 @@ create table if not exists public.budget_resources (
 
 alter table public.budget_resources enable row level security;
 grant select on public.budget_resources to authenticated;
+grant select on public.budget_resources to anon;
 grant insert, update, delete on public.budget_resources to authenticated;
 
 drop policy if exists "authenticated read public resources" on public.budget_resources;
 create policy "authenticated read public resources" on public.budget_resources
-for select to authenticated using (is_public = true or exists (
+for select to anon, authenticated using (is_public = true or exists (
   select 1 from public.profiles p where p.user_id = (select auth.uid()) and p.is_admin
 ));
 
@@ -61,7 +62,7 @@ file_size_limit = excluded.file_size_limit, allowed_mime_types = excluded.allowe
 
 drop policy if exists "authenticated read public resource files" on storage.objects;
 create policy "authenticated read public resource files" on storage.objects
-for select to authenticated using (bucket_id = 'budget-resources' and (exists (
+for select to anon, authenticated using (bucket_id = 'budget-resources' and (exists (
   select 1 from public.budget_resources r where r.storage_path = name and r.is_public
 ) or exists (
   select 1 from public.profiles p where p.user_id = (select auth.uid()) and p.is_admin
