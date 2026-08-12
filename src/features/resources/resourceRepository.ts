@@ -14,7 +14,9 @@ type ResourceRow = {
 export type ResourceRepositoryClient = {
   storage: { from(bucket: string): { upload(path: string, file: File, options: { upsert: boolean; contentType: string }): Promise<QueryResult<unknown>>; remove(paths: string[]): Promise<QueryResult<unknown>>; download(path: string): Promise<QueryResult<Blob>> } };
   from(table: string): {
-    select(columns: string): { eq(column: string, value: boolean | string): {
+    select(columns: string): {
+      order(column: string, options: { ascending: boolean }): Promise<QueryResult<ResourceRow[]>>;
+      eq(column: string, value: boolean | string): {
       order(column: string, options: { ascending: boolean }): Promise<QueryResult<ResourceRow[]>>;
       maybeSingle(): Promise<QueryResult<Pick<ResourceRow, "storage_path">>>;
     } };
@@ -83,6 +85,16 @@ export function createResourceRepository(client: ResourceRepositoryClient) {
   }
 
   return {
+    async listAll(): Promise<BudgetResource[]> {
+      try {
+        const { data, error } = await table().select("*").order("created_at", { ascending: false });
+        if (error) throw error;
+        return (data ?? []).map(rowToResource);
+      } catch (error) {
+        throw new ResourceRepositoryError("전체 자료를 불러오지 못했습니다.", error);
+      }
+    },
+
     async listPublic(): Promise<BudgetResource[]> {
       try {
         const { data, error } = await table().select("*").eq("is_public", true).order("created_at", { ascending: false });

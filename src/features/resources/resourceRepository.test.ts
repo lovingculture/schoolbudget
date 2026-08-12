@@ -37,7 +37,7 @@ function repositoryHarness() {
   const order = vi.fn().mockResolvedValue({ data: [], error: null });
   const currentResource = vi.fn().mockResolvedValue({ data: { storage_path: "2026/old.pdf" }, error: null });
   const publicOnly = vi.fn(() => ({ order, maybeSingle: currentResource }));
-  const select = vi.fn(() => ({ eq: publicOnly }));
+  const select = vi.fn(() => ({ eq: publicOnly, order }));
   const table = { insert, update, delete: deleteRows, select };
   const client = { storage: { from: vi.fn(() => storage) }, from: vi.fn(() => table) };
   return { repository: createResourceRepository(client), client, storage, table, order, publicOnly, currentResource, updateEq, deleteEq };
@@ -169,6 +169,23 @@ describe("createResourceRepository", () => {
     }], error: null });
 
     await expect(repository.listPublic()).resolves.toEqual([resource({ title: "지침", description: "설명", storagePath: "2026/guide.pdf", sizeBytes: 12 })]);
+  });
+
+  it("returns public and private rows for an administrator without a public filter", async () => {
+    const { repository, table, order, publicOnly } = repositoryHarness();
+    order.mockResolvedValue({ data: [{
+      id: "resource-private", title: "admin draft", description: "private", category: "reference", school_year: 2026,
+      original_filename: "draft.pdf", storage_path: "2026/draft.pdf", mime_type: "application/pdf", size_bytes: 7,
+      is_public: false, created_by: "admin-1", created_at: "2026-08-12T00:00:00Z", updated_at: "2026-08-12T00:00:00Z",
+    }], error: null });
+
+    await expect(repository.listAll()).resolves.toEqual([
+      resource({ id: "resource-private", title: "admin draft", description: "private", category: "reference", originalFilename: "draft.pdf", storagePath: "2026/draft.pdf", sizeBytes: 7, isPublic: false, createdAt: "2026-08-12T00:00:00Z", updatedAt: "2026-08-12T00:00:00Z" }),
+    ]);
+
+    expect(table.select).toHaveBeenCalledWith("*");
+    expect(publicOnly).not.toHaveBeenCalled();
+    expect(order).toHaveBeenCalledWith("created_at", { ascending: false });
   });
 
   it("wraps a public-list query error", async () => {

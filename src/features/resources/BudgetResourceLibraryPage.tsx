@@ -39,22 +39,29 @@ export function BudgetResourceLibraryPage({ isAdmin, userId, repository }: Props
   const [resources, setResources] = useState<BudgetResource[]>([]);
   const [editing, setEditing] = useState<BudgetResource | "create" | null>(null);
   const [error, setError] = useState("");
+  const [loading, setLoading] = useState(true);
+  const [status, setStatus] = useState("");
   const load = useCallback(async () => {
+    setLoading(true);
     try {
-      setResources(await repo.listPublic());
+      setResources(await (isAdmin ? repo.listAll() : repo.listPublic()));
       setError("");
     } catch (cause) {
       setError(cause instanceof Error ? cause.message : "자료를 불러오지 못했습니다.");
+    } finally {
+      setLoading(false);
     }
-  }, [repo]);
+  }, [isAdmin, repo]);
 
   useEffect(() => { void load(); }, [load]);
 
   const save = async (input: BudgetResourceInput, file?: File) => {
-    if (editing === "create") await repo.create(input, file as File, userId);
+    const wasCreating = editing === "create";
+    if (wasCreating) await repo.create(input, file as File, userId);
     else if (editing) await repo.update(editing.id, input, file);
     setEditing(null);
     await load();
+    setStatus(wasCreating ? "자료를 등록했습니다." : "자료를 수정했습니다.");
   };
 
   const remove = async (resource: BudgetResource) => {
@@ -62,6 +69,7 @@ export function BudgetResourceLibraryPage({ isAdmin, userId, repository }: Props
     try {
       await repo.remove(resource);
       await load();
+      setStatus("자료를 삭제했습니다.");
     } catch (cause) {
       setError(cause instanceof Error ? cause.message : "자료를 삭제하지 못했습니다.");
     }
@@ -87,6 +95,7 @@ export function BudgetResourceLibraryPage({ isAdmin, userId, repository }: Props
       </section>
       <GuidelineSearchPanel />
       <StaticResourceCards />
+      {loading && <p role="status" aria-live="polite">자료 목록을 불러오는 중입니다.</p>}
       {resources.length > 0 && (
         <section className="resource-library-cards resource-dynamic-list" aria-label="등록 자료">
           {resources.map((resource) => (
@@ -108,7 +117,9 @@ export function BudgetResourceLibraryPage({ isAdmin, userId, repository }: Props
           ))}
         </section>
       )}
+      {!loading && resources.length === 0 && <p className="resource-library-empty">등록된 자료가 없습니다.</p>}
       {error && <p role="alert" className="resource-library-error">{error}</p>}
+      {!loading && status && <p role="status" aria-live="polite" className="resource-library-status">{status}</p>}
       {isAdmin && (
         <button className="resource-library-register" type="button" onClick={() => setEditing("create")}>
           자료 등록

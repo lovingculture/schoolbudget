@@ -13,6 +13,7 @@ const sampleResource: BudgetResource = {
 function repository(resources = [sampleResource]) {
   return {
     listPublic: vi.fn().mockResolvedValue(resources),
+    listAll: vi.fn().mockResolvedValue(resources),
     create: vi.fn().mockResolvedValue(undefined),
     update: vi.fn().mockResolvedValue(undefined),
     remove: vi.fn().mockResolvedValue(undefined),
@@ -58,7 +59,25 @@ describe("예산 자료실", () => {
     await user.type(screen.getByLabelText("자료 제목"), "새 참고자료");
     await user.click(screen.getByRole("button", { name: "등록하기" }));
     expect(repo.create).toHaveBeenCalledWith(expect.objectContaining({ title: "새 참고자료" }), file, "admin-1");
-    await waitFor(() => expect(repo.listPublic).toHaveBeenCalledTimes(2));
+    await waitFor(() => expect(repo.listAll).toHaveBeenCalledTimes(2));
+    expect(screen.getByRole("status")).toHaveTextContent("자료를 등록했습니다.");
+  });
+
+  it("관리자는 비공개 자료를 포함한 전체 목록을 불러오고 일반 사용자는 공개 목록만 불러온다", async () => {
+    const privateResource = { ...sampleResource, id: "draft-1", title: "비공개 초안", isPublic: false };
+    const adminRepo = repository([privateResource]);
+    const publicRepo = repository([]);
+
+    const { unmount } = render(<BudgetResourceLibraryPage isAdmin userId="admin-1" repository={adminRepo} />);
+    expect(await screen.findByRole("heading", { name: "비공개 초안" })).toBeVisible();
+    expect(adminRepo.listAll).toHaveBeenCalledTimes(1);
+    expect(adminRepo.listPublic).not.toHaveBeenCalled();
+    unmount();
+
+    render(<BudgetResourceLibraryPage isAdmin={false} userId="user-1" repository={publicRepo} />);
+    await waitFor(() => expect(publicRepo.listPublic).toHaveBeenCalledTimes(1));
+    expect(publicRepo.listAll).not.toHaveBeenCalled();
+    expect(screen.queryByRole("heading", { name: "비공개 초안" })).not.toBeInTheDocument();
   });
 
   it("관리자가 자료를 수정하고 확인 후 삭제한다", async () => {
@@ -73,10 +92,22 @@ describe("예산 자료실", () => {
     await user.type(screen.getByLabelText("자료 제목"), "수정한 참고자료");
     await user.click(screen.getByRole("button", { name: "저장하기" }));
     expect(repo.update).toHaveBeenCalledWith("r1", expect.objectContaining({ title: "수정한 참고자료" }), undefined);
+    expect(screen.getByRole("status")).toHaveTextContent("자료를 수정했습니다.");
 
     await user.click(screen.getByRole("button", { name: "자료 삭제: 학교회계 참고자료" }));
     expect(repo.remove).toHaveBeenCalledWith(sampleResource);
-    await waitFor(() => expect(repo.listPublic).toHaveBeenCalledTimes(3));
+    await waitFor(() => expect(repo.listAll).toHaveBeenCalledTimes(3));
+    expect(screen.getByRole("status")).toHaveTextContent("자료를 삭제했습니다.");
+  });
+
+  it("목록을 불러오는 동안 접근 가능한 상태를 표시하고 빈 목록 안내를 먼저 보이지 않는다", () => {
+    const repo = repository([]);
+    repo.listPublic.mockReturnValue(new Promise(() => undefined));
+
+    render(<BudgetResourceLibraryPage isAdmin={false} userId="user-1" repository={repo} />);
+
+    expect(screen.getByRole("status")).toHaveTextContent("자료 목록을 불러오는 중입니다.");
+    expect(screen.queryByText("등록된 자료가 없습니다.")).not.toBeInTheDocument();
   });
 
   it("삭제 확인을 취소하면 저장소를 변경하지 않는다", async () => {
