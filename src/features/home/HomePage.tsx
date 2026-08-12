@@ -107,7 +107,7 @@ export function HomePage({ displayName, schoolName, onNavigate }: HomePageProps)
           </div>
           <figure className="home-character">
             <img
-              src="/characters/seoul-education-characters.png"
+              src="/characters/seoul-education-characters-v2.png"
               width="1940"
               height="1962"
               alt="환영 인사를 건네는 서울교육 캐릭터 자라나와 열리미"

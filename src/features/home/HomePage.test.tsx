@@ -67,7 +67,7 @@ describe("승인된 포털 홈", () => {
       screen.getByRole("img", {
         name: "환영 인사를 건네는 서울교육 캐릭터 자라나와 열리미",
       }),
-    ).toHaveAttribute("src", "/characters/seoul-education-characters.png");
+    ).toHaveAttribute("src", "/characters/seoul-education-characters-v2.png");
     expect(screen.getByText("서울한빛초등학교 업무 지원")).toBeVisible();
     expect(container.querySelector(".home-character figcaption")).not.toBeInTheDocument();
     expect(screen.queryByText("김담당님의 예산 업무를 도와드려요.")).not.toBeInTheDocument();
