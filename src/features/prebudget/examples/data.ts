@@ -74,4 +74,24 @@ examples[basicLearningIndex] = {
   ],
 };
 
+const yearbookIndex = examples.findIndex(({ id }) => id === "beneficiary-yearbook");
+examples[yearbookIndex] = {
+  ...examples[yearbookIndex],
+  useWhen: ["졸업앨범비를 학부모 부담 경비로 걷는 경우"],
+  prepareBeforeWriting: [],
+  items: [{
+    unitBusiness: "학생 복지",
+    business: "학생 복지운영",
+    detail: "졸업앨범 제작",
+    category: "학생복지비",
+    description: "졸업앨범비 구입",
+    unitPrice: 70_000,
+    quantity: 100,
+    count: 1,
+    manualAmount: 7_000_000,
+  }],
+  calculationUnit: "부",
+  autoCheckNotes: ["학생수 및 졸업앨범비 단가를 확인하세요."],
+};
+
 export const PREBUDGET_EXAMPLES = examples as readonly PrebudgetExample[];

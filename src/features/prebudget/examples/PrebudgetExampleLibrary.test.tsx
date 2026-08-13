@@ -107,4 +107,20 @@ describe("초보자용 성립전예산 예시 화면", () => {
     expect(screen.getByText(/단위학교 기초학력 책임지도 사업비를 교부 목적 및 예산 편성기준에 따라/)).toBeVisible();
     expect(screen.getByText(/원가통계비목이 적절하게 선택되었는지/)).toBeVisible();
   });
+
+  it("졸업앨범비 예시에 학부모 부담 기준과 100부 산출기초를 보여준다", async () => {
+    const user = userEvent.setup();
+    render(<PrebudgetExampleLibrary examples={PREBUDGET_EXAMPLES} initialScope="수익자부담금" onUseExample={vi.fn()} onBack={vi.fn()} />);
+
+    await user.type(screen.getByRole("searchbox", { name: "예시 검색" }), "졸업앨범비");
+    await user.click(screen.getByRole("button", { name: "자세히 보기" }));
+
+    expect(screen.getByText("졸업앨범비를 학부모 부담 경비로 걷는 경우")).toBeVisible();
+    expect(screen.queryByRole("heading", { name: "작성 전에 준비하세요" })).not.toBeInTheDocument();
+    expect(screen.getByRole("columnheader", { name: "산출기초" })).toBeVisible();
+    expect(screen.getByText("학생복지비")).toBeVisible();
+    expect(screen.getByText("졸업앨범비 구입")).toBeVisible();
+    expect(screen.getByText("70,000원 × 100부 = 7,000,000원")).toBeVisible();
+    expect(screen.getByText("학생수 및 졸업앨범비 단가를 확인하세요.")).toBeVisible();
+  });
 });
