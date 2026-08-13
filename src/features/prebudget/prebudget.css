@@ -35,7 +35,11 @@
 .prebudget-page .prebudget-guide-card,
 .prebudget-page .prebudget-example-card { border: 1px solid var(--prebudget-border); border-radius: 18px; background: white; }
 .prebudget-page .prebudget-guide-card { display: flex; width: 100%; flex-direction: column; align-items: flex-start; gap: 9px; padding: 20px; text-align: left; }
+.prebudget-page .prebudget-guide-card-title { color: var(--prebudget-navy); font-size: 18px; font-weight: 850; letter-spacing: -0.02em; }
 .prebudget-page .prebudget-guide-card-kicker { color: var(--prebudget-teal-text); font-size: 12px; font-weight: 800; }
+.prebudget-page .prebudget-guide-card strong { font-size: 16px; line-height: 1.55; }
+.prebudget-page .prebudget-guide-card-description { color: var(--prebudget-text-muted); line-height: 1.6; }
+.prebudget-page .prebudget-guide-card-examples { margin-top: auto; padding-top: 3px; color: var(--prebudget-teal-text); font-size: 14px; font-weight: 700; line-height: 1.6; }
 .prebudget-page .prebudget-guide-card:hover,
 .prebudget-page .prebudget-guide-card:focus-visible { border-color: var(--prebudget-teal); background: var(--prebudget-mint); }
 .prebudget-page .prebudget-example-notice { padding: 16px; border-radius: 14px; background: #fff8df; color: #6b5511; }

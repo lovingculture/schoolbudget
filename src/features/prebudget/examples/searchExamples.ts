@@ -1,13 +1,41 @@
 import type { ExampleFundingCategory, PrebudgetExample } from "./types";
 
 export type ExampleSearchScope = ExampleFundingCategory | "전체";
-export interface FundingGuideOption { label: string; category?: ExampleFundingCategory; description: string; }
+
+export interface FundingGuideOption {
+  title: string;
+  label: string;
+  category?: ExampleFundingCategory;
+  description?: string;
+  examples?: string;
+}
 
 export const FUNDING_GUIDE_OPTIONS: readonly FundingGuideOption[] = [
-  { label: "교육청·교육지원청에서 특정 사업을 위해 받았어요", category: "목적사업비", description: "교부공문에 사용 목적이 정해진 사업비예요." },
-  { label: "구청이나 지방자치단체에서 지원받았어요", category: "구청보조금", description: "구청 등의 보조금 교부결정에 따른 사업비예요." },
-  { label: "학부모가 비용의 전부 또는 일부를 부담해요", category: "수익자부담금", description: "가정통신문과 징수계획에 따라 모으는 경비예요." },
-  { label: "잘 모르겠어요", description: "공문 발신기관, 보조금 교부결정서 또는 가정통신문을 확인해 보세요." },
+  {
+    title: "① 목적사업비",
+    label: "교육청·교육지원청에서 특정 사업을 위해 받았어요",
+    category: "목적사업비",
+    description: "교부공문에 사용 목적이 정해진 사업비예요.",
+    examples: "예시) 돌봄교실운영비, 방과후교실사업비, 기초학력책임지도예산 등",
+  },
+  {
+    title: "② 보조금",
+    label: "구청이나 지방자치단체에서 지원받았어요",
+    category: "구청보조금",
+    description: "구청 등의 보조금 교부결정에 따른 사업비예요.",
+    examples: "예시) 치아건강사업, 새내기학습준비지원, 예체능교육지원 등",
+  },
+  {
+    title: "③ 수익자부담경비",
+    label: "학부모가 비용의 전부 또는 일부를 부담해요",
+    category: "수익자부담금",
+    examples: "예시) 현장학습비, 졸업앨범비, 돌봄중식비 등",
+  },
+  {
+    title: "④ 잘 모르겠어요",
+    label: "잘 모르겠어요",
+    description: "공문 발신기관(교육지원청 초등교육과, 구청 교육지원과 등)을 확인해보세요.",
+  },
 ] as const;
 
 const normalize = (value: string) => value.toLocaleLowerCase("ko-KR").replace(/\s+/g, "");

@@ -9,7 +9,11 @@ export function PrebudgetFundingGuide({ onSelect, onUnsure }: { onSelect(categor
     <div className="prebudget-guide-grid" role="list">
       {FUNDING_GUIDE_OPTIONS.map((option) => <div role="listitem" key={option.label}>
         <button type="button" className="prebudget-guide-card" onClick={() => option.category ? onSelect(option.category) : onUnsure()} aria-label={option.label}>
-          <span className="prebudget-guide-card-kicker">재원 안내</span><strong>{option.label}</strong><span>{option.description}</span>
+          <span className="prebudget-guide-card-title">{option.title}</span>
+          {option.category && <span className="prebudget-guide-card-kicker">재원 안내</span>}
+          <strong>{option.label}</strong>
+          {option.description && <span className="prebudget-guide-card-description">{option.description}</span>}
+          {option.examples && <span className="prebudget-guide-card-examples">{option.examples}</span>}
         </button>
       </div>)}
     </div>
