@@ -108,7 +108,7 @@ describe("초보자용 성립전예산 예시 화면", () => {
     expect(screen.getByText(/원가통계비목이 적절하게 선택되었는지/)).toBeVisible();
   });
 
-  it("졸업앨범비 예시에 학부모 부담 기준과 100부 산출기초를 보여준다", async () => {
+  it("졸업앨범비 예시에 학부모 부담 기준과 100부 산출식을 보여준다", async () => {
     const user = userEvent.setup();
     render(<PrebudgetExampleLibrary examples={PREBUDGET_EXAMPLES} initialScope="수익자부담금" onUseExample={vi.fn()} onBack={vi.fn()} />);
 
@@ -117,10 +117,14 @@ describe("초보자용 성립전예산 예시 화면", () => {
 
     expect(screen.getByText("졸업앨범비를 학부모 부담 경비로 걷는 경우")).toBeVisible();
     expect(screen.queryByRole("heading", { name: "작성 전에 준비하세요" })).not.toBeInTheDocument();
-    expect(screen.getByRole("columnheader", { name: "산출기초" })).toBeVisible();
+    expect(screen.getByRole("columnheader", { name: "세부항목" })).toBeVisible();
+    expect(screen.getByRole("columnheader", { name: "산출식" })).toBeVisible();
+    expect(screen.getByRole("columnheader", { name: "요구금액" })).toBeVisible();
     expect(screen.getByText("학생복지비")).toBeVisible();
     expect(screen.getByText("졸업앨범비 구입")).toBeVisible();
-    expect(screen.getByText("70,000원 × 100부 = 7,000,000원")).toBeVisible();
+    expect(screen.getByText("졸업앨범 제작")).toBeVisible();
+    expect(screen.getByText("70,000원 × 100부")).toBeVisible();
+    expect(screen.getByText("7,000,000원")).toBeVisible();
     expect(screen.getByText("학생수 및 졸업앨범비 단가를 확인하세요.")).toBeVisible();
   });
 });
