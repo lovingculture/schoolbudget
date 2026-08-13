@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { activePrebudgetItems, createPrebudgetDraft, normalizePrebudgetDraft } from "./draft";
 
 describe("성립전예산 초안", () => {
-  it("기본 초안에 학교명과 빈 예산항목 5개를 만들고 빈 항목을 출력에서 제외한다", () => {
+  it("기본 초안에 학교명과 빈 예산항목 1개를 만들고 빈 항목을 출력에서 제외한다", () => {
     const draft = createPrebudgetDraft("서울한빛초등학교");
     expect(draft.schoolName).toBe("서울한빛초등학교");
     expect(draft.title).toBe("");
@@ -14,12 +14,25 @@ describe("성립전예산 초안", () => {
     expect(draft).not.toHaveProperty("projectPeriod");
     expect(draft).not.toHaveProperty("reason");
     expect(draft).not.toHaveProperty("basis");
-    expect(draft.items).toHaveLength(5);
+    expect(draft.items).toHaveLength(1);
     expect(activePrebudgetItems(draft.items)).toEqual([]);
   });
 });
 
 describe("legacy draft normalization", () => {
+  it("collapses legacy blank starter rows to one item", () => {
+    const blank = { unitBusiness: "", business: "", detail: "", category: "일반수용비", description: "", unitPrice: 0, quantity: 0, count: 0, note: "" };
+    expect(normalizePrebudgetDraft({ items: Array.from({ length: 5 }, () => ({ ...blank })) }).items).toHaveLength(1);
+  });
+
+  it("preserves entered rows while removing unused legacy starter rows", () => {
+    const blank = { unitBusiness: "", business: "", detail: "", category: "일반수용비", description: "", unitPrice: 0, quantity: 0, count: 0, note: "" };
+    const entered = { ...blank, business: "돌봄교실운영", description: "운영비", unitPrice: 10000, quantity: 2, count: 1 };
+    const result = normalizePrebudgetDraft({ items: [blank, entered, blank] });
+    expect(result.items).toHaveLength(1);
+    expect(result.items[0]).toMatchObject({ business: "돌봄교실운영", description: "운영비" });
+  });
+
   it("ignores removed legacy fields and supplies an empty approval granter", () => {
     const result = normalizePrebudgetDraft({
       requester: "김담당",

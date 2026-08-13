@@ -48,10 +48,33 @@
 .portal-workspace .prebudget-guide-back:focus-visible { border-color: #1596a3; box-shadow: 0 9px 22px rgb(20 51 78 / 12%); transform: translateY(-1px); }
 .prebudget-page .prebudget-example-notice { padding: 16px; border-radius: 14px; background: #fff8df; color: #6b5511; }
 .prebudget-page .prebudget-example-filters { padding: 16px; border-radius: 16px; background: var(--prebudget-mint); }
+.prebudget-page .prebudget-example-filters label { font-weight: 750; }
+.prebudget-page .prebudget-example-filters select,
+.prebudget-page .prebudget-example-filters input { border-color: #bfdad8; border-radius: 10px; background: #fff; }
 .prebudget-page .prebudget-example-grid { gap: 14px; }
-.prebudget-page .prebudget-example-card { padding: 20px; box-shadow: 0 8px 24px rgb(20 51 78 / 5%); }
+.prebudget-page .prebudget-example-card { display: flex; flex-direction: column; align-items: flex-start; padding: 20px; box-shadow: 0 8px 24px rgb(20 51 78 / 5%); }
+.prebudget-page .prebudget-example-card p { flex: 1; }
 .prebudget-page .prebudget-example-card > span { color: var(--prebudget-teal-text); font-weight: 700; }
-.prebudget-page .prebudget-example-detail .primary { background: linear-gradient(135deg, #006a8e, #006d72); color: white; }
+.prebudget-page .prebudget-example-back,
+.prebudget-page .prebudget-example-reset,
+.prebudget-page .prebudget-example-detail-button,
+.prebudget-page .prebudget-example-use { display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 44px; border-radius: 999px; padding: 10px 17px; font-weight: 800; cursor: pointer; transition: transform .2s ease, box-shadow .2s ease, border-color .2s ease, background .2s ease; }
+.prebudget-page .prebudget-example-back { border: 1px solid #b8d9d5; background: linear-gradient(135deg, #fff, #effaf7); color: var(--prebudget-teal-text); box-shadow: 0 7px 18px rgb(20 51 78 / 7%); }
+.prebudget-page .prebudget-example-reset { align-self: end; border: 1px solid #b8d9d5; background: #fff; color: var(--prebudget-teal-text); }
+.prebudget-page .prebudget-example-detail-button { margin-top: auto; border: 0; background: linear-gradient(135deg, #0b7480, #1596a3); color: white; box-shadow: 0 7px 16px rgb(21 150 163 / 20%); }
+.prebudget-page .prebudget-example-use { border: 0; background: linear-gradient(135deg, #006a8e, #006d72); color: white; box-shadow: 0 9px 20px rgb(0 106 114 / 22%); }
+.prebudget-page .prebudget-example-back svg,
+.prebudget-page .prebudget-example-reset svg,
+.prebudget-page .prebudget-example-detail-button svg,
+.prebudget-page .prebudget-example-use svg { width: 17px; height: 17px; }
+.prebudget-page .prebudget-example-back:hover,
+.prebudget-page .prebudget-example-back:focus-visible,
+.prebudget-page .prebudget-example-reset:hover,
+.prebudget-page .prebudget-example-reset:focus-visible,
+.prebudget-page .prebudget-example-detail-button:hover,
+.prebudget-page .prebudget-example-detail-button:focus-visible,
+.prebudget-page .prebudget-example-use:hover,
+.prebudget-page .prebudget-example-use:focus-visible { transform: translateY(-1px); box-shadow: 0 10px 22px rgb(20 51 78 / 15%); }
 .prebudget-page .form-card { border-color: var(--prebudget-border); border-radius: 20px; box-shadow: 0 12px 32px rgb(20 51 78 / 6%); }
 .prebudget-page .form-grid label,
 .prebudget-page .item-fields label { color: var(--prebudget-navy); font-size: 16px; }

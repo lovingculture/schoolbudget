@@ -4,7 +4,7 @@ import type { PrebudgetFormDraft, PrebudgetSource } from "./types";
 export const createBlankPrebudgetItem = (): DraftItem => ({ id: crypto.randomUUID(), unitBusiness: "", business: "", detail: "", category: "일반수용비", description: "", unitPrice: 0, quantity: 0, count: 0, note: "" });
 
 export function createPrebudgetDraft(initialSchoolName: string): PrebudgetFormDraft {
-  return { schoolName: initialSchoolName === "○○초등학교" ? "" : initialSchoolName, fiscalYear: 2026, source: "목적사업비(교육청)", title: "", department: "", requester: "", approvalGranter: "", officialDocument: "", items: Array.from({ length: 5 }, createBlankPrebudgetItem), schoolLevel: "공통", reviewRequiredFields: [] };
+  return { schoolName: initialSchoolName === "○○초등학교" ? "" : initialSchoolName, fiscalYear: 2026, source: "목적사업비(교육청)", title: "", department: "", requester: "", approvalGranter: "", officialDocument: "", items: [createBlankPrebudgetItem()], schoolLevel: "공통", reviewRequiredFields: [] };
 }
 
 const isRecord = (value: unknown): value is Record<string, unknown> => typeof value === "object" && value !== null;
@@ -48,7 +48,11 @@ export function normalizePrebudgetDraft(value: unknown, initialSchoolName = ""):
   if (exampleSourceId !== undefined) draft.exampleSourceId = exampleSourceId;
   const savedAt = stringProperty(value, "savedAt");
   if (savedAt !== undefined) draft.savedAt = savedAt;
-  if (Array.isArray(value.items)) draft.items = value.items.map(normalizePrebudgetItem);
+  if (Array.isArray(value.items)) {
+    const normalizedItems = value.items.map(normalizePrebudgetItem);
+    const enteredItems = normalizedItems.filter((item) => !isBlankPrebudgetItem(item));
+    draft.items = enteredItems.length ? enteredItems : [normalizedItems[0] ?? createBlankPrebudgetItem()];
+  }
   if (Array.isArray(value.reviewRequiredFields)) {
     draft.reviewRequiredFields = value.reviewRequiredFields.filter((field): field is string => field === "officialDocument");
   }

@@ -72,4 +72,19 @@ describe("초보자용 성립전예산 예시 화면", () => {
     const unsure = screen.getByRole("button", { name: "잘 모르겠어요" });
     expect(within(unsure).getByText(/공문 발신기관/)).toHaveClass("prebudget-guide-card-examples");
   });
+
+  it("예시 찾기의 모든 동작 버튼을 역할별 전용 스타일로 표시한다", async () => {
+    const user = userEvent.setup();
+    render(<PrebudgetExampleLibrary examples={PREBUDGET_EXAMPLES} initialScope="전체" onUseExample={vi.fn()} onBack={vi.fn()} />);
+
+    expect(screen.getByRole("button", { name: "재원 다시 선택" })).toHaveClass("prebudget-example-back");
+    expect(screen.getByRole("button", { name: "초기화" })).toHaveClass("prebudget-example-reset");
+    for (const button of screen.getAllByRole("button", { name: "자세히 보기" })) {
+      expect(button).toHaveClass("prebudget-example-detail-button");
+    }
+
+    await user.click(screen.getAllByRole("button", { name: "자세히 보기" })[0]);
+    expect(screen.getByRole("button", { name: "다른 예시 보기" })).toHaveClass("prebudget-example-back");
+    expect(screen.getByRole("button", { name: "이 예시로 작성하기" })).toHaveClass("prebudget-example-use");
+  });
 });
