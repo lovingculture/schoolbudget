@@ -64,4 +64,12 @@ describe("초보자용 성립전예산 예시", () => {
       expect(item.detail).not.toMatch(/^\((목|구청|수)\)/);
     }
   });
+
+  it("구청보조금 예시는 작성 전 준비사항을 표시하지 않는다", () => {
+    const districtExamples = PREBUDGET_EXAMPLES.filter((example) => example.fundingCategory === "구청보조금");
+    expect(districtExamples).toHaveLength(3);
+    for (const example of districtExamples) {
+      expect(example.prepareBeforeWriting).toEqual([]);
+    }
+  });
 });
