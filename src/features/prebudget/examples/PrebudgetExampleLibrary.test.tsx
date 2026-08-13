@@ -66,4 +66,10 @@ describe("초보자용 성립전예산 예시 화면", () => {
     expect(within(unsure).getByText("공문 발신기관(교육지원청 초등교육과, 구청 교육지원과 등)을 확인해보세요.")).toBeVisible();
     expect(within(unsure).queryByText("재원 안내")).not.toBeInTheDocument();
   });
+
+  it("잘 모르겠어요 안내 문구를 다른 카드의 예시와 같은 강조 스타일로 표시한다", () => {
+    render(<PrebudgetFundingGuide onSelect={vi.fn()} onUnsure={vi.fn()} />);
+    const unsure = screen.getByRole("button", { name: "잘 모르겠어요" });
+    expect(within(unsure).getByText(/공문 발신기관/)).toHaveClass("prebudget-guide-card-examples");
+  });
 });

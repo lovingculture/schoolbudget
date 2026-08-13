@@ -172,6 +172,12 @@ describe("성립전예산 예시 통합", () => {
     expect(screen.getByText("10건")).toBeInTheDocument();
   });
 
+  it("재원 안내 화면의 직접 작성 돌아가기 버튼을 전용 스타일로 표시한다", async () => {
+    const user = userEvent.setup(); render(<PrebudgetPage initialSchoolName="서울우리학교" storage={storage} />);
+    await user.click(screen.getByRole("button", { name: "예시에서 시작하기" }));
+    expect(screen.getByRole("button", { name: "직접 작성으로 돌아가기" })).toHaveClass("prebudget-guide-back");
+  });
+
   it("작성 중인 내용을 덮어쓰지 않도록 취소한다", async () => {
     const confirm = vi.spyOn(window, "confirm").mockReturnValue(false); const user = userEvent.setup();
     render(<PrebudgetPage initialSchoolName="서울우리학교" storage={storage} />);

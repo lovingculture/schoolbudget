@@ -12,7 +12,7 @@ export function PrebudgetFundingGuide({ onSelect, onUnsure }: { onSelect(categor
           <span className="prebudget-guide-card-title">{option.title}</span>
           {option.category && <span className="prebudget-guide-card-kicker">재원 안내</span>}
           <strong>{option.label}</strong>
-          {option.description && <span className="prebudget-guide-card-description">{option.description}</span>}
+          {option.description && <span className={option.category ? "prebudget-guide-card-description" : "prebudget-guide-card-examples"}>{option.description}</span>}
           {option.examples && <span className="prebudget-guide-card-examples">{option.examples}</span>}
         </button>
       </div>)}

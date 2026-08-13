@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { Clipboard, Download, FileText, Plus, X } from "lucide-react";
+import { ArrowLeft, Clipboard, Download, FileText, Plus, X } from "lucide-react";
 import {
   DEFAULT_ACCOUNT_CATEGORIES,
   PREBUDGET_BUSINESS_OPTIONS,
@@ -185,7 +185,8 @@ export function PrebudgetPage({
             {message}
           </p>
         )}
-        <button type="button" onClick={() => setView("form")}>
+        <button type="button" className="prebudget-guide-back" onClick={() => setView("form")}>
+          <ArrowLeft aria-hidden="true" />
           직접 작성으로 돌아가기
         </button>
       </div>
