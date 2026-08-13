@@ -17,6 +17,10 @@ vi.mock("./parser", () => ({
       id: "1", policy: "정책", unitBusiness: "단위", detailBusiness: "세부", detailItem: "항목",
       account: "목", subAccount: "세목", costCategory: "일반업무추진비", description: "협의회",
       budgetAmount: 1000, committedAmount: 400, paidAmount: 350, original: {},
+    }, {
+      id: "2", policy: "정책", unitBusiness: "단위", detailBusiness: "세부", detailItem: "항목",
+      account: "목", subAccount: "세목", costCategory: "일반수용비", description: "소모품",
+      budgetAmount: 1000, committedAmount: 1000, paidAmount: 1000, original: {},
     }],
   })),
 }));
@@ -55,6 +59,26 @@ describe("집행실적으로 추경자료 만들기 화면", () => {
     await waitFor(() => expect(mockedDownload).toHaveBeenCalledWith(expect.anything(), expect.anything()));
     expect(screen.queryByRole("button", { name: "버튼 포함 Excel 다운로드" })).not.toBeInTheDocument();
     expect(screen.queryByText(/콘텐츠 사용/)).not.toBeInTheDocument();
+  });
+
+  it("빠른 필터를 표와 합계 및 다운로드 대상에 함께 적용하고 초기화한다", async () => {
+    mockedDownload.mockResolvedValue();
+    render(<SupplementaryPage />);
+    await loadExecutionFixture();
+
+    expect(screen.getByRole("group", { name: "추경자료 빠른 필터" })).toBeVisible();
+    fireEvent.click(screen.getByRole("button", { name: "집행률 50% 미만" }));
+    expect(screen.getByText("협의회")).toBeVisible();
+    expect(screen.queryByText("소모품")).not.toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "집행률 50% 미만" })).toHaveAttribute("aria-pressed", "true");
+
+    fireEvent.click(screen.getByRole("button", { name: "일반 Excel 다운로드" }));
+    await waitFor(() => expect(mockedDownload).toHaveBeenCalled());
+    expect(mockedDownload.mock.calls[0][1]).toHaveLength(1);
+
+    fireEvent.click(screen.getByRole("button", { name: "필터 초기화" }));
+    expect(screen.getByText("소모품")).toBeVisible();
+    expect(screen.getByRole("button", { name: "전체" })).toHaveAttribute("aria-pressed", "true");
   });
 
   it("Excel을 만드는 동안 버튼을 비활성화하고 완료 후 복구한다", async () => {

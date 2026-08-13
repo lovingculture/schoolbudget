@@ -1,5 +1,5 @@
 import { ChangeEvent, DragEvent, useMemo, useRef, useState } from "react";
-import { Download, FileSpreadsheet, RefreshCcw, Search, UploadCloud } from "lucide-react";
+import { Download, FileSpreadsheet, Filter, RefreshCcw, Search, UploadCloud, X } from "lucide-react";
 import { aggregateByUnitBusiness, calculateExecutionRow } from "./calculations";
 import { ExecutionParseError, parseExecutionWorkbook } from "./parser";
 import { downloadSupplementaryWorkbook } from "./exportExcel";
@@ -7,7 +7,16 @@ import type { CalculatedExecutionRow, ExecutionWorkbook } from "./types";
 import "./supplementary.css";
 
 type ResultTab = "status" | "summary" | "review" | "proposal";
+type QuickFilter = "all" | "balance" | "available" | "low-rate" | "discrepancy";
 type EditValues = Record<string, { planned: number; proposal: number }>;
+
+const QUICK_FILTERS: readonly [QuickFilter, string][] = [
+  ["all", "전체"],
+  ["balance", "잔액 있음"],
+  ["available", "추경 가능금액 있음"],
+  ["low-rate", "집행률 50% 미만"],
+  ["discrepancy", "불일치 있음"],
+];
 
 const money = (value: number) => value.toLocaleString("ko-KR");
 const rate = (value: number) => `${value.toFixed(2)}%`;
@@ -21,6 +30,7 @@ export function SupplementaryPage() {
   const [edits, setEdits] = useState<EditValues>({});
   const [tab, setTab] = useState<ResultTab>("status");
   const [query, setQuery] = useState("");
+  const [quickFilter, setQuickFilter] = useState<QuickFilter>("all");
   const [error, setError] = useState("");
   const [dragging, setDragging] = useState(false);
   const [downloading, setDownloading] = useState(false);
@@ -31,12 +41,18 @@ export function SupplementaryPage() {
   }) ?? [], [source, edits]);
   const filtered = useMemo(() => {
     const token = query.trim().toLowerCase();
-    if (!token) return calculated;
-    return calculated.filter(row => [
+    const searched = token ? calculated.filter(row => [
       row.policy, row.unitBusiness, row.detailBusiness, row.detailItem,
       row.costCategory, row.description,
-    ].some(value => value.toLowerCase().includes(token)));
-  }, [calculated, query]);
+    ].some(value => value.toLowerCase().includes(token))) : calculated;
+    return searched.filter(row => {
+      if (quickFilter === "balance") return row.balance > 0;
+      if (quickFilter === "available") return row.availableSupplement > 0;
+      if (quickFilter === "low-rate") return row.executionRate < 50;
+      if (quickFilter === "discrepancy") return row.discrepancy !== 0;
+      return true;
+    });
+  }, [calculated, query, quickFilter]);
   const summaries = useMemo(() => aggregateByUnitBusiness(filtered), [filtered]);
   const totals = useMemo(() => filtered.reduce((sum, row) => ({
     budget: sum.budget + row.budgetAmount,
@@ -60,6 +76,7 @@ export function SupplementaryPage() {
       setEdits({});
       setTab("status");
       setQuery("");
+      setQuickFilter("all");
     } catch (reason) {
       setSource(null);
       setError(reason instanceof ExecutionParseError ? reason.message : "파일을 읽지 못했습니다. 에듀파인에서 다시 내려받아 주세요.");
@@ -79,13 +96,13 @@ export function SupplementaryPage() {
   };
   const reset = () => {
     if (Object.keys(edits).length && !window.confirm("입력한 집행예정액과 추경(안)을 지우고 새로 시작할까요?")) return;
-    setSource(null); setEdits({}); setQuery(""); setError("");
+    setSource(null); setEdits({}); setQuery(""); setQuickFilter("all"); setError("");
   };
   const downloadExcel = async () => {
     setDownloading(true);
     setError("");
     try {
-      await downloadSupplementaryWorkbook(source!, calculated);
+      await downloadSupplementaryWorkbook(source!, filtered);
     } catch {
       setError("일반 Excel 파일을 만들지 못했습니다. 잠시 후 다시 시도해 주세요.");
     } finally {
@@ -127,6 +144,11 @@ export function SupplementaryPage() {
           .map(([id,label]) => <button key={id} className={tab === id ? "active" : ""} onClick={() => setTab(id)}>{label}</button>)}
       </div>
       <label className="supplementary-search"><Search size={17}/><input aria-label="추경자료 검색" value={query} onChange={e => setQuery(e.target.value)} placeholder="사업명·산출내역 검색"/></label>
+    </div>
+    <div className="supplementary-quick-filter" role="group" aria-label="추경자료 빠른 필터">
+      <span><Filter size={17}/>빠른 필터</span>
+      <div>{QUICK_FILTERS.map(([id, label]) => <button type="button" key={id} aria-pressed={quickFilter === id} onClick={() => setQuickFilter(id)}>{label}</button>)}</div>
+      <button type="button" className="supplementary-filter-reset" onClick={() => { setQuickFilter("all"); setQuery(""); }}><X size={15}/>필터 초기화</button>
     </div>
     <ExecutionResults tab={tab} rows={filtered} summaries={summaries} changeEdit={changeEdit}/>
     {error && <div className="closing-error" role="alert">{error}</div>}
