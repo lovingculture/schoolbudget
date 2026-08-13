@@ -23,6 +23,9 @@ describe("초보자용 성립전예산 예시 화면", () => {
     const readingCard = screen.getByRole("heading", { name: "독서교육·도서구입" }).closest("article")!;
     await user.click(within(readingCard).getByRole("button", { name: "자세히 보기" }));
     expect(screen.getByRole("heading", { name: "작성 전에 준비하세요" })).toBeInTheDocument();
+    expect(screen.getAllByRole("columnheader").map((header) => header.textContent)).toEqual([
+      "세부사업", "세부항목", "원가통계비목", "산출내역", "산출식", "요구금액",
+    ]);
     expect(screen.getByRole("button", { name: "이 예시로 작성하기" })).toBeInTheDocument();
   });
 
