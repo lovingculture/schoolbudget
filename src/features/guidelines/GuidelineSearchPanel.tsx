@@ -3,6 +3,7 @@ import { Download, ExternalLink, Eye, FileText, Search } from "lucide-react";
 import guidelineIndex from "./guidelineIndex.json";
 import { GUIDELINE_PDF_URL, GUIDELINE_TITLE } from "./guidelineConstants";
 import { searchGuideline, type GuidelinePage } from "./searchGuideline";
+import "./guidelines.css";
 
 const pages = guidelineIndex as GuidelinePage[];
 
