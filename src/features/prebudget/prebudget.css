@@ -55,6 +55,10 @@
 .prebudget-page .prebudget-example-card { display: flex; flex-direction: column; align-items: flex-start; padding: 20px; box-shadow: 0 8px 24px rgb(20 51 78 / 5%); }
 .prebudget-page .prebudget-example-card p { flex: 1; }
 .prebudget-page .prebudget-example-card > span { color: var(--prebudget-teal-text); font-weight: 700; }
+.prebudget-example-detail .table-wrap { max-width: 100%; overflow-x: auto; margin-top: 12px; border: 1px solid var(--prebudget-border); border-radius: 14px; background: white; }
+.prebudget-example-detail table { width: 100%; min-width: 900px; border-collapse: collapse; background: white; }
+.prebudget-example-detail th { padding: 13px 14px; border: 1px solid var(--prebudget-border); background: #e7f4f5; color: var(--prebudget-navy); text-align: center; white-space: nowrap; }
+.prebudget-example-detail td { padding: 13px 14px; border: 1px solid var(--prebudget-border); background: white; line-height: 1.55; vertical-align: top; }
 .prebudget-page .prebudget-example-back,
 .prebudget-page .prebudget-example-reset,
 .prebudget-page .prebudget-example-detail-button,

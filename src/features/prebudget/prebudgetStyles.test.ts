@@ -21,4 +21,11 @@ describe("성립전예산 홈 일치형 스타일", () => {
     expect(css).toMatch(/\.prebudget-page[^}]*input[^}]*min-height:\s*44px/);
     expect(css).toMatch(/\.prebudget-page[^}]*button[^}]*min-height:\s*44px/);
   });
+
+  it("예시 표를 테두리가 있는 가로 스크롤 표로 표시한다", () => {
+    expect(css).toMatch(/\.prebudget-example-detail\s+\.table-wrap\s*\{[^}]*overflow-x:\s*auto/i);
+    expect(css).toMatch(/\.prebudget-example-detail\s+table\s*\{[^}]*min-width:\s*900px/i);
+    expect(css).toMatch(/\.prebudget-example-detail\s+th\s*\{[^}]*background:/i);
+    expect(css).toMatch(/\.prebudget-example-detail\s+(?:th,\s*)?td[^}]*border:/i);
+  });
 });
