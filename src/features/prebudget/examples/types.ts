@@ -7,6 +7,7 @@ export interface PrebudgetExample {
   useWhen: string[]; prepareBeforeWriting: string[]; documentTitle: string;
   officialDocument: string; items: PrebudgetExampleItem[];
   draftPreview: string; autoCheckNotes: string[]; reviewRequiredFields: string[];
+  detailNotice?: string;
   sourceCategory: "사용자 제공 익명화 표본" | "서울교육재정 공개예산 분석" | "복합 분석"; sourceReviewedAt: "2026-08-08";
 }
 export interface ExampleValidationIssue { exampleId: string; field: string; message: string; }

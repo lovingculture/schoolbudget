@@ -20,8 +20,8 @@ describe("초보자용 성립전예산 예시 화면", () => {
     render(<PrebudgetExampleLibrary examples={PREBUDGET_EXAMPLES} initialScope="목적사업비" onUseExample={vi.fn()} onBack={vi.fn()} />);
     expect(screen.getByText("10건")).toBeInTheDocument();
     await user.type(screen.getByRole("searchbox", { name: "예시 검색" }), "책");
-    expect(screen.getByRole("heading", { name: "독서교육·도서구입" })).toBeInTheDocument();
-    await user.click(screen.getByRole("button", { name: "자세히 보기" }));
+    const readingCard = screen.getByRole("heading", { name: "독서교육·도서구입" }).closest("article")!;
+    await user.click(within(readingCard).getByRole("button", { name: "자세히 보기" }));
     expect(screen.getByRole("heading", { name: "작성 전에 준비하세요" })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "이 예시로 작성하기" })).toBeInTheDocument();
   });
@@ -86,5 +86,25 @@ describe("초보자용 성립전예산 예시 화면", () => {
     await user.click(screen.getAllByRole("button", { name: "자세히 보기" })[0]);
     expect(screen.getByRole("button", { name: "다른 예시 보기" })).toHaveClass("prebudget-example-back");
     expect(screen.getByRole("button", { name: "이 예시로 작성하기" })).toHaveClass("prebudget-example-use");
+  });
+
+  it("단위학교 기초학력 책임지도 예시에 교부 기준과 5개 편성항목을 보여준다", async () => {
+    const user = userEvent.setup();
+    render(<PrebudgetExampleLibrary examples={PREBUDGET_EXAMPLES} initialScope="목적사업비" onUseExample={vi.fn()} onBack={vi.fn()} />);
+
+    await user.type(screen.getByRole("searchbox", { name: "예시 검색" }), "기초학력");
+    await user.click(screen.getByRole("button", { name: "자세히 보기" }));
+
+    expect(screen.getByRole("heading", { name: "단위학교 기초학력 책임지도" })).toBeVisible();
+    expect(screen.getByRole("heading", { name: "작성 전에 확인하세요" })).toBeVisible();
+    expect(screen.getByRole("heading", { name: "대표 편성항목(예시)" })).toBeVisible();
+    expect(screen.getByRole("columnheader", { name: "세부항목" })).toBeVisible();
+    expect(screen.getByRole("columnheader", { name: "산출식" })).toBeVisible();
+    expect(screen.getAllByRole("row")).toHaveLength(7);
+    expect(screen.getByText("288,000원 × 2회")).toBeVisible();
+    expect(screen.getByText("15,000,000원")).toBeVisible();
+    expect(screen.getByText(/해당 교부공문의 편성기준에 따라 달라질 수 있습니다/)).toBeVisible();
+    expect(screen.getByText(/단위학교 기초학력 책임지도 사업비를 교부 목적 및 예산 편성기준에 따라/)).toBeVisible();
+    expect(screen.getByText(/원가통계비목이 적절하게 선택되었는지/)).toBeVisible();
   });
 });

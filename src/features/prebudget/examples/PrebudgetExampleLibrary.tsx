@@ -5,6 +5,7 @@ import { searchPrebudgetExamples, type ExampleSearchScope } from "./searchExampl
 import type { PrebudgetExample } from "./types";
 
 const won = new Intl.NumberFormat("ko-KR");
+const formula = (item: PrebudgetExample["items"][number]) => `${won.format(item.unitPrice ?? 0)}원 × ${won.format((item.quantity ?? 1) * (item.count ?? 1))}회`;
 export function PrebudgetExampleLibrary({ examples, initialScope, onUseExample, onBack }: { examples: readonly PrebudgetExample[]; initialScope: ExampleSearchScope; onUseExample(example: PrebudgetExample): void; onBack(): void }) {
   const [scope, setScope] = useState<ExampleSearchScope>(initialScope);
   const [query, setQuery] = useState("");
@@ -15,9 +16,12 @@ export function PrebudgetExampleLibrary({ examples, initialScope, onUseExample, 
     <button type="button" className="prebudget-example-back" onClick={() => setSelected(undefined)}><ArrowLeft aria-hidden="true" />다른 예시 보기</button>
     <h2>{selected.title}</h2><p>{selected.summary}</p>
     <h3>이런 경우에 사용해요</h3><ul>{selected.useWhen.map((v) => <li key={v}>{v}</li>)}</ul>
-    <h3>작성 전에 준비하세요</h3><ul>{selected.prepareBeforeWriting.map((v) => <li key={v}>{v}</li>)}</ul>
-    <h3>예산 편성 항목</h3><div className="table-wrap"><table><thead><tr><th>세부사업</th><th>원가통계비목</th><th>산출내역</th><th>금액</th></tr></thead><tbody>{selected.items.map((item, i) => <tr key={`${selected.id}-${i}`}><td>{item.business}</td><td>{item.category}</td><td>{item.description}</td><td>{won.format(calculateRequestedAmount(item))}원</td></tr>)}</tbody></table></div>
-    <h3>기안문 미리보기</h3><p>{selected.draftPreview}</p><h3>복사 전 꼭 확인하세요</h3><ul>{selected.autoCheckNotes.map((v) => <li key={v}>{v}</li>)}</ul>
+    <h3>{selected.detailNotice ? "작성 전에 확인하세요" : "작성 전에 준비하세요"}</h3><ul>{selected.prepareBeforeWriting.map((v) => <li key={v}>{v}</li>)}</ul>
+    <h3>{selected.detailNotice ? "대표 편성항목(예시)" : "예산 편성 항목"}</h3>
+    {selected.detailNotice && <p>아래 내용은 예시입니다.<br /><strong>실제 편성 시에는 교부공문의 예산 편성기준과 학교의 사업계획을 확인하여 작성하세요.</strong></p>}
+    <div className="table-wrap"><table><thead><tr><th>세부사업</th>{selected.detailNotice && <th>세부항목</th>}<th>원가통계비목</th><th>산출내역</th>{selected.detailNotice && <th>산출식</th>}<th>{selected.detailNotice ? "요구금액" : "금액"}</th></tr></thead><tbody>{selected.items.map((item, i) => <tr key={`${selected.id}-${i}`}><td>{item.business}</td>{selected.detailNotice && <td>(목) 초등단위학교 기초학력책임지도</td>}<td>{item.category}</td><td>{item.description}</td>{selected.detailNotice && <td>{formula(item)}</td>}<td>{won.format(calculateRequestedAmount(item))}원</td></tr>)}{selected.detailNotice && <tr><td colSpan={3}></td><td><strong>합계</strong></td><td></td><td><strong>{won.format(selected.items.reduce((sum, item) => sum + calculateRequestedAmount(item), 0))}원</strong></td></tr>}</tbody></table></div>
+    {selected.detailNotice && <p className="prebudget-example-notice">※ {selected.detailNotice}</p>}
+    <h3>{selected.detailNotice ? "성립전예산 기안문 미리보기" : "기안문 미리보기"}</h3><p><strong>{selected.draftPreview}</strong></p><h3>{selected.detailNotice ? "복사한 뒤 꼭 확인하세요" : "복사 전 꼭 확인하세요"}</h3><ul>{selected.autoCheckNotes.map((v) => <li key={v}>{v}</li>)}</ul>
     <button type="button" className="primary prebudget-example-use" onClick={() => onUseExample(selected)}><CheckCircle2 aria-hidden="true" />이 예시로 작성하기</button>
   </section>;
 

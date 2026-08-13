@@ -39,4 +39,39 @@ const makeExample = ([id, fundingCategory, title, searchAliases, unitBusiness, b
     reviewRequiredFields: ["officialDocument"], sourceCategory: "복합 분석", sourceReviewedAt: "2026-08-08",
   };
 };
-export const PREBUDGET_EXAMPLES = seeds.map(makeExample) as readonly PrebudgetExample[];
+const examples = seeds.map(makeExample);
+const basicLearningIndex = examples.findIndex(({ id }) => id === "purpose-basic-learning");
+examples[basicLearningIndex] = {
+  ...examples[basicLearningIndex],
+  title: "단위학교 기초학력 책임지도",
+  summary: "단위학교 기초학력 책임지도 사업비를 성립전예산으로 처음 편성할 때 참고하는 예시입니다.",
+  useWhen: [
+    "교육청에서 단위학교 기초학력 책임지도 사업비가 교부된 경우",
+    "교부공문에 사업 목적과 예산 편성기준이 안내된 경우",
+  ],
+  prepareBeforeWriting: [
+    "교부공문",
+    "공문에 안내된 예산 편성기준 및 사용 가능 항목",
+    "교부금액",
+    "학교의 실제 사업계획과 산출근거",
+  ],
+  documentTitle: "단위학교 기초학력 책임지도 성립전예산 편성",
+  items: [
+    { unitBusiness: "교육격차해소", business: "기타 교육격차해소 지원", detail: "단위학교 기초학력 책임지도", category: "교육운영비", description: "(목) 학습지원대상 물품구입비(문제집 등)", unitPrice: 288_000, quantity: 1, count: 2, manualAmount: 576_000 },
+    { unitBusiness: "교육격차해소", business: "기타 교육격차해소 지원", detail: "단위학교 기초학력 책임지도", category: "기간제근로자법정부담금", description: "(목) 기초학력협력강사 보험료", unitPrice: 324_000, quantity: 1, count: 1, manualAmount: 324_000 },
+    { unitBusiness: "교육격차해소", business: "기타 교육격차해소 지원", detail: "단위학교 기초학력 책임지도", category: "기타수당", description: "(목) 학습지원담당교원 수업시수 경감", unitPrice: 25_000, quantity: 1, count: 74, manualAmount: 1_850_000 },
+    { unitBusiness: "교육격차해소", business: "기타 교육격차해소 지원", detail: "단위학교 기초학력 책임지도", category: "목적사업업무추진비", description: "(목) 지원협의회 운영 협의회비", unitPrice: 125_000, quantity: 1, count: 2, manualAmount: 250_000 },
+    { unitBusiness: "교육격차해소", business: "기타 교육격차해소 지원", detail: "단위학교 기초학력 책임지도", category: "운영수당", description: "(목) 기초학력협력강사 수당", unitPrice: 25_000, quantity: 1, count: 480, manualAmount: 12_000_000 },
+  ],
+  detailNotice: "세부사업, 세부항목, 원가통계비목 및 산출내역은 해당 교부공문의 편성기준에 따라 달라질 수 있습니다.",
+  draftPreview: "단위학교 기초학력 책임지도 사업비를 교부 목적 및 예산 편성기준에 따라 성립전예산으로 편성하고자 합니다.",
+  autoCheckNotes: [
+    "공문의 교부금액과 편성금액이 일치하는지",
+    "공문에서 정한 예산 편성기준과 사용 목적에 맞는지",
+    "원가통계비목이 적절하게 선택되었는지",
+    "산출식의 단가 × 인원(수량) × 횟수 계산이 정확한지",
+    "학교의 실제 사업계획과 산출내역이 일치하는지",
+  ],
+};
+
+export const PREBUDGET_EXAMPLES = examples as readonly PrebudgetExample[];
