@@ -34,7 +34,12 @@ describe("성립전예산 기안문", () => {
       "마. 예산요구 총액: 800,000원",
       "바. 성립전예산 요구내역",
     ]));
-    expect(document.copyText).toContain("관련: 교육지원과-1111(2022. 1. 1.)");
+    expect(document.bodyLines.slice(0, 2)).toEqual([
+      "1. 관련: 교육지원과-1111(2022. 1. 1.)",
+      "2. 2026학년도 학생안전 인력 운영 성립전예산을 다음과 같이 편성하고자 합니다.",
+    ]);
+    expect(document.copyText).toContain("1. 관련: 교육지원과-1111(2022. 1. 1.)");
+    expect(document.copyText).toContain("2. 2026학년도 학생안전 인력 운영 성립전예산을 다음과 같이 편성하고자 합니다.");
     expect(document.copyText).toContain("가. 재원구분: 목적사업비(교육청)");
     expect(document.copyText).toContain("나. 요구부서: 체육안전교육부");
     expect(document.copyText).toContain("다. 사업담당자: 김담당");
@@ -42,7 +47,6 @@ describe("성립전예산 기안문", () => {
     expect(document.copyText).toContain("마. 예산요구 총액: 800,000원");
     expect(document.copyText).toContain("바. 성립전예산 요구내역");
     expect(document.copyText).toContain("단위사업) 생활지도 운영 / 세부사업) 학생안전교육 / 세부항목) 학교안전인력 운영 / 원가통계비목) 교육운영비 / 산출기초) 학생안전 인력 운영 물품 및 프로그램비 / 800,000원");
-    expect(document.copyText).not.toContain("1. 관련");
     expect(document.copyText).not.toContain("요구자:");
     expect(document.copyText).not.toContain("붙임");
   });

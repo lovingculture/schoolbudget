@@ -12,8 +12,8 @@ export function createPrebudgetDocument(draft: PrebudgetFormDraft) {
   const totalPrefix = approvalLine.length ? "마" : "라";
   const detailsPrefix = approvalLine.length ? "바" : "마";
   const bodyLines = [
-    `관련: ${draft.officialDocument}`,
-    `${draft.fiscalYear}학년도 ${subject ? `${subject} ` : ""}성립전예산을 다음과 같이 편성하고자 합니다.`,
+    `1. 관련: ${draft.officialDocument}`,
+    `2. ${draft.fiscalYear}학년도 ${subject ? `${subject} ` : ""}성립전예산을 다음과 같이 편성하고자 합니다.`,
     "",
     `가. 재원구분: ${draft.source}`,
     `나. 요구부서: ${draft.department}`,
