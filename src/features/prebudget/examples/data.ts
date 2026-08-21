@@ -171,4 +171,8 @@ examples[fieldTripIndex] = {
   calculationUnit: "명",
 };
 
+for (const example of examples) {
+  if (example.fundingCategory === "목적사업비") example.draftPreview = "";
+}
+
 export const PREBUDGET_EXAMPLES = examples as readonly PrebudgetExample[];

@@ -107,7 +107,8 @@ describe("초보자용 성립전예산 예시 화면", () => {
     expect(screen.getByText("288,000원 × 2회")).toBeVisible();
     expect(screen.getByText("15,000,000원")).toBeVisible();
     expect(screen.getByText(/해당 교부공문의 편성기준에 따라 달라질 수 있습니다/)).toBeVisible();
-    expect(screen.getByText(/단위학교 기초학력 책임지도 사업비를 교부 목적 및 예산 편성기준에 따라/)).toBeVisible();
+    expect(screen.queryByRole("heading", { name: "성립전예산 기안문 미리보기" })).not.toBeInTheDocument();
+    expect(screen.queryByText(/단위학교 기초학력 책임지도 사업비를 교부 목적 및 예산 편성기준에 따라/)).not.toBeInTheDocument();
     expect(screen.getByText(/원가통계비목이 적절하게 선택되었는지/)).toBeVisible();
   });
 

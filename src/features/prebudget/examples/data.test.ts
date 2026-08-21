@@ -75,6 +75,12 @@ describe("초보자용 성립전예산 예시", () => {
     }
   });
 
+  it("모든 목적사업비 예시는 성립전예산 기안문 미리보기를 표시하지 않는다", () => {
+    const purposeExamples = PREBUDGET_EXAMPLES.filter((example) => example.fundingCategory === "목적사업비");
+    expect(purposeExamples).toHaveLength(10);
+    for (const example of purposeExamples) expect(example.draftPreview).toBe("");
+  });
+
   it("교육경비보조금 진로교육 활성화 예시에 2천만원 편성항목을 제공한다", () => {
     const example = PREBUDGET_EXAMPLES.find(({ id }) => id === "district-welfare");
     expect(example?.title).toBe("진로교육 활성화");
