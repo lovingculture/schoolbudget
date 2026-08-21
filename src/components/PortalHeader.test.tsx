@@ -17,6 +17,8 @@ describe("PortalHeader", () => {
       />,
     );
 
+    expect(screen.queryByText("학교예산 한눈에")).not.toBeInTheDocument();
+
     for (const label of [
       "홈",
       "예산 자료실",

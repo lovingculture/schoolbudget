@@ -73,15 +73,12 @@ const workCards: WorkCard[] = [
   },
 ];
 
-export function HomePage({ displayName, schoolName, onNavigate }: HomePageProps) {
+export function HomePage({ onNavigate }: HomePageProps) {
   return (
     <div className="content home-page-v2">
       <section className="home-hero" aria-labelledby="home-hero-title">
         <div className="home-section-inner home-hero-layout">
           <div className="home-hero-copy">
-            <span className="home-hero-eyebrow">
-              <b>NEW</b> {schoolName} 업무 지원
-            </span>
             <h1 id="home-hero-title">
               복잡한 학교예산 업무,
               <strong>한눈에 쉽고 빠르게</strong>

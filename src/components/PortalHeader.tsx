@@ -69,7 +69,6 @@ export function PortalHeader({
         >
           <span className="brandmark" aria-hidden="true">예</span>
           <span>
-            <strong>학교예산 한눈에</strong>
             <small>{schoolName}</small>
           </span>
         </button>
