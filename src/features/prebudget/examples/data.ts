@@ -99,6 +99,7 @@ const afterschoolIndex = examples.findIndex(({ id }) => id === "beneficiary-afte
 examples[afterschoolIndex] = {
   ...examples[afterschoolIndex],
   useWhen: ["방과후학교 운영 수강료 및 교재비 징수계획이 확정된 경우"],
+  draftPreview: "",
   autoCheckNotes: [],
   items: [
     { unitBusiness: "방과후 학교운영", business: "방과후 학교운영", detail: "방과후학교 수강료", category: "운영수당", description: "레고교실 강사료", unitPrice: 30_000, quantity: 20, count: 1, manualAmount: 600_000 },

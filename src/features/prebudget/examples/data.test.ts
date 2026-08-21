@@ -90,6 +90,7 @@ describe("초보자용 성립전예산 예시", () => {
       expect.objectContaining({ category: "교육운영비", description: "레고교실 교재교구구입", unitPrice: 10_000, quantity: 20, count: 1, manualAmount: 200_000 }),
     ]);
     expect(example?.useWhen).toEqual(["방과후학교 운영 수강료 및 교재비 징수계획이 확정된 경우"]);
+    expect(example?.draftPreview).toBe("");
     expect(example?.autoCheckNotes).toEqual([]);
   });
 
