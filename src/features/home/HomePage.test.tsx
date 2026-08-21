@@ -99,10 +99,8 @@ describe("승인된 포털 홈", () => {
       screen.getByRole("region", { name: "새로운 소식을 확인하세요" }),
     ).toBeVisible();
     expect(screen.getByText("학교예산 한눈에 이용 안내")).toBeVisible();
-    expect(
-      screen.getByRole("button", { name: "통합검색 준비 중 안내 보기" }),
-    ).toBeVisible();
-    expect(screen.getByText("통합검색 기능은 현재 준비 중입니다.")).toBeVisible();
+    expect(screen.queryByRole("button", { name: "통합검색 준비 중 안내 보기" })).not.toBeInTheDocument();
+    expect(screen.queryByText("통합검색 기능은 현재 준비 중입니다.")).not.toBeInTheDocument();
     expect(screen.queryByRole("searchbox")).not.toBeInTheDocument();
   });
 
@@ -203,7 +201,6 @@ describe("승인된 포털 홈", () => {
       ["처음 오셨나요? 안내 확인", "예산 자료실"],
       ["2026학년도 학교회계 예산편성 기본지침 확인", "예산 자료실"],
       ["학교예산 한눈에 이용 안내 확인", "예산 자료실"],
-      ["통합검색 준비 중 안내 보기", "통합검색 준비 중"],
     ] as const;
 
     for (const [action, heading] of destinations) {

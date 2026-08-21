@@ -30,10 +30,10 @@ describe("PortalHeader", () => {
       "예산 자료실",
       "예산 업무",
       "동영상 안내",
-      "통합검색 준비 중",
     ]) {
       expect(screen.getByRole("button", { name: label })).toBeVisible();
     }
+    expect(screen.queryByRole("button", { name: "통합검색 준비 중" })).not.toBeInTheDocument();
 
     await user.click(screen.getByRole("button", { name: "예산 업무" }));
     expect(screen.queryByRole("menu")).not.toBeInTheDocument();

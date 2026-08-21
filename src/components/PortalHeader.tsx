@@ -6,7 +6,6 @@ import {
   Home,
   LogOut,
   Menu,
-  Search,
   Video,
   X,
 } from "lucide-react";
@@ -20,8 +19,7 @@ export type PortalHeaderView =
   | "closing"
   | "supplementary"
   | "resources"
-  | "videos"
-  | "search";
+  | "videos";
 
 type PortalHeaderProps = {
   activeView: PortalHeaderView;
@@ -140,15 +138,6 @@ export function PortalHeader({
           >
             <Video size={17} aria-hidden="true" />
             동영상 안내
-          </button>
-          <button
-            type="button"
-            className={activeView === "search" ? "portal-search-button active" : "portal-search-button"}
-            aria-current={activeView === "search" ? "page" : undefined}
-            onClick={() => navigate("search")}
-          >
-            <Search size={17} aria-hidden="true" />
-            통합검색 준비 중
           </button>
           {onLogout && (
             <button

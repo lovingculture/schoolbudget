@@ -262,16 +262,9 @@ describe("예산업무 포털", () => {
     expect(screen.getByText("안내 동영상을 준비하고 있습니다.")).toBeVisible();
   });
 
-  it("통합검색 상단 메뉴가 준비 중임을 밝힌 안내 화면으로 이동한다", async () => {
-    const user = userEvent.setup();
+  it("통합검색 준비 중 메뉴를 표시하지 않는다", () => {
     render(<Portal displayName="김담당" schoolName="서울한빛초등학교" />);
-
-    await user.click(screen.getByRole("button", { name: "통합검색 준비 중" }));
-
-    expect(screen.getByRole("heading", { name: "통합검색 준비 중" })).toBeVisible();
-    expect(
-      screen.getByText("통합검색 기능은 현재 준비 중입니다."),
-    ).toBeVisible();
-    expect(screen.queryByRole("searchbox")).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "통합검색 준비 중" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("heading", { name: "통합검색 준비 중" })).not.toBeInTheDocument();
   });
 });

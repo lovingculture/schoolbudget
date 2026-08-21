@@ -1,4 +1,4 @@
-import { ArrowRight, BookOpen, CircleHelp, Search } from "lucide-react";
+import { ArrowRight, BookOpen, CircleHelp } from "lucide-react";
 import type { View } from "../../App";
 import "./home.css";
 
@@ -229,19 +229,6 @@ export function HomePage({ onNavigate }: HomePageProps) {
               확인하기 <ArrowRight aria-hidden="true" />
             </button>
           </article>
-          <aside className="home-search-card">
-            <h3>통합검색 준비 중</h3>
-            <p>통합검색 기능은 현재 준비 중입니다.</p>
-            <button
-              type="button"
-              aria-label="통합검색 준비 중 안내 보기"
-              onClick={() => onNavigate("search")}
-            >
-              <Search aria-hidden="true" />
-              준비 중 안내 보기
-              <ArrowRight aria-hidden="true" />
-            </button>
-          </aside>
         </div>
       </section>
     </div>

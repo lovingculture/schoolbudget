@@ -377,28 +377,11 @@ export function Portal({
         {view === "budget" && <MainBudgetPage />}
         {view === "resources" && <BudgetResourceLibraryPage isAdmin={isAdmin} userId={userId ?? ""} onAdminLogin={onAdminLogin} />}
         {view === "videos" && <VideoGuidePage />}
-        {view === "search" && <PortalSearchPage />}
       </main>
       <footer className="portal-privacy" aria-label="학교 자료 보안 안내">
         <b>학교 자료는 안전하게</b>
         <p>선택한 파일은 이 브라우저에서만 처리되며 서버에 업로드하거나 저장하지 않습니다.</p>
       </footer>
-    </div>
-  );
-}
-
-function PortalSearchPage() {
-  return (
-    <div className="content">
-      <div className="page-title">
-        <span>SEARCH COMING SOON</span>
-        <h1>통합검색 준비 중</h1>
-        <p>통합검색 기능은 현재 준비 중입니다.</p>
-      </div>
-      <section className="form-card" aria-labelledby="portal-search-notice-title">
-        <h2 id="portal-search-notice-title">현재 이용 안내</h2>
-        <p>검색 기능이 제공될 때까지 상단 메뉴에서 필요한 업무 화면을 직접 선택해 주세요.</p>
-      </section>
     </div>
   );
 }
