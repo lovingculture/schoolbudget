@@ -75,6 +75,12 @@ describe("초보자용 성립전예산 예시", () => {
     }
   });
 
+  it("졸업앨범비 예시는 기안문 미리보기를 표시하지 않는다", () => {
+    const example = PREBUDGET_EXAMPLES.find(({ id }) => id === "beneficiary-yearbook");
+    expect(example?.draftPreview).toBe("");
+    expect(example?.autoCheckNotes).toEqual(["학생수 및 졸업앨범비 단가를 확인하세요."]);
+  });
+
   it("방과후학교 수강료 예시에 레고교실 편성항목 3개를 제공한다", () => {
     const example = PREBUDGET_EXAMPLES.find(({ id }) => id === "beneficiary-afterschool");
     expect(example?.calculationUnit).toBe("명");

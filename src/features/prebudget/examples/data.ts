@@ -79,6 +79,7 @@ examples[yearbookIndex] = {
   ...examples[yearbookIndex],
   useWhen: ["졸업앨범비를 학부모 부담 경비로 걷는 경우"],
   prepareBeforeWriting: [],
+  draftPreview: "",
   items: [{
     unitBusiness: "학생 복지",
     business: "학생 복지운영",

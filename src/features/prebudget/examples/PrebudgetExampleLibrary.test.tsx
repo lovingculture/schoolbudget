@@ -128,6 +128,8 @@ describe("초보자용 성립전예산 예시 화면", () => {
     expect(screen.getByText("졸업앨범 제작")).toBeVisible();
     expect(screen.getByText("70,000원 × 100부")).toBeVisible();
     expect(screen.getByText("7,000,000원")).toBeVisible();
+    expect(screen.queryByRole("heading", { name: "기안문 미리보기" })).not.toBeInTheDocument();
+    expect(screen.queryByText("졸업앨범비 사업비를 교부 목적과 산출근거에 따라 성립전예산으로 편성합니다.")).not.toBeInTheDocument();
     expect(screen.getByText("학생수 및 졸업앨범비 단가를 확인하세요.")).toBeVisible();
   });
 
