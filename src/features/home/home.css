@@ -124,9 +124,14 @@
 }
 
 .home-hero-benefits li::before {
-  content: "\2713";
-  margin-right: 5px;
-  color: #2695ad;
+  content: "";
+  display: inline-block;
+  width: 6px;
+  height: 10px;
+  margin-right: 8px;
+  border-right: 2px solid #2695ad;
+  border-bottom: 2px solid #2695ad;
+  transform: rotate(45deg) translateY(-1px);
 }
 
 .home-character {
