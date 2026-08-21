@@ -88,6 +88,7 @@ describe("초보자용 성립전예산 예시", () => {
 
   it("현장체험학습비 예시에 5학년 교통비·식비·체험활동비를 제공한다", () => {
     const example = PREBUDGET_EXAMPLES.find(({ id }) => id === "beneficiary-field-trip");
+    expect(example?.useWhen).toEqual(["현장학습비 징수계획이 확정된 경우"]);
     expect(example?.calculationUnit).toBe("명");
     expect(example?.items).toEqual([
       expect.objectContaining({ category: "교육운영비", description: "(수) 교통비", formulaText: "32,900원 × 115명", manualAmount: 3_784_000 }),
