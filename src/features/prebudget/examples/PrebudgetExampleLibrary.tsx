@@ -5,8 +5,8 @@ import { searchPrebudgetExamples, type ExampleSearchScope } from "./searchExampl
 import type { PrebudgetExample } from "./types";
 
 const won = new Intl.NumberFormat("ko-KR");
-const formula = (item: PrebudgetExample["items"][number]) => `${won.format(item.unitPrice ?? 0)}원 × ${won.format((item.quantity ?? 1) * (item.count ?? 1))}회`;
-const calculationFormula = (item: PrebudgetExample["items"][number], unit: string) => `${won.format(item.unitPrice ?? 0)}원 × ${won.format((item.quantity ?? 1) * (item.count ?? 1))}${unit}`;
+const formula = (item: PrebudgetExample["items"][number]) => item.formulaText || `${won.format(item.unitPrice ?? 0)}원 × ${won.format((item.quantity ?? 1) * (item.count ?? 1))}회`;
+const calculationFormula = (item: PrebudgetExample["items"][number], unit: string) => item.formulaText || `${won.format(item.unitPrice ?? 0)}원 × ${won.format((item.quantity ?? 1) * (item.count ?? 1))}${unit}`;
 export function PrebudgetExampleLibrary({ examples, initialScope, onUseExample, onBack }: { examples: readonly PrebudgetExample[]; initialScope: ExampleSearchScope; onUseExample(example: PrebudgetExample): void; onBack(): void }) {
   const [scope, setScope] = useState<ExampleSearchScope>(initialScope);
   const [query, setQuery] = useState("");

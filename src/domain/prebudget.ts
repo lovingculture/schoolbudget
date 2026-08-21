@@ -14,6 +14,7 @@ export interface DraftItem extends CalculationInput {
   detail?: string;
   category?: string;
   description?: string;
+  formulaText?: string;
   note?: string;
 }
 

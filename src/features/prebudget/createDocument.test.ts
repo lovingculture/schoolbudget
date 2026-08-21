@@ -24,6 +24,13 @@ const activeDraft = () => {
 };
 
 describe("성립전예산 기안문", () => {
+  it("예시의 직접 지정 산출식을 기안문 표에 유지한다", () => {
+    const draft = createPrebudgetDraft("");
+    Object.assign(draft, { title: "현장체험학습비 성립전예산 편성", department: "교육부", requester: "김담당", officialDocument: "교육부-1" });
+    draft.items[0] = { ...draft.items[0], business: "현장체험학습 활동", detail: "(수) 5학년 현장체험학습", category: "교육운영비", description: "(수) 체험활동비", unitPrice: 2_500, quantity: 115, count: 1, manualAmount: 287_000, formulaText: "2,500원 × 115명 - 1,000원" };
+    expect(createPrebudgetDocument(draft).budgetTable.rows[0][5]).toBe("2,500원 × 115명 - 1,000원");
+  });
+
   it("사업담당자와 예산(품의) 권한 부여 대상을 승인된 순서로 생성한다", () => {
     const document = createPrebudgetDocument(activeDraft());
     expect(document.bodyLines).toEqual(expect.arrayContaining([

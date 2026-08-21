@@ -149,4 +149,21 @@ describe("초보자용 성립전예산 예시 화면", () => {
     expect(screen.getByText("10,000원 × 20명")).toBeVisible();
     expect(screen.getByText("830,000원")).toBeVisible();
   });
+
+  it("현장체험학습비 예시에 5학년 편성항목과 차감 산출식을 보여준다", async () => {
+    const user = userEvent.setup();
+    render(<PrebudgetExampleLibrary examples={PREBUDGET_EXAMPLES} initialScope="수익자부담금" onUseExample={vi.fn()} onBack={vi.fn()} />);
+
+    await user.type(screen.getByRole("searchbox", { name: "예시 검색" }), "현장체험학습비");
+    await user.click(screen.getByRole("button", { name: "자세히 보기" }));
+
+    expect(screen.getAllByText("(수) 5학년 현장체험학습")).toHaveLength(3);
+    expect(screen.getByText("(수) 교통비")).toBeVisible();
+    expect(screen.getByText("32,900원 × 115명")).toBeVisible();
+    expect(screen.getByText("(수) 점심식사비")).toBeVisible();
+    expect(screen.getByText("9,500원 × 115명")).toBeVisible();
+    expect(screen.getByText("(수) 체험활동비")).toBeVisible();
+    expect(screen.getByText("2,500원 × 115명 - 1,000원")).toBeVisible();
+    expect(screen.getByText("5,164,000원")).toBeVisible();
+  });
 });

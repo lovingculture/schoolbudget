@@ -97,10 +97,22 @@ examples[yearbookIndex] = {
 const afterschoolIndex = examples.findIndex(({ id }) => id === "beneficiary-afterschool");
 examples[afterschoolIndex] = {
   ...examples[afterschoolIndex],
+  useWhen: ["방과후학교 운영 수강료 및 교재비 징수계획이 확정된 경우"],
   items: [
     { unitBusiness: "방과후 학교운영", business: "방과후 학교운영", detail: "방과후학교 수강료", category: "운영수당", description: "레고교실 강사료", unitPrice: 30_000, quantity: 20, count: 1, manualAmount: 600_000 },
     { unitBusiness: "방과후 학교운영", business: "방과후 학교운영", detail: "방과후학교 수강료", category: "일반수용비", description: "레고교실 수용비", unitPrice: 1_500, quantity: 20, count: 1, manualAmount: 30_000 },
     { unitBusiness: "방과후 학교운영", business: "방과후 학교운영", detail: "방과후학교 수강료", category: "교육운영비", description: "레고교실 교재교구구입", unitPrice: 10_000, quantity: 20, count: 1, manualAmount: 200_000 },
+  ],
+  calculationUnit: "명",
+};
+
+const fieldTripIndex = examples.findIndex(({ id }) => id === "beneficiary-field-trip");
+examples[fieldTripIndex] = {
+  ...examples[fieldTripIndex],
+  items: [
+    { unitBusiness: "창의적 체험활동", business: "현장체험학습 활동", detail: "(수) 5학년 현장체험학습", category: "교육운영비", description: "(수) 교통비", unitPrice: 32_900, quantity: 115, count: 1, manualAmount: 3_784_000, formulaText: "32,900원 × 115명" },
+    { unitBusiness: "창의적 체험활동", business: "현장체험학습 활동", detail: "(수) 5학년 현장체험학습", category: "교육운영비", description: "(수) 점심식사비", unitPrice: 9_500, quantity: 115, count: 1, manualAmount: 1_093_000, formulaText: "9,500원 × 115명" },
+    { unitBusiness: "창의적 체험활동", business: "현장체험학습 활동", detail: "(수) 5학년 현장체험학습", category: "교육운영비", description: "(수) 체험활동비", unitPrice: 2_500, quantity: 115, count: 1, manualAmount: 287_000, formulaText: "2,500원 × 115명 - 1,000원" },
   ],
   calculationUnit: "명",
 };
