@@ -40,6 +40,22 @@ const makeExample = ([id, fundingCategory, title, searchAliases, unitBusiness, b
   };
 };
 const examples = seeds.map(makeExample);
+const districtReadingIndex = examples.findIndex(({ id }) => id === "district-curriculum");
+examples[districtReadingIndex] = {
+  ...examples[districtReadingIndex],
+  title: "독서교육 및 교육과정 교구 구입",
+  searchAliases: ["구청 지원", "교육경비보조금", "독서교육", "교육과정", "교구"],
+  summary: "교육경비보조금 독서교육 및 교육과정 교구 구입 사업을 성립전예산으로 편성할 때 참고하는 예시입니다.",
+  useWhen: ["교육경비보조금 독서교육 및 교육과정 교구 구입 사업비가 교부된 경우"],
+  documentTitle: "독서교육 및 교육과정 교구 구입 성립전예산 편성",
+  draftPreview: "",
+  autoCheckNotes: [],
+  items: [
+    { unitBusiness: "독서활동", business: "독서활동 운영", detail: "(보조금)책향성독서교육", category: "교육운영비", description: "(보조)1~4학년 교육과정 교구구입", unitPrice: 1_500_000, quantity: 4, count: 1, manualAmount: 6_000_000, formulaText: "1,500,000원 × 4개 학년" },
+    { unitBusiness: "독서활동", business: "독서활동 운영", detail: "(보조금)책향성독서교육", category: "교육운영비", description: "(보조)5~6학년 교육과정 교구구입", unitPrice: 500_000, quantity: 2, count: 1, manualAmount: 1_000_000, formulaText: "500,000원 × 2개 학년" },
+    { unitBusiness: "독서활동", business: "독서활동 운영", detail: "(보조금)책향성독서교육", category: "교육운영비", description: "(보조)운정 북클럽 운영비", unitPrice: 30_000, quantity: 1, count: 10, manualAmount: 300_000, formulaText: "30,000원 × 10회" },
+  ],
+};
 const districtCareerIndex = examples.findIndex(({ id }) => id === "district-welfare");
 examples[districtCareerIndex] = {
   ...examples[districtCareerIndex],
