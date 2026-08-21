@@ -40,6 +40,8 @@ const examples = seeds.map(makeExample);
 const neulbomIndex = examples.findIndex(({ id }) => id === "purpose-neulbom");
 examples[neulbomIndex] = {
   ...examples[neulbomIndex],
+  useWhen: [],
+  prepareBeforeWriting: [],
   items: [
     { unitBusiness: "방과후 학교운영", business: "늘봄학교운영", detail: "(목)맞춤형교실 운영비", category: "교육운영비", description: "(목)간식비", unitPrice: 900_000, quantity: 4, count: 1, manualAmount: 3_600_000, formulaText: "900,000원 × 4실" },
     { unitBusiness: "방과후 학교운영", business: "늘봄학교운영", detail: "(목)맞춤형교실 운영비", category: "교육운영비", description: "(목)강사비", unitPrice: 28_800_000, quantity: 1, count: 1, manualAmount: 28_800_000, formulaText: "28,800,000원" },

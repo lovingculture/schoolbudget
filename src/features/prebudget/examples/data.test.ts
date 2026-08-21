@@ -93,6 +93,8 @@ describe("초보자용 성립전예산 예시", () => {
 
   it("맞춤형 늘봄교실 예시에 4천970만7천원 편성항목을 제공한다", () => {
     const example = PREBUDGET_EXAMPLES.find(({ id }) => id === "purpose-neulbom");
+    expect(example?.useWhen).toEqual([]);
+    expect(example?.prepareBeforeWriting).toEqual([]);
     expect(example?.items).toEqual([
       expect.objectContaining({ business: "늘봄학교운영", detail: "(목)맞춤형교실 운영비", category: "교육운영비", description: "(목)간식비", formulaText: "900,000원 × 4실", manualAmount: 3_600_000 }),
       expect.objectContaining({ category: "교육운영비", description: "(목)강사비", formulaText: "28,800,000원", manualAmount: 28_800_000 }),
