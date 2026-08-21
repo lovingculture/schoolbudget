@@ -74,4 +74,14 @@ describe("초보자용 성립전예산 예시", () => {
       expect(example.prepareBeforeWriting).toEqual([]);
     }
   });
+
+  it("방과후학교 수강료 예시에 레고교실 편성항목 3개를 제공한다", () => {
+    const example = PREBUDGET_EXAMPLES.find(({ id }) => id === "beneficiary-afterschool");
+    expect(example?.calculationUnit).toBe("명");
+    expect(example?.items).toEqual([
+      expect.objectContaining({ category: "운영수당", description: "레고교실 강사료", unitPrice: 30_000, quantity: 20, count: 1, manualAmount: 600_000 }),
+      expect.objectContaining({ category: "일반수용비", description: "레고교실 수용비", unitPrice: 1_500, quantity: 20, count: 1, manualAmount: 30_000 }),
+      expect.objectContaining({ category: "교육운영비", description: "레고교실 교재교구구입", unitPrice: 10_000, quantity: 20, count: 1, manualAmount: 200_000 }),
+    ]);
+  });
 });

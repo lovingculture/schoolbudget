@@ -130,4 +130,23 @@ describe("초보자용 성립전예산 예시 화면", () => {
     expect(screen.getByText("7,000,000원")).toBeVisible();
     expect(screen.getByText("학생수 및 졸업앨범비 단가를 확인하세요.")).toBeVisible();
   });
+
+  it("방과후학교 수강료 예시에 레고교실 3개 항목과 합계를 보여준다", async () => {
+    const user = userEvent.setup();
+    render(<PrebudgetExampleLibrary examples={PREBUDGET_EXAMPLES} initialScope="수익자부담금" onUseExample={vi.fn()} onBack={vi.fn()} />);
+
+    await user.type(screen.getByRole("searchbox", { name: "예시 검색" }), "방과후학교 수강료");
+    await user.click(screen.getByRole("button", { name: "자세히 보기" }));
+
+    expect(screen.getByText("운영수당")).toBeVisible();
+    expect(screen.getByText("레고교실 강사료")).toBeVisible();
+    expect(screen.getByText("30,000원 × 20명")).toBeVisible();
+    expect(screen.getByText("일반수용비")).toBeVisible();
+    expect(screen.getByText("레고교실 수용비")).toBeVisible();
+    expect(screen.getByText("1,500원 × 20명")).toBeVisible();
+    expect(screen.getByText("교육운영비")).toBeVisible();
+    expect(screen.getByText("레고교실 교재교구구입")).toBeVisible();
+    expect(screen.getByText("10,000원 × 20명")).toBeVisible();
+    expect(screen.getByText("830,000원")).toBeVisible();
+  });
 });

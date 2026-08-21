@@ -94,4 +94,15 @@ examples[yearbookIndex] = {
   autoCheckNotes: ["학생수 및 졸업앨범비 단가를 확인하세요."],
 };
 
+const afterschoolIndex = examples.findIndex(({ id }) => id === "beneficiary-afterschool");
+examples[afterschoolIndex] = {
+  ...examples[afterschoolIndex],
+  items: [
+    { unitBusiness: "방과후 학교운영", business: "방과후 학교운영", detail: "방과후학교 수강료", category: "운영수당", description: "레고교실 강사료", unitPrice: 30_000, quantity: 20, count: 1, manualAmount: 600_000 },
+    { unitBusiness: "방과후 학교운영", business: "방과후 학교운영", detail: "방과후학교 수강료", category: "일반수용비", description: "레고교실 수용비", unitPrice: 1_500, quantity: 20, count: 1, manualAmount: 30_000 },
+    { unitBusiness: "방과후 학교운영", business: "방과후 학교운영", detail: "방과후학교 수강료", category: "교육운영비", description: "레고교실 교재교구구입", unitPrice: 10_000, quantity: 20, count: 1, manualAmount: 200_000 },
+  ],
+  calculationUnit: "명",
+};
+
 export const PREBUDGET_EXAMPLES = examples as readonly PrebudgetExample[];
