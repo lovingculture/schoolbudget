@@ -147,6 +147,22 @@ describe("초보자용 성립전예산 예시 화면", () => {
     expect(screen.getByText("20,000,000원")).toBeVisible();
   });
 
+  it("영어체험학습 예시에 미래글로벌체험센터 2개 항목과 합계를 보여준다", async () => {
+    const user = userEvent.setup();
+    render(<PrebudgetExampleLibrary examples={PREBUDGET_EXAMPLES} initialScope="구청보조금" onUseExample={vi.fn()} onBack={vi.fn()} />);
+
+    await user.type(screen.getByRole("searchbox", { name: "예시 검색" }), "영어체험학습");
+    await user.click(screen.getByRole("button", { name: "자세히 보기" }));
+
+    expect(screen.getByRole("heading", { name: "영어체험학습" })).toBeVisible();
+    expect(screen.getAllByText("(보조)미래글로벌체험센터 초등 영어체험학습")).toHaveLength(2);
+    expect(screen.getByText("(보조)미래글로벌체험센터 초등 영어체험학습 교통비")).toBeVisible();
+    expect(screen.getByText("500,000원 × 4학급")).toBeVisible();
+    expect(screen.getByText("10,000원 × 100명")).toBeVisible();
+    expect(screen.getByText("3,000,000원")).toBeVisible();
+    expect(screen.queryByText(/용답/)).not.toBeInTheDocument();
+  });
+
   it("독서교육 및 교육과정 교구 구입 예시에 3개 항목과 합계를 보여준다", async () => {
     const user = userEvent.setup();
     render(<PrebudgetExampleLibrary examples={PREBUDGET_EXAMPLES} initialScope="구청보조금" onUseExample={vi.fn()} onBack={vi.fn()} />);

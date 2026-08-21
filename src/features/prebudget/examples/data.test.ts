@@ -14,7 +14,7 @@ const approvedMappings = {
   "purpose-safety-staff": ["생활지도 운영", "학생안전교육", "학교안전인력 운영"],
   "purpose-reading-books": ["독서활동", "독서활동 운영", "독서교육 및 도서구입"],
   "purpose-career-experience": ["창의적 체험활동", "진로활동", "진로교육·체험활동"],
-  "district-facility": ["교육여건 개선", "교육환경개선", "시설·환경개선"],
+  "district-facility": ["교과 활동", "외국어 교과활동", "(보조)미래글로벌체험센터 초등 영어체험학습"],
   "district-curriculum": ["독서활동", "독서활동 운영", "(보조금)책향성독서교육"],
   "district-welfare": ["창의적 체험활동", "진로활동", "(보조금)진로교육 활성화사업 지원"],
   "beneficiary-yearbook": ["학생 복지", "학생 복지운영", "졸업앨범 제작"],
@@ -84,6 +84,16 @@ describe("초보자용 성립전예산 예시", () => {
       expect.objectContaining({ category: "운영수당", description: "(보조)3,4학년 강사수당", formulaText: "35,000원 × 180회", manualAmount: 6_300_000 }),
       expect.objectContaining({ category: "운영수당", description: "(보조)5,6학년 강사수당", formulaText: "35,000원 × 180회", manualAmount: 6_300_000 }),
     ]);
+  });
+
+  it("영어체험학습 예시에 미래글로벌체험센터 300만원 편성항목을 제공한다", () => {
+    const example = PREBUDGET_EXAMPLES.find(({ id }) => id === "district-facility");
+    expect(example?.title).toBe("영어체험학습");
+    expect(example?.items).toEqual([
+      expect.objectContaining({ category: "교육운영비", description: "(보조)미래글로벌체험센터 초등 영어체험학습 교통비", formulaText: "500,000원 × 4학급", manualAmount: 2_000_000 }),
+      expect.objectContaining({ category: "교육운영비", description: "(보조)미래글로벌체험센터 초등 영어체험학습 사스임자료", formulaText: "10,000원 × 100명", manualAmount: 1_000_000 }),
+    ]);
+    expect(JSON.stringify(example)).not.toContain("용답");
   });
 
   it("독서교육 및 교육과정 교구 구입 예시에 730만원 편성항목을 제공한다", () => {

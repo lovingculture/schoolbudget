@@ -40,6 +40,21 @@ const makeExample = ([id, fundingCategory, title, searchAliases, unitBusiness, b
   };
 };
 const examples = seeds.map(makeExample);
+const districtEnglishIndex = examples.findIndex(({ id }) => id === "district-facility");
+examples[districtEnglishIndex] = {
+  ...examples[districtEnglishIndex],
+  title: "영어체험학습",
+  searchAliases: ["구청 지원", "교육경비보조금", "영어체험", "미래글로벌체험센터"],
+  summary: "교육경비보조금 영어체험학습 사업을 성립전예산으로 편성할 때 참고하는 예시입니다.",
+  useWhen: ["교육경비보조금 영어체험학습 사업비가 교부된 경우"],
+  documentTitle: "영어체험학습 성립전예산 편성",
+  draftPreview: "",
+  autoCheckNotes: [],
+  items: [
+    { unitBusiness: "교과 활동", business: "외국어 교과활동", detail: "(보조)미래글로벌체험센터 초등 영어체험학습", category: "교육운영비", description: "(보조)미래글로벌체험센터 초등 영어체험학습 교통비", unitPrice: 500_000, quantity: 4, count: 1, manualAmount: 2_000_000, formulaText: "500,000원 × 4학급" },
+    { unitBusiness: "교과 활동", business: "외국어 교과활동", detail: "(보조)미래글로벌체험센터 초등 영어체험학습", category: "교육운영비", description: "(보조)미래글로벌체험센터 초등 영어체험학습 사스임자료", unitPrice: 10_000, quantity: 100, count: 1, manualAmount: 1_000_000, formulaText: "10,000원 × 100명" },
+  ],
+};
 const districtReadingIndex = examples.findIndex(({ id }) => id === "district-curriculum");
 examples[districtReadingIndex] = {
   ...examples[districtReadingIndex],
