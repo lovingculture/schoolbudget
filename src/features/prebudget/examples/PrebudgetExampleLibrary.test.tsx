@@ -22,7 +22,8 @@ describe("초보자용 성립전예산 예시 화면", () => {
     await user.type(screen.getByRole("searchbox", { name: "예시 검색" }), "방과후사업비");
     const afterschoolCard = screen.getByRole("heading", { name: "방과후사업비" }).closest("article")!;
     await user.click(within(afterschoolCard).getByRole("button", { name: "자세히 보기" }));
-    expect(screen.getByRole("heading", { name: "작성 전에 준비하세요" })).toBeInTheDocument();
+    expect(screen.queryByRole("heading", { name: "작성 전에 준비하세요" })).not.toBeInTheDocument();
+    expect(screen.getByText("방과후사업비가 목적사업비로 교부된 경우")).toBeInTheDocument();
     expect(screen.getAllByRole("columnheader").map((header) => header.textContent)).toEqual([
       "세부사업", "세부항목", "원가통계비목", "산출내역", "산출식", "요구금액",
     ]);

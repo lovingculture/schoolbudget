@@ -72,6 +72,8 @@ const purposeAfterschoolIndex = examples.findIndex(({ id }) => id === "purpose-a
 examples[purposeAfterschoolIndex] = {
   ...examples[purposeAfterschoolIndex],
   summary: "방과후사업비를 성립전예산으로 처음 편성할 때 참고하는 예시입니다.",
+  useWhen: ["방과후사업비가 목적사업비로 교부된 경우"],
+  prepareBeforeWriting: [],
   documentTitle: "방과후사업비 성립전예산 편성",
   items: [
     { unitBusiness: "방과후 학교운영", business: "늘봄학교운영", detail: "(목)초등방과후교실사업 지원비", category: "교육운영비", description: "(목)공개수업및발표전시회운영비", unitPrice: 1_000_000, quantity: 1, count: 1, manualAmount: 1_000_000, formulaText: "1,000,000원 × 1회" },
@@ -90,6 +92,8 @@ examples[purposeAfterschoolIndex] = {
 const digitalAiIndex = examples.findIndex(({ id }) => id === "purpose-digital-ai");
 examples[digitalAiIndex] = {
   ...examples[digitalAiIndex],
+  useWhen: ["디지털 AI 교육지원 예산이 교부된 경우"],
+  prepareBeforeWriting: [],
   items: [
     { unitBusiness: "교과 활동", business: "교과활동지원", detail: "디지털기반 학생 맞춤교육을 위한 연구학교운영", category: "일반수용비", description: "(목)교원학습공동체 운영비(교원연구회)", unitPrice: 300_000, quantity: 1, count: 10, manualAmount: 3_000_000, formulaText: "300,000원 × 10회" },
     { unitBusiness: "교과 활동", business: "교과활동지원", detail: "디지털기반 학생 맞춤교육을 위한 연구학교운영", category: "운영수당", description: "(목)교원연수비", unitPrice: 520_000, quantity: 1, count: 1, manualAmount: 520_000, formulaText: "520,000원 × 1회" },

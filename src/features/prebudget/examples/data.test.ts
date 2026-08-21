@@ -125,6 +125,8 @@ describe("초보자용 성립전예산 예시", () => {
   it("방과후사업비 예시에 900만원 편성항목 10개를 제공한다", () => {
     const example = PREBUDGET_EXAMPLES.find(({ id }) => id === "purpose-afterschool");
     expect(example?.title).toBe("방과후사업비");
+    expect(example?.useWhen).toEqual(["방과후사업비가 목적사업비로 교부된 경우"]);
+    expect(example?.prepareBeforeWriting).toEqual([]);
     expect(example?.items).toEqual([
       expect.objectContaining({ business: "늘봄학교운영", detail: "(목)초등방과후교실사업 지원비", category: "교육운영비", description: "(목)공개수업및발표전시회운영비", formulaText: "1,000,000원 × 1회", manualAmount: 1_000_000 }),
       expect.objectContaining({ category: "교육운영비", description: "(목)교구및재료비", formulaText: "200,000원 × 5회", manualAmount: 1_000_000 }),
@@ -142,6 +144,8 @@ describe("초보자용 성립전예산 예시", () => {
 
   it("디지털·AI 교육 지원 예시에 3천만원 편성항목을 제공한다", () => {
     const example = PREBUDGET_EXAMPLES.find(({ id }) => id === "purpose-digital-ai");
+    expect(example?.useWhen).toEqual(["디지털 AI 교육지원 예산이 교부된 경우"]);
+    expect(example?.prepareBeforeWriting).toEqual([]);
     expect(example?.items).toEqual([
       expect.objectContaining({ unitBusiness: "교과 활동", business: "교과활동지원", detail: "디지털기반 학생 맞춤교육을 위한 연구학교운영", category: "일반수용비", description: "(목)교원학습공동체 운영비(교원연구회)", formulaText: "300,000원 × 10회", manualAmount: 3_000_000 }),
       expect.objectContaining({ category: "운영수당", description: "(목)교원연수비", formulaText: "520,000원 × 1회", manualAmount: 520_000 }),
