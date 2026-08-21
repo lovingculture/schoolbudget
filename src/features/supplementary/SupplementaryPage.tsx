@@ -123,7 +123,6 @@ export function SupplementaryPage() {
       <small>파일명뿐 아니라 102-2 필수 항목을 확인해 정확한 자료인지 검사합니다.</small>
     </div>
     {error && <div className="closing-error" role="alert">{error}<small>학교회계 → 사업관리 → 사업관리카드 → 집행실적 엑셀저장(실시간)에서 자료코드 102-2를 다시 내려받아 주세요.</small></div>}
-    <section className="closing-privacy"><b>학교 자료는 안전하게</b><p>선택한 파일은 이 브라우저 안에서만 처리되며 서버에 업로드하거나 저장하지 않습니다.</p></section>
   </div>;
 
   return <div className="content supplementary-page portal-workspace">

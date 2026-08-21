@@ -48,6 +48,18 @@ describe("예산업무 포털", () => {
     expect(guidance).not.toHaveTextContent("Excel");
   });
 
+  it("모든 업무 페이지 하단에 학교 자료 보안 안내를 표시한다", async () => {
+    const user = userEvent.setup();
+    render(<Portal displayName="김담당" schoolName="서울한빛초등학교" onLogout={() => {}} />);
+
+    expect(screen.getByText("학교 자료는 안전하게")).toBeVisible();
+    expect(screen.getByText("선택한 파일은 이 브라우저에서만 처리되며 서버에 업로드하거나 저장하지 않습니다.")).toBeVisible();
+
+    await user.click(screen.getByRole("button", { name: "성립전예산 새로 작성" }));
+    expect(screen.getAllByText("학교 자료는 안전하게")).toHaveLength(1);
+    expect(screen.getAllByText("선택한 파일은 이 브라우저에서만 처리되며 서버에 업로드하거나 저장하지 않습니다.")).toHaveLength(1);
+  });
+
   it("공개 포털은 로그인 화면 없이 열리고 자료실 관리자 기능에서만 로그인을 요청한다", async () => {
     const user = userEvent.setup();
     let loginRequested = false;

@@ -380,6 +380,10 @@ export function Portal({
         {view === "videos" && <VideoGuidePage />}
         {view === "search" && <PortalSearchPage />}
       </main>
+      <footer className="portal-privacy" aria-label="학교 자료 보안 안내">
+        <b>학교 자료는 안전하게</b>
+        <p>선택한 파일은 이 브라우저에서만 처리되며 서버에 업로드하거나 저장하지 않습니다.</p>
+      </footer>
     </div>
   );
 }
