@@ -32,7 +32,7 @@ const makeExample = ([id, fundingCategory, title, searchAliases, unitBusiness, b
   const unitPrice = (index + 1) * 10_000;
   return {
     id, fundingCategory, title, searchAliases, summary: `${title} 성립전예산을 처음 작성할 때 참고하는 예시입니다.`,
-    useWhen: [`${title} 사업의 재원이 교부되거나 징수계획이 확정된 경우`], prepareBeforeWriting: fundingCategory === "구청보조금" ? [] : ["교부공문 또는 징수계획", "실제 사업기간과 산출근거"],
+    useWhen: [`${title} 사업의 재원이 교부되거나 징수계획이 확정된 경우`], prepareBeforeWriting: fundingCategory === "목적사업비" ? ["교부공문 또는 징수계획", "실제 사업기간과 산출근거"] : [],
     documentTitle: `${title} 성립전예산 편성`, officialDocument: "교육지원과-0000(20XX. X. X.)",
     items: [{ unitBusiness, business, detail, category: "교육운영비", description: `${title} 운영 물품 및 프로그램비`, note: "실제 교부조건에 맞게 수정", unitPrice, quantity: 10, count: 1, manualAmount: unitPrice * 10 }],
     draftPreview: `${title} 사업비를 교부 목적과 산출근거에 따라 성립전예산으로 편성합니다.`, autoCheckNotes: ["교부금액과 편성금액 일치 여부 확인"],

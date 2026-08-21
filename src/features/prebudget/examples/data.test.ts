@@ -65,10 +65,12 @@ describe("초보자용 성립전예산 예시", () => {
     }
   });
 
-  it("구청보조금 예시는 작성 전 준비사항을 표시하지 않는다", () => {
-    const districtExamples = PREBUDGET_EXAMPLES.filter((example) => example.fundingCategory === "구청보조금");
-    expect(districtExamples).toHaveLength(3);
-    for (const example of districtExamples) {
+  it("구청보조금과 수익자부담금 예시는 작성 전 준비사항을 표시하지 않는다", () => {
+    const examplesWithoutPreparation = PREBUDGET_EXAMPLES.filter((example) =>
+      example.fundingCategory === "구청보조금" || example.fundingCategory === "수익자부담금",
+    );
+    expect(examplesWithoutPreparation).toHaveLength(6);
+    for (const example of examplesWithoutPreparation) {
       expect(example.prepareBeforeWriting).toEqual([]);
     }
   });
