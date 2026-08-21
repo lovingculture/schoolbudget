@@ -103,12 +103,6 @@
   font-weight: 800;
 }
 
-.home-hero-actions button:first-child {
-  border-color: transparent;
-  background: linear-gradient(100deg, #1682c2, #1599a9);
-  color: #fff;
-}
-
 .home-hero-actions svg {
   width: 17px;
 }

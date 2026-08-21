@@ -45,6 +45,10 @@ describe("집행실적으로 추경자료 만들기 화면", () => {
   it("에듀파인 다운로드 경로와 102-2 업로드 안내를 보여준다", () => {
     render(<SupplementaryPage />);
     expect(screen.getByRole("heading", { name: "집행실적으로 추경자료 만들기" })).toBeVisible();
+    expect(screen.getByRole("img", { name: "추경예산 자료 정리를 돕는 서울시교육청 캐릭터" })).toHaveAttribute(
+      "src",
+      "/characters/cards/main-budget-good.png",
+    );
     expect(screen.getByText(/학교회계 → 사업관리 → 사업관리카드/)).toBeVisible();
     expect(screen.getByText(/102-2 파일을 여기에 끌어다 놓으세요/)).toBeVisible();
     expect(screen.getByRole("button", { name: "파일 선택" })).toBeVisible();

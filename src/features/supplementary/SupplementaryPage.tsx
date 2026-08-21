@@ -5,6 +5,7 @@ import { ExecutionParseError, parseExecutionWorkbook } from "./parser";
 import { downloadSupplementaryWorkbook } from "./exportExcel";
 import type { CalculatedExecutionRow, ExecutionWorkbook } from "./types";
 import "./supplementary.css";
+import "./supplementaryCharacter.css";
 
 type ResultTab = "status" | "summary" | "review" | "proposal";
 type QuickFilter = "all" | "balance" | "available" | "low-rate" | "discrepancy";
@@ -111,7 +112,10 @@ export function SupplementaryPage() {
   };
 
   if (!source) return <div className="content supplementary-page portal-workspace">
-    <div className="page-title"><span>SUPPLEMENTARY BUDGET</span><h1>집행실적으로 추경자료 만들기</h1><p>에듀파인 102-2 자료를 올리면 추경 검토자료를 자동으로 정리합니다.</p></div>
+    <div className="page-title supplementary-title">
+      <div><span>SUPPLEMENTARY BUDGET</span><h1>집행실적으로 추경자료 만들기</h1><p>에듀파인 102-2 자료를 올리면 추경 검토자료를 자동으로 정리합니다.</p></div>
+      <img src="/characters/cards/main-budget-good.png" alt="추경예산 자료 정리를 돕는 서울시교육청 캐릭터" />
+    </div>
     <section className="supplementary-guide"><b>에듀파인에서 파일 받는 경로</b><p>학교회계 → 사업관리 → 사업관리카드 → 집행실적 엑셀저장(실시간)</p><span>자료코드 <strong>102-2</strong>를 선택한 후 엑셀로 내려받아 주세요.</span></section>
     <div className={dragging ? "supplementary-dropzone dragging" : "supplementary-dropzone"}
       onDragEnter={() => setDragging(true)} onDragLeave={() => setDragging(false)}

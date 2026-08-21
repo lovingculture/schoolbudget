@@ -61,7 +61,7 @@ describe("승인된 포털 홈", () => {
         name: "복잡한 학교예산 업무, 한눈에 쉽고 빠르게",
       }),
     ).toBeVisible();
-    expect(screen.getByRole("button", { name: "업무 시작하기" })).toBeVisible();
+    expect(screen.queryByRole("button", { name: "업무 시작하기" })).not.toBeInTheDocument();
     expect(screen.getByRole("button", { name: "예산 지침 보기" })).toBeVisible();
     expect(
       screen.getByRole("img", {
@@ -81,7 +81,7 @@ describe("승인된 포털 홈", () => {
     expect(
       workCards.map((card) => within(card).getByRole("heading").textContent),
     ).toEqual([
-      "성립전예산",
+      "성립전예산요구서작성(사업담당자용)",
       "본예산",
       "안건설명서 만들기",
       "결산 설명서 만들기",
@@ -190,7 +190,6 @@ describe("승인된 포털 홈", () => {
     render(<Portal displayName="김담당" schoolName="서울한빛초등학교" />);
 
     const destinations = [
-      ["업무 시작하기", "성립전예산 요구서 작성"],
       ["예산 지침 보기", "예산 자료실"],
       ["성립전예산 새로 작성", "성립전예산 요구서 작성"],
       ["본예산 시작하기", "본예산 편성·검토"],

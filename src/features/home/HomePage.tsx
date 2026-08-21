@@ -27,7 +27,7 @@ const workCards: WorkCard[] = [
     imageAlt: "예산안 작성 중인 서울교육 캐릭터 자라나",
     tone: "mint",
     badge: "빠른 작성",
-    title: "성립전예산",
+    title: "성립전예산요구서작성(사업담당자용)",
     description:
       "지침을 확인하고 성립전예산 요구서를 작성하면 기안문과 Word·PDF가 자동으로 완성됩니다.",
     actionLabel: "성립전예산 새로 작성",
@@ -89,9 +89,6 @@ export function HomePage({ onNavigate }: HomePageProps) {
               현재 제공 중인 학교회계 업무를 한곳에서 처리하세요.
             </p>
             <div className="home-hero-actions">
-              <button type="button" onClick={() => onNavigate("prebudget")}>
-                업무 시작하기 <ArrowRight aria-hidden="true" />
-              </button>
               <button type="button" onClick={() => onNavigate("resources")}>
                 예산 지침 보기
               </button>

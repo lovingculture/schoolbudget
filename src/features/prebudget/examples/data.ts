@@ -44,9 +44,9 @@ examples[neulbomIndex] = {
     { unitBusiness: "방과후 학교운영", business: "늘봄학교운영", detail: "(목)맞춤형교실 운영비", category: "교육운영비", description: "(목)간식비", unitPrice: 900_000, quantity: 4, count: 1, manualAmount: 3_600_000, formulaText: "900,000원 × 4실" },
     { unitBusiness: "방과후 학교운영", business: "늘봄학교운영", detail: "(목)맞춤형교실 운영비", category: "교육운영비", description: "(목)강사비", unitPrice: 28_800_000, quantity: 1, count: 1, manualAmount: 28_800_000, formulaText: "28,800,000원" },
     { unitBusiness: "방과후 학교운영", business: "늘봄학교운영", detail: "(목)맞춤형교실 운영비", category: "교육운영비", description: "(목)업체위탁보전금", unitPrice: 4_740, quantity: 1_976, count: 1, manualAmount: 9_367_000, formulaText: "4,740원 × 1,976" },
-    { unitBusiness: "방과후 학교운영", business: "늘봄학교운영", detail: "(목)맞춤형교실 운영비", category: "교육운영비", description: "(목)재료비", unitPrice: 0, quantity: 1, count: 1, manualAmount: 0, formulaText: "0원" },
+    { unitBusiness: "방과후 학교운영", business: "늘봄학교운영", detail: "(목)맞춤형교실 운영비", category: "교육운영비", description: "(목)재료비", unitPrice: 500_000, quantity: 1, count: 1, manualAmount: 500_000, formulaText: "500,000원 × 1회" },
     { unitBusiness: "방과후 학교운영", business: "늘봄학교운영", detail: "(목)맞춤형교실 운영비", category: "기간제근로자법정부담금", description: "(목)개인강사위탁학교부담보험금", unitPrice: 120_000, quantity: 1, count: 1, manualAmount: 120_000, formulaText: "120,000원 × 1회" },
-    { unitBusiness: "방과후 학교운영", business: "늘봄학교운영", detail: "(목)맞춤형교실 운영비", category: "목적사업업무추진비", description: "(목)업무추진비", unitPrice: 120_000, quantity: 1, count: 1, manualAmount: 120_000, formulaText: "120,000원 × 1식" },
+    { unitBusiness: "방과후 학교운영", business: "늘봄학교운영", detail: "(목)맞춤형교실 운영비", category: "목적사업업무추진비", description: "(목)업무추진비", unitPrice: 40_000, quantity: 3, count: 1, manualAmount: 120_000, formulaText: "40,000원 × 3명" },
     { unitBusiness: "방과후 학교운영", business: "늘봄학교운영", detail: "(목)맞춤형교실 운영비", category: "일반수용비", description: "(목)귀가안전관리비", unitPrice: 600_000, quantity: 1, count: 12, manualAmount: 7_200_000, formulaText: "600,000원 × 12월" },
   ],
 };
@@ -54,6 +54,8 @@ examples[neulbomIndex] = {
 const careIndex = examples.findIndex(({ id }) => id === "purpose-care");
 examples[careIndex] = {
   ...examples[careIndex],
+  useWhen: ["초등돌봄교실 사업의 재원이 교부된 경우"],
+  prepareBeforeWriting: [],
   items: [
     { unitBusiness: "방과후 학교운영", business: "돌봄교실운영", detail: "(목)오후돌봄교실 운영비", category: "교육운영비", description: "(목)교재교구구입비", unitPrice: 745_000, quantity: 1, count: 10, manualAmount: 7_450_000, formulaText: "745,000원 × 10회" },
     { unitBusiness: "방과후 학교운영", business: "돌봄교실운영", detail: "(목)오후돌봄교실 운영비", category: "운영수당", description: "(목)돌봄프로그램비", unitPrice: 2_500_000, quantity: 1, count: 1, manualAmount: 2_500_000, formulaText: "2,500,000원" },
