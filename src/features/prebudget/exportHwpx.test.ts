@@ -65,6 +65,7 @@ describe("prebudget HWPX export", () => {
     expect(section.documentElement.textContent).toContain("라. 예산요구 총액: 800,000원");
     expect(section.documentElement.textContent).toContain("마. 성립전예산 요구내역");
     expect(section.getElementsByTagNameNS("*", "tbl")).toHaveLength(1);
+    expect(Array.from(section.getElementsByTagNameNS("*", "tc")).every((cell) => cell.getAttribute("borderFillIDRef") === "3")).toBe(true);
     expect(section.documentElement.textContent).toContain("단위사업");
     expect(section.documentElement.textContent).toContain("Safety education");
     expect(section.documentElement.textContent).toContain("합계");

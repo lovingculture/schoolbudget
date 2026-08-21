@@ -29,7 +29,7 @@ function createBudgetTable(section: Document, document: PrebudgetDocument): Elem
   const paragraph = element("p", { id: "0", paraPrIDRef: "0", styleIDRef: "0", pageBreak: "0", columnBreak: "0", merged: "0" });
   const run = element("run", { charPrIDRef: "0" });
   const allRows = [document.budgetTable.headers, ...document.budgetTable.rows, ["합계", "", "", "", "", "", document.budgetTable.total]];
-  const table = element("tbl", { id: "900001", zOrder: "1", numberingType: "TABLE", textWrap: "TOP_AND_BOTTOM", textFlow: "BOTH_SIDES", lock: "0", pageBreak: "CELL", repeatHeader: "1", rowCnt: String(allRows.length), colCnt: "7", cellSpacing: "0", borderFillIDRef: "1", noAdjust: "0" });
+  const table = element("tbl", { id: "900001", zOrder: "1", numberingType: "TABLE", textWrap: "TOP_AND_BOTTOM", textFlow: "BOTH_SIDES", lock: "0", pageBreak: "CELL", repeatHeader: "1", rowCnt: String(allRows.length), colCnt: "7", cellSpacing: "0", borderFillIDRef: "3", noAdjust: "0" });
   table.append(element("sz", { width: "48188", widthRelTo: "ABSOLUTE", height: String(allRows.length * 2400), heightRelTo: "ABSOLUTE", protect: "0" }));
   table.append(element("pos", { treatAsChar: "1", affectLSpacing: "0", flowWithText: "1", allowOverlap: "0", holdAnchorAndSO: "0", vertRelTo: "PARA", horzRelTo: "PARA", vertAlign: "TOP", horzAlign: "LEFT", vertOffset: "0", horzOffset: "0" }));
   table.append(element("outMargin", { left: "0", right: "0", top: "0", bottom: "0" }));
@@ -37,7 +37,7 @@ function createBudgetTable(section: Document, document: PrebudgetDocument): Elem
   allRows.forEach((values, rowIndex) => {
     const tr = element("tr");
     values.forEach((value, colIndex) => {
-      const tc = element("tc", { name: "", header: rowIndex === 0 ? "1" : "0", hasMargin: "0", protect: "0", editable: "0", dirty: "0", borderFillIDRef: "1" });
+      const tc = element("tc", { name: "", header: rowIndex === 0 ? "1" : "0", hasMargin: "0", protect: "0", editable: "0", dirty: "0", borderFillIDRef: "3" });
       const subList = element("subList", { id: "", textDirection: "HORIZONTAL", lineWrap: "BREAK", vertAlign: "CENTER", linkListIDRef: "0", linkListNextIDRef: "0", textWidth: "0", textHeight: "0", hasTextRef: "0", hasNumRef: "0" });
       const p = element("p", { id: "0", paraPrIDRef: "0", styleIDRef: "0", pageBreak: "0", columnBreak: "0", merged: "0" });
       const r = element("run", { charPrIDRef: "0" });

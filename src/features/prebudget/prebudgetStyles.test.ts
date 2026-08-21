@@ -28,4 +28,8 @@ describe("성립전예산 홈 일치형 스타일", () => {
     expect(css).toMatch(/\.prebudget-example-detail\s+th\s*\{[^}]*background:/i);
     expect(css).toMatch(/\.prebudget-example-detail\s+(?:th,\s*)?td[^}]*border:/i);
   });
+
+  it("다운로드 버튼의 글자와 아이콘을 흰색으로 표시한다", () => {
+    expect(css).toMatch(/\.prebudget-page\s+\.prebudget-downloads\s+button\s*\{[^}]*color:\s*white/i);
+  });
 });

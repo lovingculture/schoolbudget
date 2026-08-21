@@ -27,5 +27,9 @@ describe("성립전예산 Excel 내보내기", () => {
     expect(sheet.getRow(4).values).toEqual([undefined, "생활지도", "안전교육", "안전용품", "교육운영비", "안전용품 구입", "-", 800_000]);
     expect(sheet.getCell("A5").value).toBe("합계");
     expect(sheet.getCell("G5").value).toBe(800_000);
+    expect(sheet.getCell("E3").alignment.horizontal).toBe("center");
+    expect(sheet.getCell("G3").alignment.horizontal).toBe("center");
+    expect(sheet.getCell("E4").alignment.horizontal).toBe("left");
+    expect(sheet.getCell("G4").alignment.horizontal).toBe("right");
   });
 });

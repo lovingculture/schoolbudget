@@ -28,7 +28,8 @@ export async function exportPrebudgetExcel(data: PrebudgetDocument) {
       const cell = sheet.getCell(rowNumber, columnNumber);
       cell.font = { name: "맑은 고딕", size: 10, bold: rowNumber === 3 || rowNumber === totalRow.number };
       cell.border = border;
-      cell.alignment = { horizontal: columnNumber === 7 ? "right" : "center", vertical: "middle", wrapText: true };
+      const horizontal = rowNumber === 3 ? "center" : columnNumber === 5 ? "left" : columnNumber === 7 ? "right" : "center";
+      cell.alignment = { horizontal, vertical: "middle", wrapText: true };
       if (rowNumber === 3) cell.fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FFE7F4F5" } };
       if (rowNumber === totalRow.number) cell.fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FFF5F8F8" } };
     }

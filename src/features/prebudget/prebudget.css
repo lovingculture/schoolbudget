@@ -97,7 +97,9 @@
 .prebudget-page .primary { background: linear-gradient(135deg, #006a8e, #006d72); color: white; }
 .prebudget-page .actions { padding: 18px 0; }
 .prebudget-page .prebudget-downloads { border-color: var(--prebudget-border); background: linear-gradient(135deg, var(--prebudget-navy), #0b5f66); color: white; }
-.prebudget-page .prebudget-downloads button { border-color: rgb(255 255 255 / 45%); color: var(--prebudget-navy); }
+.prebudget-page .prebudget-downloads button { border-color: rgb(255 255 255 / 55%); color: white; }
+.prebudget-page .prebudget-downloads button:hover,
+.prebudget-page .prebudget-downloads button:focus-visible { border-color: white; background: #0f5355; color: white; }
 @media (max-width: 760px) {
   .prebudget-page .prebudget-hero { grid-template-columns: 1fr; padding: 22px; text-align: center; }
   .prebudget-page .prebudget-hero img { width: 120px; max-height: 130px; margin: 8px auto 0; }
