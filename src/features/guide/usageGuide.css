@@ -1,0 +1,47 @@
+.usage-guide-page { display: grid; gap: 30px; color: #14334e; }
+.usage-guide-hero { display: grid; grid-template-columns: minmax(0, 1fr) 180px; align-items: center; gap: 30px; padding: 34px 40px; border: 1px solid #d8e5eb; border-radius: 24px; background: linear-gradient(125deg, #eef8fc, #effaf7); }
+.usage-guide-hero span,
+.usage-guide-heading > span { color: #0b7480; font-size: 12px; font-weight: 850; letter-spacing: .14em; }
+.usage-guide-hero h1 { margin: 8px 0 12px; font-size: clamp(30px, 4vw, 46px); }
+.usage-guide-hero p { max-width: 760px; margin: 0; color: #4e687c; font-size: 16px; line-height: 1.8; }
+.usage-guide-hero img { width: 100%; max-height: 150px; object-fit: contain; }
+.usage-guide-section,
+.usage-guide-faq { padding: 28px; border: 1px solid #dce6eb; border-radius: 22px; background: #fff; }
+.usage-guide-heading h2 { margin: 6px 0 5px; font-size: 25px; }
+.usage-guide-heading p { margin: 0; color: #687f91; }
+.usage-guide-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; margin-top: 22px; }
+.usage-guide-grid article { display: flex; min-height: 245px; flex-direction: column; padding: 20px; border: 1px solid #d8e5eb; border-radius: 18px; background: linear-gradient(145deg, #fff, #f7fbfd); }
+.usage-guide-card-top { display: flex; align-items: center; justify-content: space-between; }
+.usage-guide-step { color: #1596a3; font-size: 12px; font-weight: 850; letter-spacing: .12em; }
+.usage-guide-icon,
+.usage-guide-info-icon { display: grid; place-items: center; width: 42px; height: 42px; border-radius: 13px; background: #e8f8f6; color: #0b7480; }
+.usage-guide-icon svg,
+.usage-guide-info-icon svg { width: 21px; height: 21px; }
+.usage-guide-grid h3 { margin: 18px 0 9px; font-size: 18px; }
+.usage-guide-grid p { margin: 0; color: #61788b; line-height: 1.7; }
+.usage-guide-grid button { display: inline-flex; align-items: center; gap: 8px; align-self: flex-start; margin-top: auto; padding: 14px 0 0; border: 0; background: transparent; color: #0b7480; font-weight: 800; cursor: pointer; }
+.usage-guide-grid button svg { width: 16px; }
+.usage-guide-info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+.usage-guide-info,
+.usage-guide-security { display: flex; gap: 16px; padding: 24px; border: 1px solid #d8e5eb; border-radius: 20px; background: #fff; }
+.usage-guide-security { border-color: #b9dfd4; background: #effaf7; }
+.usage-guide-info h2,
+.usage-guide-security h2 { margin: 2px 0 10px; font-size: 20px; }
+.usage-guide-info ul { margin: 0; padding-left: 20px; color: #526d80; line-height: 1.8; }
+.usage-guide-security p { margin: 0 0 9px; color: #245c55; line-height: 1.7; }
+.usage-guide-security small { color: #52766f; }
+.usage-guide-faq details { border-top: 1px solid #e0e8ec; }
+.usage-guide-faq details:first-of-type { margin-top: 18px; }
+.usage-guide-faq summary { padding: 17px 2px; font-weight: 800; cursor: pointer; }
+.usage-guide-faq details p { margin: -4px 0 18px; color: #5d7487; line-height: 1.75; }
+@media (max-width: 900px) {
+  .usage-guide-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .usage-guide-info-grid { grid-template-columns: 1fr; }
+}
+@media (max-width: 620px) {
+  .usage-guide-hero { grid-template-columns: 1fr; padding: 25px; text-align: center; }
+  .usage-guide-hero img { width: 110px; margin: 0 auto; }
+  .usage-guide-grid { grid-template-columns: 1fr; }
+  .usage-guide-section,
+  .usage-guide-faq { padding: 20px; }
+}

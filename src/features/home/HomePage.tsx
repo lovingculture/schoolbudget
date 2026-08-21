@@ -221,7 +221,7 @@ export function HomePage({ onNavigate }: HomePageProps) {
             <p>현재 제공 중인 예산 지침과 업무 자료를 확인하세요.</p>
             <button
               type="button"
-              onClick={() => onNavigate("resources")}
+              onClick={() => onNavigate("guide")}
               aria-label="학교예산 한눈에 이용 안내 확인"
             >
               확인하기 <ArrowRight aria-hidden="true" />

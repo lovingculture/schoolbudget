@@ -18,6 +18,7 @@ export type PortalHeaderView =
   | "agenda"
   | "closing"
   | "supplementary"
+  | "guide"
   | "resources"
   | "videos";
 
