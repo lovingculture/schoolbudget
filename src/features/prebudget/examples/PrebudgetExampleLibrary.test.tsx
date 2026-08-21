@@ -148,6 +148,8 @@ describe("초보자용 성립전예산 예시 화면", () => {
     expect(screen.getByText("레고교실 교재교구구입")).toBeVisible();
     expect(screen.getByText("10,000원 × 20명")).toBeVisible();
     expect(screen.getByText("830,000원")).toBeVisible();
+    expect(screen.queryByText("교부금액과 편성금액 일치 여부 확인")).not.toBeInTheDocument();
+    expect(screen.queryByRole("heading", { name: "복사 전 꼭 확인하세요" })).not.toBeInTheDocument();
   });
 
   it("현장체험학습비 예시에 5학년 편성항목과 차감 산출식을 보여준다", async () => {
