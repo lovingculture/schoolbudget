@@ -62,6 +62,10 @@ describe("예산 자료실", () => {
     expect(screen.getByRole("searchbox", { name: "자료 검색" })).toBeVisible();
     expect(screen.getByRole("button", { name: "미리보기" })).toBeVisible();
     expect(screen.getByRole("button", { name: "구형 Excel 양식(XLS) 다운로드" })).toBeVisible();
+    expect(screen.getByRole("link", { name: "집행실적 정리(추경예산 만들기)용 엑셀파일 다운로드" })).toHaveAttribute(
+      "href",
+      "/resources/expenditure-performance-budget-revision.xlsm",
+    );
     expect(screen.queryByRole("button", { name: "자료 등록" })).not.toBeInTheDocument();
   });
 

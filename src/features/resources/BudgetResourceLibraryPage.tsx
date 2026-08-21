@@ -51,6 +51,23 @@ function StaticResourceCards() {
           </button>
         </div>
       </article>
+      <article className="guideline-document-card guideline-template-card">
+        <span className="guideline-file-icon">
+          <Download aria-hidden="true" />
+        </span>
+        <div className="guideline-document-info">
+          <h2>집행실적 정리(추경예산 만들기)용 엑셀파일</h2>
+          <p>집행실적 정리 및 추경예산 검토자료 작성용 · 매크로 포함 · 2026학년도</p>
+        </div>
+        <div className="guideline-document-actions">
+          <a
+            href="/resources/expenditure-performance-budget-revision.xlsm"
+            download="집행실적정리용엑셀 확정본.xlsm"
+          >
+            <Download size={18} /> 집행실적 정리(추경예산 만들기)용 엑셀파일 다운로드
+          </a>
+        </div>
+      </article>
     </section>
   );
 }
