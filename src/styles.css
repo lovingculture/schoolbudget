@@ -72,3 +72,36 @@
 .prebudget-page .total span {
   font-size: 18px;
 }
+
+.prebudget-paper-table-wrap {
+  max-width: 100%;
+  overflow-x: auto;
+  margin-top: 4mm;
+}
+
+.prebudget-paper table {
+  width: 100%;
+  min-width: 170mm;
+  border-collapse: collapse;
+  table-layout: fixed;
+  font-size: 9px;
+}
+
+.prebudget-paper th,
+.prebudget-paper td {
+  border: 1px solid #333;
+  padding: 1.5mm 1mm;
+  text-align: center;
+  vertical-align: middle;
+  overflow-wrap: anywhere;
+}
+
+.prebudget-paper thead th {
+  background: #e7f4f5;
+  font-weight: 800;
+}
+
+.prebudget-paper .total-row td {
+  background: #f5f8f8;
+  font-weight: 800;
+}

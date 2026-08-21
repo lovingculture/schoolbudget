@@ -26,7 +26,7 @@ export async function exportPrebudgetHwpx(document: PrebudgetDocument): Promise<
   zip.file("META-INF/container.xml", containerXml);
   zip.file("META-INF/container.rdf", containerRdf);
   zip.file("META-INF/manifest.xml", manifestXml);
-  zip.file("Preview/PrvText.txt", `${document.title}\n${document.bodyLines.join("\n")}`);
+  zip.file("Preview/PrvText.txt", document.copyText);
 
   return zip.generateAsync({ type: "blob", mimeType: MIME, compression: "DEFLATE" });
 }

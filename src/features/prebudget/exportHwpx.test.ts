@@ -64,12 +64,16 @@ describe("prebudget HWPX export", () => {
     expect(section.documentElement.textContent).not.toContain("품의권한 부여자");
     expect(section.documentElement.textContent).toContain("라. 예산요구 총액: 800,000원");
     expect(section.documentElement.textContent).toContain("마. 성립전예산 요구내역");
+    expect(section.getElementsByTagNameNS("*", "tbl")).toHaveLength(1);
+    expect(section.documentElement.textContent).toContain("단위사업");
+    expect(section.documentElement.textContent).toContain("Safety education");
+    expect(section.documentElement.textContent).toContain("합계");
     expect(section.documentElement.textContent!.indexOf("라. 예산요구 총액: 800,000원"))
       .toBeLessThan(section.documentElement.textContent!.indexOf("마. 성립전예산 요구내역"));
     for (const paragraph of Array.from(section.getElementsByTagNameNS("*", "p"))) {
       expect(paragraph.getElementsByTagNameNS("*", "linesegarray")).toHaveLength(0);
     }
-    expect(await zip.file("Preview/PrvText.txt")!.async("string")).toBe(`${document.title}\n${document.bodyLines.join("\n")}`);
+    expect(await zip.file("Preview/PrvText.txt")!.async("string")).toBe(document.copyText);
   });
 
   it("keeps approval-granter numbering in the canonical Korean order", async () => {

@@ -506,6 +506,7 @@ export function PrebudgetPage({
           <article className="prebudget-paper">
             <h1>{document.title}</h1>
             <pre>{document.bodyLines.join("\n")}</pre>
+            <div className="prebudget-paper-table-wrap"><table><thead><tr>{document.budgetTable.headers.map((header) => <th key={header}>{header}</th>)}</tr></thead><tbody>{document.budgetTable.rows.map((row, rowIndex) => <tr key={rowIndex}>{row.map((cell, cellIndex) => <td key={cellIndex}>{cell}</td>)}</tr>)}<tr className="total-row"><td colSpan={6}>합계</td><td>{document.budgetTable.total}</td></tr></tbody></table></div>
           </article>
         </section>
       )}

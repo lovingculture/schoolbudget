@@ -46,7 +46,10 @@ describe("성립전예산 기안문", () => {
     expect(document.copyText).toContain("라. 품의권한 부여자: 이담당");
     expect(document.copyText).toContain("마. 예산요구 총액: 800,000원");
     expect(document.copyText).toContain("바. 성립전예산 요구내역");
-    expect(document.copyText).toContain("단위사업) 생활지도 운영 / 세부사업) 학생안전교육 / 세부항목) 학교안전인력 운영 / 원가통계비목) 교육운영비 / 산출기초) 학생안전 인력 운영 물품 및 프로그램비 / 800,000원");
+    expect(document.budgetTable.headers).toEqual(["단위사업", "세부사업", "세부항목", "원가통계비목", "산출내역", "산출식", "요구금액"]);
+    expect(document.budgetTable.rows[0]).toEqual(["생활지도 운영", "학생안전교육", "학교안전인력 운영", "교육운영비", "학생안전 인력 운영 물품 및 프로그램비", "-", "800,000원"]);
+    expect(document.budgetTable.total).toBe("800,000원");
+    expect(document.copyText).toContain("단위사업\t세부사업\t세부항목\t원가통계비목\t산출내역\t산출식\t요구금액");
     expect(document.copyText).not.toContain("요구자:");
     expect(document.copyText).not.toContain("붙임");
   });

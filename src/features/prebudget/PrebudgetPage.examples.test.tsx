@@ -1,4 +1,4 @@
-import { fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
 import type { DraftStorage } from "./storage";
@@ -88,9 +88,18 @@ describe("성립전예산 예시 통합", () => {
     const loadedStorage: DraftStorage = { load: () => draft, save: vi.fn(), clear: vi.fn() };
     const { container } = render(<PrebudgetPage initialSchoolName="서울우리학교" storage={loadedStorage} />);
     await userEvent.setup().click(screen.getByRole("button", { name: "자동점검 후 기안문 생성" }));
-    const paper = container.querySelector(".prebudget-paper")!;
+    const paper = container.querySelector<HTMLElement>(".prebudget-paper")!;
     expect(paper.querySelector("h1")).toHaveTextContent(draft.title);
     expect(paper.querySelector("pre")).not.toHaveTextContent(new RegExp(`^${draft.title}`));
+  });
+
+  it("기안문 미리보기의 예산 편성 내역을 7열 표와 합계로 표시한다", async () => {
+    const { container } = render(<PrebudgetPage initialSchoolName="서울우리학교" storage={{ load: () => validDraft(), save: vi.fn(), clear: vi.fn() }} />);
+    await userEvent.setup().click(screen.getByRole("button", { name: "자동점검 후 기안문 생성" }));
+    const paper = container.querySelector<HTMLElement>(".prebudget-paper")!;
+    expect(within(paper).getAllByRole("columnheader").map((cell) => cell.textContent)).toEqual(["단위사업", "세부사업", "세부항목", "원가통계비목", "산출내역", "산출식", "요구금액"]);
+    expect(within(paper).getByText("합계")).toBeVisible();
+    expect(within(paper).getAllByText("200,000원")).toHaveLength(2);
   });
 
   it("renders HWPX, Word, and PDF downloads without Excel", async () => {
