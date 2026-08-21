@@ -53,8 +53,16 @@ export function GuidelineSearchPanel({ searchLabel = "자료 검색" }: { search
         {results.length > 0 ? <div className="guideline-result-list">{results.map((result) => <button type="button" key={result.page} className={selectedPage === result.page && previewOpen ? "selected" : ""} aria-label={`페이지 ${result.page} ${result.excerpt}`} onClick={() => openPreview(result.page)}><strong>{result.page}쪽</strong><span>{result.excerpt}</span></button>)}</div> : <p className="guideline-no-results">검색 결과가 없습니다. 다른 단어로 검색해 보세요.</p>}
       </section>}
 
-      {previewOpen && <section className="guideline-preview" ref={previewRef} tabIndex={-1}>
+      {previewOpen && <section className="guideline-preview" ref={previewRef} tabIndex={-1} aria-label="예산편성지침 미리보기">
         <div className="guideline-preview-heading"><div><span>PDF PREVIEW</span><h2>{selectedPage}쪽 미리보기</h2></div><a href={`${GUIDELINE_PDF_URL}#page=${selectedPage}`} target="_blank" rel="noreferrer"><ExternalLink size={17} /> 새 탭에서 열기</a></div>
+        <div className="guideline-search guideline-preview-search" role="search">
+          <Search aria-hidden="true" />
+          <input type="search" aria-label="미리보기 내 지침 검색" placeholder="미리보기에서 찾을 내용을 입력하세요" value={query} onChange={(event) => setQuery(event.target.value)} />
+        </div>
+        {normalizedQuery && <section className="guideline-results guideline-preview-results" aria-live="polite">
+          <div className="guideline-results-heading"><h2>검색 결과</h2><span>{results.length === 50 ? "최대 50건 표시" : `${results.length}건을 찾았습니다`}</span></div>
+          {results.length > 0 ? <div className="guideline-result-list">{results.map((result) => <button type="button" key={`preview-${result.page}`} className={selectedPage === result.page ? "selected" : ""} aria-label={`페이지 ${result.page} ${result.excerpt}`} onClick={() => openPreview(result.page)}><strong>{result.page}쪽</strong><span>{result.excerpt}</span></button>)}</div> : <p className="guideline-no-results">검색 결과가 없습니다. 다른 단어로 검색해 보세요.</p>}
+        </section>}
         {previewError ? <div className="guideline-preview-error" role="alert"><p>PDF 미리보기를 표시하지 못했습니다.</p><a href={`${GUIDELINE_PDF_URL}#page=${selectedPage}`} target="_blank" rel="noreferrer">새 탭에서 해당 페이지 열기</a></div> : <iframe key={selectedPage} title="2026학년도 예산편성지침 미리보기" src={`${GUIDELINE_PDF_URL}#page=${selectedPage}`} onError={() => setPreviewError(true)} />}
       </section>}
     </section>

@@ -1,4 +1,4 @@
-import { render, screen } from "@testing-library/react";
+import { render, screen, within } from "@testing-library/react";
 import { readFileSync } from "node:fs";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it } from "vitest";
@@ -67,6 +67,24 @@ describe("예산지침 화면", () => {
     await user.click(results[0]);
 
     expect(screen.getByTitle("2026학년도 예산편성지침 미리보기")).toHaveAttribute(
+      "src",
+      expect.stringMatching(/#page=\d+$/),
+    );
+  });
+
+  it("PDF 미리보기 안에서도 지침을 검색하고 결과 페이지를 연다", async () => {
+    const user = userEvent.setup();
+    render(<GuidelinesPage />);
+
+    await user.click(screen.getByRole("button", { name: "미리보기" }));
+    const previewSearch = screen.getByRole("searchbox", { name: "미리보기 내 지침 검색" });
+    await user.type(previewSearch, "학교운영위원회");
+
+    const preview = screen.getByRole("region", { name: "예산편성지침 미리보기" });
+    const results = within(preview).getAllByRole("button", { name: /페이지 \d+.*학교운영위원회/ });
+    await user.click(results[0]);
+
+    expect(within(preview).getByTitle("2026학년도 예산편성지침 미리보기")).toHaveAttribute(
       "src",
       expect.stringMatching(/#page=\d+$/),
     );
