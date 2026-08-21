@@ -64,7 +64,8 @@ const workCards: WorkCard[] = [
   },
   {
     view: "supplementary",
-    icon: "↗",
+    imageSrc: "/characters/cards/main-budget-good.png",
+    imageAlt: "추경예산 자료 정리를 돕는 서울시교육청 캐릭터",
     tone: "green",
     badge: "추경 검토",
     title: "추경예산자료 만들기",

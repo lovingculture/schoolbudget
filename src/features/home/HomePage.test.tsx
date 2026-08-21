@@ -138,6 +138,12 @@ describe("승인된 포털 홈", () => {
         alt: "결산 설명서 업무를 돕는 서울교육 캐릭터 열리미",
         previousTextMark: "決",
       },
+      {
+        view: "supplementary",
+        src: "/characters/cards/main-budget-good.png",
+        alt: "추경예산 자료 정리를 돕는 서울시교육청 캐릭터",
+        previousTextMark: "↗",
+      },
     ] as const;
 
     for (const { view, src, alt, previousTextMark } of expectedCards) {
@@ -166,7 +172,7 @@ describe("승인된 포털 홈", () => {
         />,
       );
 
-      for (const view of ["prebudget", "budget", "agenda", "closing"]) {
+      for (const view of ["prebudget", "budget", "agenda", "closing", "supplementary"]) {
         const icon = container.querySelector<HTMLElement>(
           `[data-view="${view}"] .home-work-icon`,
         );

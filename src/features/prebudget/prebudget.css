@@ -56,9 +56,15 @@
 .prebudget-page .prebudget-example-card p { flex: 1; }
 .prebudget-page .prebudget-example-card > span { color: var(--prebudget-teal-text); font-weight: 700; }
 .prebudget-example-detail .table-wrap { max-width: 100%; overflow-x: auto; margin-top: 12px; border: 1px solid var(--prebudget-border); border-radius: 14px; background: white; }
-.prebudget-example-detail table { width: 100%; min-width: 1500px; border-collapse: collapse; background: white; font-size: 13px; }
-.prebudget-example-detail th { padding: 13px 14px; border: 1px solid var(--prebudget-border); background: #e7f4f5; color: var(--prebudget-navy); text-align: center; white-space: nowrap; }
-.prebudget-example-detail td { padding: 11px 12px; border: 1px solid var(--prebudget-border); background: white; line-height: 1.45; vertical-align: top; white-space: nowrap; }
+.prebudget-example-detail table { width: 100%; min-width: 0; table-layout: fixed; border-collapse: collapse; background: white; font-size: 12px; }
+.prebudget-example-detail th { padding: 9px 7px; border: 1px solid var(--prebudget-border); background: #e7f4f5; color: var(--prebudget-navy); text-align: center; white-space: nowrap; }
+.prebudget-example-detail td { padding: 8px 7px; border: 1px solid var(--prebudget-border); background: white; line-height: 1.35; vertical-align: top; white-space: normal; overflow-wrap: anywhere; word-break: keep-all; }
+.prebudget-example-detail th:nth-child(1) { width: 13%; }
+.prebudget-example-detail th:nth-child(2) { width: 21%; }
+.prebudget-example-detail th:nth-child(3) { width: 15%; }
+.prebudget-example-detail th:nth-child(4) { width: 25%; }
+.prebudget-example-detail th:nth-child(5) { width: 13%; }
+.prebudget-example-detail th:nth-child(6) { width: 13%; }
 .prebudget-page .prebudget-example-back,
 .prebudget-page .prebudget-example-reset,
 .prebudget-page .prebudget-example-detail-button,
