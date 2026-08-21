@@ -105,3 +105,30 @@
   background: #f5f8f8;
   font-weight: 800;
 }
+
+.portal-brand-character {
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  overflow: hidden;
+  border: 2px solid #d7efeb;
+  border-radius: 50%;
+  background: linear-gradient(145deg, #f2fbf9, #fff4ee);
+  box-shadow: 0 4px 12px rgb(23 59 58 / 12%);
+}
+
+.portal-brand-character img {
+  width: 54px;
+  height: 54px;
+  object-fit: contain;
+  transform: translateY(2px);
+}
+
+.portal-brand-title {
+  color: #173b3a;
+  font-size: 13px;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  white-space: nowrap;
+}

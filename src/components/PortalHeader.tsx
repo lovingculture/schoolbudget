@@ -67,10 +67,10 @@ export function PortalHeader({
           aria-label="학교예산 한눈에 홈으로"
           onClick={() => navigate("home")}
         >
-          <span className="brandmark" aria-hidden="true">예</span>
-          <span>
-            <small>{schoolName}</small>
+          <span className="portal-brand-character">
+            <img src="/characters/cards/main-budget-good.png" alt="서울시교육청 캐릭터" />
           </span>
+          <strong className="portal-brand-title">학교예산 한눈에</strong>
         </button>
 
         <button

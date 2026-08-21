@@ -17,7 +17,11 @@ describe("PortalHeader", () => {
       />,
     );
 
-    expect(screen.queryByText("학교예산 한눈에")).not.toBeInTheDocument();
+    expect(screen.getByText("학교예산 한눈에")).toBeVisible();
+    expect(screen.getByRole("img", { name: "서울시교육청 캐릭터" })).toHaveAttribute(
+      "src",
+      "/characters/cards/main-budget-good.png",
+    );
 
     for (const label of [
       "홈",
