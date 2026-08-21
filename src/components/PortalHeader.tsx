@@ -19,7 +19,6 @@ export type PortalHeaderView =
   | "agenda"
   | "closing"
   | "supplementary"
-  | "settings"
   | "resources"
   | "videos"
   | "search";
@@ -38,7 +37,6 @@ const workItems: ReadonlyArray<[PortalHeaderView, string]> = [
   ["agenda", "예산안건 설명서"],
   ["closing", "결산설명서"],
   ["supplementary", "집행실적으로 추경자료 만들기"],
-  ["settings", "학교 설정"],
 ];
 
 export function PortalHeader({

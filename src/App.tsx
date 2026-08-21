@@ -375,7 +375,6 @@ export function Portal({
         {view === "agenda" && <BudgetAgendaPage />}
         {view === "supplementary" && <SupplementaryPage />}
         {view === "budget" && <MainBudgetPage />}
-        {view === "settings" && <SettingsPage />}
         {view === "resources" && <BudgetResourceLibraryPage isAdmin={isAdmin} userId={userId ?? ""} onAdminLogin={onAdminLogin} />}
         {view === "videos" && <VideoGuidePage />}
         {view === "search" && <PortalSearchPage />}
@@ -625,37 +624,6 @@ function ComingSoon({ title }: { title: string }) {
       <h1>{title}</h1>
       <p>1차 성립전예산 자동화 완료 후 공식 양식을 연결할 예정입니다.</p>
       <mark>준비 중</mark>
-    </div>
-  );
-}
-function SettingsPage() {
-  return (
-    <div className="content">
-      <div className="page-title">
-        <span>SCHOOL</span>
-        <h1>학교 설정</h1>
-        <p>문서에 자동으로 입력될 학교 기본정보를 관리합니다.</p>
-      </div>
-      <section className="form-card">
-        <div className="form-grid">
-          <label className="wide">
-            학교명
-            <input defaultValue="서울한빛초등학교" />
-          </label>
-          <label className="wide">
-            주소
-            <input defaultValue="서울특별시 성동구 한빛로 00" />
-          </label>
-          <label>
-            대표전화
-            <input defaultValue="02-0000-0000" />
-          </label>
-          <label>
-            이메일
-            <input defaultValue="school@sen.go.kr" />
-          </label>
-        </div>
-      </section>
     </div>
   );
 }

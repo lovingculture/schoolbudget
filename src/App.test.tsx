@@ -214,7 +214,6 @@ describe("예산업무 포털", () => {
       ["예산안건 설명서", "예산 안건설명서 자동작성"],
       ["결산설명서", "결산 안건설명서 자동작성"],
       ["집행실적으로 추경자료 만들기", "집행실적으로 추경자료 만들기"],
-      ["학교 설정", "학교 설정"],
     ] as const;
 
     for (const [label, heading] of destinations) {
@@ -222,6 +221,9 @@ describe("예산업무 포털", () => {
       await user.click(screen.getByRole("button", { name: label }));
       expect(screen.getByRole("heading", { name: heading })).toBeVisible();
     }
+
+    await user.click(screen.getByRole("button", { name: "예산 업무" }));
+    expect(screen.queryByRole("button", { name: "학교 설정" })).not.toBeInTheDocument();
   });
 
   it("예산 자료실 상단 메뉴가 지침 검색과 자료 다운로드를 제공한다", async () => {
