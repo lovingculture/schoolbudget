@@ -13,7 +13,7 @@ describe("portal workspace visual contract", () => {
     expect(screen.getByRole("heading", { level: 1 }).closest(".portal-workspace")).not.toBeNull();
   });
 
-  it("keeps the mobile year selector within a 390px search panel", () => {
+  it("모바일에서도 검색 입력창을 전체 너비로 표시한다", () => {
     const style = document.createElement("style");
     style.textContent = guidelineStyles;
     document.head.append(style);
@@ -21,13 +21,12 @@ describe("portal workspace visual contract", () => {
     try {
       const mobileRule = Array.from((style.sheet as CSSStyleSheet).cssRules)
         .find((rule): rule is CSSMediaRule => rule instanceof CSSMediaRule && rule.conditionText === "(max-width:650px)");
-      const selectRule = Array.from(mobileRule?.cssRules ?? [])
-        .find((rule): rule is CSSStyleRule => "selectorText" in rule && rule.selectorText === ".guideline-search select");
+      const inputRule = Array.from(mobileRule?.cssRules ?? [])
+        .find((rule): rule is CSSStyleRule => "selectorText" in rule && rule.selectorText === ".guideline-search input");
 
-      expect(selectRule).toBeDefined();
-      expect(selectRule!.style.getPropertyValue("width")).toBe("calc(100% - 38px)");
-      expect(selectRule!.style.getPropertyValue("margin-left")).toBe("38px");
-      expect(selectRule!.style.getPropertyValue("box-sizing")).toBe("border-box");
+      expect(inputRule).toBeDefined();
+      expect(inputRule!.style.getPropertyValue("width")).toBe("calc(100% - 40px)");
+      expect(screen.queryByRole("combobox", { name: "연도" })).not.toBeInTheDocument();
     } finally {
       style.remove();
     }

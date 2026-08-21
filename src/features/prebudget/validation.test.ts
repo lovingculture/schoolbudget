@@ -5,6 +5,12 @@ import { applyPrebudgetExample } from "./examples/applyExample";
 import { PREBUDGET_EXAMPLES } from "./examples/data";
 
 describe("성립전예산 자동점검", () => {
+  it("학교명이 없어도 필수 입력 오류로 처리하지 않는다", () => {
+    const draft = createPrebudgetDraft("");
+    const messages = validatePrebudgetForm(draft).map((issue) => issue.message);
+    expect(messages).not.toContain("학교명을 입력하세요.");
+  });
+
   it("사업담당자는 필수이고 예산(품의) 권한 부여 대상은 선택사항이다", () => {
     const draft = createPrebudgetDraft("학교");
     draft.requester = "";

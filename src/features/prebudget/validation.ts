@@ -11,7 +11,7 @@ export function validatePrebudgetForm(draft: PrebudgetFormDraft): PrebudgetValid
     seenReviewFields.add(field);
     issues.push({ field, message: `${reviewLabels[field] ?? field} 확인 필요` });
   }
-  const required: [keyof PrebudgetFormDraft, string][] = [["schoolName", "학교명을 입력하세요."], ["title", "문서 제목을 입력하세요."], ["department", "부서명을 입력하세요."], ["requester", "사업담당자를 입력하세요."], ["officialDocument", "관련 공문을 입력하세요."]];
+  const required: [keyof PrebudgetFormDraft, string][] = [["title", "문서 제목을 입력하세요."], ["department", "부서명을 입력하세요."], ["requester", "사업담당자를 입력하세요."], ["officialDocument", "관련 공문을 입력하세요."]];
   required.forEach(([field, message]) => { if (!String(draft[field] ?? "").trim()) issues.push({ field, message }); });
   draft.items.forEach((item, index) => {
     if (!activePrebudgetItems([item]).length) return;

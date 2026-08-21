@@ -65,12 +65,11 @@ describe("예산업무 포털", () => {
     expect(loginRequested).toBe(true);
   });
 
-  it("학교 설정 전 성립전예산 학교명 예시를 ○○초등학교로 표시한다", async () => {
+  it("성립전예산 기본정보에서 학교명을 요구하지 않는다", async () => {
     const user = userEvent.setup();
     render(<Portal displayName="예산담당자" schoolName="" />);
     await user.click(screen.getByRole("button", { name: "성립전예산 새로 작성" }));
-    expect(screen.getByLabelText("학교명")).toHaveValue("");
-    expect(screen.getByLabelText("학교명")).toHaveAttribute("placeholder", "○○초등학교");
+    expect(screen.queryByLabelText("학교명")).not.toBeInTheDocument();
     expect(screen.getByLabelText("문서 제목")).toHaveValue("");
     expect(screen.getByLabelText("문서 제목")).toHaveAttribute("placeholder", "안전인력봉사비 성립전예산 편성 요청");
   });
@@ -220,7 +219,7 @@ describe("예산업무 포털", () => {
     await user.click(screen.getByRole("button", { name: "예산 자료실" }));
 
     expect(screen.getByRole("heading", { name: "예산 자료실" })).toBeVisible();
-    expect(screen.getByRole("searchbox", { name: "자료 검색" })).toBeVisible();
+    expect(screen.getByRole("searchbox", { name: "예산편성지침 검색" })).toBeVisible();
   });
 
   it("관리자는 예산 자료실에서 자료 등록을 볼 수 있다", async () => {

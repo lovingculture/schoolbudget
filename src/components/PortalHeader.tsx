@@ -164,18 +164,18 @@ export function PortalHeader({
           )}
         </nav>
 
-        <div className="portal-profile">
-          <CircleUserRound size={21} aria-hidden="true" />
-          <span>
-            <strong>{displayName}</strong>
-            <small>{schoolName}</small>
-          </span>
-          {onLogout && (
+        {onLogout && (
+          <div className="portal-profile">
+            <CircleUserRound size={21} aria-hidden="true" />
+            <span>
+              <strong>{displayName}</strong>
+              <small>{schoolName}</small>
+            </span>
             <button type="button" aria-label="로그아웃" onClick={onLogout}>
               <LogOut size={17} aria-hidden="true" />
             </button>
-          )}
-        </div>
+          </div>
+        )}
       </div>
     </header>
   );

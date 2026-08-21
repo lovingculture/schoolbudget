@@ -149,7 +149,7 @@ export function BudgetResourceLibraryPage({ isAdmin, userId, repository, onAdmin
           alt="자료를 안내하는 서울교육청 캐릭터"
         />
       </section>
-      <GuidelineSearchPanel />
+      <GuidelineSearchPanel searchLabel="예산편성지침 검색" />
       <StaticResourceCards />
       {loading && <p role="status" aria-live="polite">자료 목록을 불러오는 중입니다.</p>}
       {resources.length > 0 && (

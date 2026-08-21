@@ -22,6 +22,8 @@ describe("PortalHeader", () => {
       "src",
       "/characters/cards/main-budget-good.png",
     );
+    expect(screen.queryByText("김담당")).not.toBeInTheDocument();
+    expect(screen.queryByText("서울한빛초등학교")).not.toBeInTheDocument();
 
     for (const label of [
       "홈",
@@ -39,6 +41,21 @@ describe("PortalHeader", () => {
     await user.click(screen.getByRole("button", { name: "성립전예산" }));
 
     expect(onNavigate).toHaveBeenCalledWith("prebudget");
+  });
+
+  it("로그인한 사용자에게만 담당자 정보를 표시한다", () => {
+    render(
+      <PortalHeader
+        activeView="home"
+        displayName="김담당"
+        onLogout={() => {}}
+        onNavigate={() => {}}
+        schoolName="서울한빛초등학교"
+      />,
+    );
+
+    expect(screen.getByText("김담당")).toBeVisible();
+    expect(screen.getByText("서울한빛초등학교")).toBeVisible();
   });
 
   it("keeps logout available inside the expanded mobile navigation", async () => {

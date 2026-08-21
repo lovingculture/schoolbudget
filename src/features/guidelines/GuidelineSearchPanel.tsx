@@ -36,7 +36,6 @@ export function GuidelineSearchPanel({ searchLabel = "자료 검색" }: { search
       <div className="guideline-search" role="search">
         <Search aria-hidden="true" />
         <input type="search" aria-label={searchLabel} placeholder="지침 제목 또는 본문 내용을 검색하세요" value={query} onChange={(event) => setQuery(event.target.value)} />
-        <select aria-label="연도" defaultValue="2026학년도"><option>2026학년도</option><option>이전 연도</option></select>
       </div>
 
       <article className="guideline-document-card">

@@ -227,14 +227,6 @@ export function PrebudgetPage({
         <h2>기본정보</h2>
         <div className="form-grid">
           <label>
-            학교명
-            <input
-              value={draft.schoolName}
-              placeholder="○○초등학교"
-              onChange={(e) => field("schoolName", e.target.value)}
-            />
-          </label>
-          <label>
             회계연도
             <input
               type="number"
