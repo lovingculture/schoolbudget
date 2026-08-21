@@ -13,13 +13,9 @@ const seeds: Seed[] = [
   ["purpose-basic-learning", "목적사업비", "기초학력 지원", ["학습지원", "기초학력", "보충지도"], "교육격차해소", "기타 교육격차해소 지원", "단위학교 기초학력 책임지도"],
   ["purpose-neulbom", "목적사업비", "맞춤형 늘봄교실", ["늘봄", "맞춤형", "교실"], "방과후 학교운영", "늘봄학교 운영", "맞춤형 늘봄교실 운영"],
   ["purpose-care", "목적사업비", "초등돌봄교실", ["돌봄", "초등돌봄", "간식"], "방과후 학교운영", "돌봄교실운영", "오후돌봄교실 운영"],
-  ["purpose-afterschool", "목적사업비", "방과후학교 운영 지원", ["방과후", "강좌", "수강"], "방과후 학교운영", "방과후 학교운영", "방과후학교 운영 지원"],
+  ["purpose-afterschool", "목적사업비", "방과후사업비", ["방과후", "방과후사업비", "강좌", "수강"], "방과후 학교운영", "늘봄학교운영", "(목)초등방과후교실사업 지원비"],
   ["purpose-digital-ai", "목적사업비", "디지털·AI 교육 지원", ["디지털", "AI", "인공지능"], "학습지원실 운영", "정보화실 운영", "AI 디지털교육 지원"],
   ["purpose-integrated-student", "목적사업비", "학생 맞춤통합지원", ["맞춤통합", "학생지원", "통합지원"], "교육격차해소", "기타 교육격차해소 지원", "학생 맞춤통합지원"],
-  ["purpose-welfare", "목적사업비", "교육복지 지원", ["교육복지", "복지", "취약학생"], "학생 복지", "교육복지우선", "교육복지 지원사업"],
-  ["purpose-safety-staff", "목적사업비", "학생안전 인력 운영", ["안전", "안전인력", "봉사자"], "생활지도 운영", "학생안전교육", "학교안전인력 운영"],
-  ["purpose-reading-books", "목적사업비", "독서교육·도서구입", ["독서", "도서", "책"], "독서활동", "독서활동 운영", "독서교육 및 도서구입"],
-  ["purpose-career-experience", "목적사업비", "진로·체험활동 지원", ["진로", "체험", "현장체험"], "창의적 체험활동", "진로활동", "진로교육·체험활동"],
   ["district-facility", "구청보조금", "시설·환경개선 지원", ["구청 지원", "시설", "환경개선"], "교육여건 개선", "교육환경개선", "시설·환경개선"],
   ["district-curriculum", "구청보조금", "교육과정·체험활동 지원", ["구청 지원", "교육과정", "체험"], "교과 활동", "교과활동지원", "교육과정 운영 지원"],
   ["district-welfare", "구청보조금", "학생복지 지원", ["구청 지원", "학생복지", "복지"], "학생 복지", "교육복지우선", "학생복지 지원"],
@@ -67,6 +63,25 @@ examples[careIndex] = {
     { unitBusiness: "방과후 학교운영", business: "돌봄교실운영", detail: "(목)틈새돌봄운영비", category: "일반수용비", description: "(목)봉사활동비", unitPrice: 30_000, quantity: 240, count: 1, manualAmount: 7_200_000, formulaText: "30,000원 × 240일" },
     { unitBusiness: "방과후 학교운영", business: "돌봄교실운영", detail: "(목)틈새돌봄운영비", category: "일반수용비", description: "(목)틈새돌봄운영비", unitPrice: 200_000, quantity: 1, count: 4, manualAmount: 800_000, formulaText: "200,000원 × 4회" },
     { unitBusiness: "방과후 학교운영", business: "돌봄교실운영", detail: "(목)저녁돌봄운영비", category: "일반수용비", description: "(목)안전관리비", unitPrice: 200_000, quantity: 4, count: 1, manualAmount: 800_000, formulaText: "200,000원 × 4학급" },
+  ],
+};
+
+const purposeAfterschoolIndex = examples.findIndex(({ id }) => id === "purpose-afterschool");
+examples[purposeAfterschoolIndex] = {
+  ...examples[purposeAfterschoolIndex],
+  summary: "방과후사업비를 성립전예산으로 처음 편성할 때 참고하는 예시입니다.",
+  documentTitle: "방과후사업비 성립전예산 편성",
+  items: [
+    { unitBusiness: "방과후 학교운영", business: "늘봄학교운영", detail: "(목)초등방과후교실사업 지원비", category: "교육운영비", description: "(목)공개수업및발표전시회운영비", unitPrice: 1_000_000, quantity: 1, count: 1, manualAmount: 1_000_000, formulaText: "1,000,000원 × 1회" },
+    { unitBusiness: "방과후 학교운영", business: "늘봄학교운영", detail: "(목)초등방과후교실사업 지원비", category: "교육운영비", description: "(목)교구및재료비", unitPrice: 200_000, quantity: 1, count: 5, manualAmount: 1_000_000, formulaText: "200,000원 × 5회" },
+    { unitBusiness: "방과후 학교운영", business: "늘봄학교운영", detail: "(목)초등방과후교실사업 지원비", category: "교육운영비", description: "(목)저소득층자녀 수강료지원", unitPrice: 10_000, quantity: 1, count: 1, manualAmount: 10_000, formulaText: "10,000원 × 1회" },
+    { unitBusiness: "방과후 학교운영", business: "늘봄학교운영", detail: "(목)초등방과후교실사업 지원비", category: "기간제근로자법정부담금", description: "(목)개인위탁강사보험료기관부담금지원", unitPrice: 100_000, quantity: 1, count: 1, manualAmount: 100_000, formulaText: "100,000원 × 1회" },
+    { unitBusiness: "방과후 학교운영", business: "늘봄학교운영", detail: "(목)초등방과후교실사업 지원비", category: "운영수당", description: "(목)방과후,돌봄운영컨설팅", unitPrice: 40_000, quantity: 1, count: 6, manualAmount: 240_000, formulaText: "40,000원 × 6회" },
+    { unitBusiness: "방과후 학교운영", business: "늘봄학교운영", detail: "(목)초등방과후교실사업 지원비", category: "운영수당", description: "(목)방학캠프강사비", unitPrice: 30_000, quantity: 1, count: 36, manualAmount: 1_080_000, formulaText: "30,000원 × 36회" },
+    { unitBusiness: "방과후 학교운영", business: "늘봄학교운영", detail: "(목)초등방과후교실사업 지원비", category: "운영수당", description: "(목)스포츠강사방과후강사비", unitPrice: 80_000, quantity: 1, count: 43, manualAmount: 3_440_000, formulaText: "80,000원 × 43회" },
+    { unitBusiness: "방과후 학교운영", business: "늘봄학교운영", detail: "(목)초등방과후교실사업 지원비", category: "운영수당", description: "(목)학교스포츠클럽운영", unitPrice: 30_000, quantity: 1, count: 40, manualAmount: 1_200_000, formulaText: "30,000원 × 40회" },
+    { unitBusiness: "방과후 학교운영", business: "늘봄학교운영", detail: "(목)초등방과후교실사업 지원비", category: "일반수용비", description: "(목)업체위탁평가위원회물품구입비", unitPrice: 300_000, quantity: 1, count: 1, manualAmount: 300_000, formulaText: "300,000원 × 1회" },
+    { unitBusiness: "방과후 학교운영", business: "늘봄학교운영", detail: "(목)초등방과후교실사업 지원비", category: "일반수용비", description: "(목)행정 보조인력 운영비", unitPrice: 30_000, quantity: 1, count: 21, manualAmount: 630_000, formulaText: "30,000원 × 21회" },
   ],
 };
 

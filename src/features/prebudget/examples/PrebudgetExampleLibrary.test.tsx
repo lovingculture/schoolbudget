@@ -15,13 +15,13 @@ describe("초보자용 성립전예산 예시 화면", () => {
     expect(onUnsure).toHaveBeenCalled();
   });
 
-  it("목적사업비 10건에서 쉬운 검색어로 예시를 찾고 상세를 연다", async () => {
+  it("목적사업비 6건에서 방과후사업비 예시를 찾고 상세를 연다", async () => {
     const user = userEvent.setup();
     render(<PrebudgetExampleLibrary examples={PREBUDGET_EXAMPLES} initialScope="목적사업비" onUseExample={vi.fn()} onBack={vi.fn()} />);
-    expect(screen.getByText("10건")).toBeInTheDocument();
-    await user.type(screen.getByRole("searchbox", { name: "예시 검색" }), "책");
-    const readingCard = screen.getByRole("heading", { name: "독서교육·도서구입" }).closest("article")!;
-    await user.click(within(readingCard).getByRole("button", { name: "자세히 보기" }));
+    expect(screen.getByText("6건")).toBeInTheDocument();
+    await user.type(screen.getByRole("searchbox", { name: "예시 검색" }), "방과후사업비");
+    const afterschoolCard = screen.getByRole("heading", { name: "방과후사업비" }).closest("article")!;
+    await user.click(within(afterschoolCard).getByRole("button", { name: "자세히 보기" }));
     expect(screen.getByRole("heading", { name: "작성 전에 준비하세요" })).toBeInTheDocument();
     expect(screen.getAllByRole("columnheader").map((header) => header.textContent)).toEqual([
       "세부사업", "세부항목", "원가통계비목", "산출내역", "산출식", "요구금액",
