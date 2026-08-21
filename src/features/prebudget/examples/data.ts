@@ -14,7 +14,7 @@ const seeds: Seed[] = [
   ["purpose-neulbom", "목적사업비", "맞춤형 늘봄교실", ["늘봄", "맞춤형", "교실"], "방과후 학교운영", "늘봄학교 운영", "맞춤형 늘봄교실 운영"],
   ["purpose-care", "목적사업비", "초등돌봄교실", ["돌봄", "초등돌봄", "간식"], "방과후 학교운영", "돌봄교실운영", "오후돌봄교실 운영"],
   ["purpose-afterschool", "목적사업비", "방과후사업비", ["방과후", "방과후사업비", "강좌", "수강"], "방과후 학교운영", "늘봄학교운영", "(목)초등방과후교실사업 지원비"],
-  ["purpose-digital-ai", "목적사업비", "디지털·AI 교육 지원", ["디지털", "AI", "인공지능"], "학습지원실 운영", "정보화실 운영", "AI 디지털교육 지원"],
+  ["purpose-digital-ai", "목적사업비", "디지털·AI 교육 지원", ["디지털", "AI", "인공지능", "연구학교"], "교과 활동", "교과활동지원", "디지털기반 학생 맞춤교육을 위한 연구학교운영"],
   ["purpose-integrated-student", "목적사업비", "학생 맞춤통합지원", ["맞춤통합", "학생지원", "통합지원"], "교육격차해소", "기타 교육격차해소 지원", "학생 맞춤통합지원"],
   ["district-facility", "구청보조금", "시설·환경개선 지원", ["구청 지원", "시설", "환경개선"], "교육여건 개선", "교육환경개선", "시설·환경개선"],
   ["district-curriculum", "구청보조금", "교육과정·체험활동 지원", ["구청 지원", "교육과정", "체험"], "교과 활동", "교과활동지원", "교육과정 운영 지원"],
@@ -82,6 +82,19 @@ examples[purposeAfterschoolIndex] = {
     { unitBusiness: "방과후 학교운영", business: "늘봄학교운영", detail: "(목)초등방과후교실사업 지원비", category: "운영수당", description: "(목)학교스포츠클럽운영", unitPrice: 30_000, quantity: 1, count: 40, manualAmount: 1_200_000, formulaText: "30,000원 × 40회" },
     { unitBusiness: "방과후 학교운영", business: "늘봄학교운영", detail: "(목)초등방과후교실사업 지원비", category: "일반수용비", description: "(목)업체위탁평가위원회물품구입비", unitPrice: 300_000, quantity: 1, count: 1, manualAmount: 300_000, formulaText: "300,000원 × 1회" },
     { unitBusiness: "방과후 학교운영", business: "늘봄학교운영", detail: "(목)초등방과후교실사업 지원비", category: "일반수용비", description: "(목)행정 보조인력 운영비", unitPrice: 30_000, quantity: 1, count: 21, manualAmount: 630_000, formulaText: "30,000원 × 21회" },
+  ],
+};
+
+const digitalAiIndex = examples.findIndex(({ id }) => id === "purpose-digital-ai");
+examples[digitalAiIndex] = {
+  ...examples[digitalAiIndex],
+  items: [
+    { unitBusiness: "교과 활동", business: "교과활동지원", detail: "디지털기반 학생 맞춤교육을 위한 연구학교운영", category: "일반수용비", description: "(목)교원학습공동체 운영비(교원연구회)", unitPrice: 300_000, quantity: 1, count: 10, manualAmount: 3_000_000, formulaText: "300,000원 × 10회" },
+    { unitBusiness: "교과 활동", business: "교과활동지원", detail: "디지털기반 학생 맞춤교육을 위한 연구학교운영", category: "운영수당", description: "(목)교원연수비", unitPrice: 520_000, quantity: 1, count: 1, manualAmount: 520_000, formulaText: "520,000원 × 1회" },
+    { unitBusiness: "교과 활동", business: "교과활동지원", detail: "디지털기반 학생 맞춤교육을 위한 연구학교운영", category: "교육운영비", description: "(목)AI코스웨어 구독료 및 에듀테크 아이템 구입", unitPrice: 2_480_000, quantity: 1, count: 1, manualAmount: 2_480_000, formulaText: "2,480,000원 × 1회" },
+    { unitBusiness: "교과 활동", business: "교과활동지원", detail: "디지털기반 학생 맞춤교육을 위한 연구학교운영", category: "교육운영비", description: "(목)AI코스웨어 구독료 및 에듀테크 라이선스 구입", unitPrice: 1_800_000, quantity: 1, count: 10, manualAmount: 18_000_000, formulaText: "1,800,000원 × 10개월" },
+    { unitBusiness: "교과 활동", business: "교과활동지원", detail: "디지털기반 학생 맞춤교육을 위한 연구학교운영", category: "교육운영비", description: "(목)기기 부속품구입비", unitPrice: 300_000, quantity: 1, count: 10, manualAmount: 3_000_000, formulaText: "300,000원 × 10회" },
+    { unitBusiness: "교과 활동", business: "교과활동지원", detail: "디지털기반 학생 맞춤교육을 위한 연구학교운영", category: "목적사업업무추진비", description: "(목)연구학교 운영 및 관련 학습공동체 협의회비", unitPrice: 30_000, quantity: 50, count: 2, manualAmount: 3_000_000, formulaText: "30,000원 × 50명 × 2회" },
   ],
 };
 

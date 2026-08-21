@@ -8,7 +8,7 @@ const approvedMappings = {
   "purpose-neulbom": ["방과후 학교운영", "늘봄학교운영", "(목)맞춤형교실 운영비"],
   "purpose-care": ["방과후 학교운영", "돌봄교실운영", "(목)오후돌봄교실 운영비"],
   "purpose-afterschool": ["방과후 학교운영", "늘봄학교운영", "(목)초등방과후교실사업 지원비"],
-  "purpose-digital-ai": ["학습지원실 운영", "정보화실 운영", "AI 디지털교육 지원"],
+  "purpose-digital-ai": ["교과 활동", "교과활동지원", "디지털기반 학생 맞춤교육을 위한 연구학교운영"],
   "purpose-integrated-student": ["교육격차해소", "기타 교육격차해소 지원", "학생 맞춤통합지원"],
   "district-facility": ["교과 활동", "외국어 교과활동", "(보조)미래글로벌체험센터 초등 영어체험학습"],
   "district-curriculum": ["독서활동", "독서활동 운영", "(보조금)책향성독서교육"],
@@ -136,6 +136,20 @@ describe("초보자용 성립전예산 예시", () => {
       expect.objectContaining({ category: "일반수용비", description: "(목)행정 보조인력 운영비", formulaText: "30,000원 × 21회", manualAmount: 630_000 }),
     ]);
     expect(example?.items.reduce((sum, item) => sum + (item.manualAmount ?? 0), 0)).toBe(9_000_000);
+  });
+
+  it("디지털·AI 교육 지원 예시에 3천만원 편성항목을 제공한다", () => {
+    const example = PREBUDGET_EXAMPLES.find(({ id }) => id === "purpose-digital-ai");
+    expect(example?.items).toEqual([
+      expect.objectContaining({ unitBusiness: "교과 활동", business: "교과활동지원", detail: "디지털기반 학생 맞춤교육을 위한 연구학교운영", category: "일반수용비", description: "(목)교원학습공동체 운영비(교원연구회)", formulaText: "300,000원 × 10회", manualAmount: 3_000_000 }),
+      expect.objectContaining({ category: "운영수당", description: "(목)교원연수비", formulaText: "520,000원 × 1회", manualAmount: 520_000 }),
+      expect.objectContaining({ category: "교육운영비", description: "(목)AI코스웨어 구독료 및 에듀테크 아이템 구입", formulaText: "2,480,000원 × 1회", manualAmount: 2_480_000 }),
+      expect.objectContaining({ category: "교육운영비", description: "(목)AI코스웨어 구독료 및 에듀테크 라이선스 구입", formulaText: "1,800,000원 × 10개월", manualAmount: 18_000_000 }),
+      expect.objectContaining({ category: "교육운영비", description: "(목)기기 부속품구입비", formulaText: "300,000원 × 10회", manualAmount: 3_000_000 }),
+      expect.objectContaining({ category: "목적사업업무추진비", description: "(목)연구학교 운영 및 관련 학습공동체 협의회비", formulaText: "30,000원 × 50명 × 2회", manualAmount: 3_000_000 }),
+    ]);
+    expect(example?.items.reduce((sum, item) => sum + (item.manualAmount ?? 0), 0)).toBe(30_000_000);
+    expect(JSON.stringify(example)).not.toContain("-2,480,000");
   });
 
   it("삭제 요청한 목적사업비 예시 4개를 제공하지 않는다", () => {
