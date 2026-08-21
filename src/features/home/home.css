@@ -124,7 +124,7 @@
 }
 
 .home-hero-benefits li::before {
-  content: "✓";
+  content: "\2713";
   margin-right: 5px;
   color: #2695ad;
 }
