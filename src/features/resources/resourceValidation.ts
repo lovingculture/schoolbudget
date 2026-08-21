@@ -1,7 +1,7 @@
 import type { BudgetResourceInput } from "./resourceTypes";
 
 export const MAX_RESOURCE_BYTES = 30 * 1024 * 1024;
-export const ALLOWED_RESOURCE_EXTENSIONS = ["pdf", "xls", "xlsx", "docx", "hwp", "hwpx"] as const;
+export const ALLOWED_RESOURCE_EXTENSIONS = ["pdf", "xls", "xlsx", "xlsm", "docx", "hwp", "hwpx"] as const;
 
 type ResourceValidationInput = BudgetResourceInput & { file?: File | null };
 
@@ -9,6 +9,7 @@ const MIME_TYPES_BY_EXTENSION: Record<typeof ALLOWED_RESOURCE_EXTENSIONS[number]
   pdf: ["application/pdf"],
   xls: ["application/vnd.ms-excel", "application/excel", "application/xls", "application/x-excel"],
   xlsx: ["application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"],
+  xlsm: ["application/vnd.ms-excel.sheet.macroenabled.12"],
   docx: ["application/vnd.openxmlformats-officedocument.wordprocessingml.document"],
   hwp: ["application/x-hwp", "application/vnd.hancom.hwp", "application/haansofthwp"],
   hwpx: ["application/vnd.hancom.hwpx", "application/x-hwpx"],
@@ -36,7 +37,7 @@ export function validateResourceInput(input: ResourceValidationInput): string[] 
   }
   if (input.file && input.file.size > MAX_RESOURCE_BYTES) errors.push("파일은 30MB 이하만 등록할 수 있습니다.");
   if (input.file && !isAllowedFile(input.file)) {
-    errors.push("PDF, XLS, XLSX, DOCX, HWP, HWPX 파일만 등록할 수 있습니다.");
+    errors.push("PDF, XLS, XLSX, XLSM, DOCX, HWP, HWPX 파일만 등록할 수 있습니다.");
   }
   return errors;
 }

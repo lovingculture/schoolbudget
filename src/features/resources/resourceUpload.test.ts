@@ -32,6 +32,10 @@ describe("canonicalMimeForFilename", () => {
     expect(canonicalMimeForFilename("resource")).toBe("application/octet-stream");
   });
 
+  it("uses the bucket's safe binary MIME type for XLSM files", () => {
+    expect(canonicalMimeForFilename("집행실적정리용엑셀 확정본.xlsm")).toBe("application/octet-stream");
+  });
+
   it("has the same complete canonical MIME set as the bucket contract", () => {
     const canonicalSet = [
       "resource.pdf",

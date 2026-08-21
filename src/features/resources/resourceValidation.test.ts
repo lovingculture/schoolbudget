@@ -36,17 +36,26 @@ describe("validateResourceInput", () => {
 
   it("rejects a disallowed filename extension", () => {
     expect(validateResourceInput({ title: "자료", category: "guide", schoolYear: 2026, file: resourceFile("guide.exe", 1024, "application/octet-stream") })).toContain(
-      "PDF, XLS, XLSX, DOCX, HWP, HWPX 파일만 등록할 수 있습니다.",
+      "PDF, XLS, XLSX, XLSM, DOCX, HWP, HWPX 파일만 등록할 수 있습니다.",
     );
   });
 
   it("rejects a PDF filename with an incompatible MIME type", () => {
     expect(validateResourceInput({ title: "자료", category: "guide", schoolYear: 2026, file: resourceFile("guide.pdf", 1024, "application/octet-stream") })).toContain(
-      "PDF, XLS, XLSX, DOCX, HWP, HWPX 파일만 등록할 수 있습니다.",
+      "PDF, XLS, XLSX, XLSM, DOCX, HWP, HWPX 파일만 등록할 수 있습니다.",
     );
   });
 
   it("accepts an HWPX filename even when its MIME type is unavailable", () => {
     expect(validateResourceInput({ title: "자료", category: "reference", schoolYear: 2026, file: resourceFile("guide.HWPX", 1024, "") })).toEqual([]);
+  });
+
+  it("accepts a macro-enabled Excel workbook", () => {
+    expect(validateResourceInput({
+      title: "집행실적 정리(추경예산 만들기)용 엑셀파일",
+      category: "template",
+      schoolYear: 2026,
+      file: resourceFile("집행실적정리용엑셀 확정본.xlsm", 1024, "application/vnd.ms-excel.sheet.macroEnabled.12"),
+    })).toEqual([]);
   });
 });
