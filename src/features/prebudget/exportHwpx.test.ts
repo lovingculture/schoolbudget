@@ -61,7 +61,7 @@ describe("prebudget HWPX export", () => {
     expect(section.documentElement.textContent).toContain(document.requester);
     expect(section.documentElement.textContent).toContain(document.total.toLocaleString());
     expect(section.documentElement.textContent).toContain(document.bodyLines.at(-1));
-    expect(section.documentElement.textContent).not.toContain("품의권한 부여자");
+    expect(section.documentElement.textContent).not.toContain("예산(품의) 권한 부여 대상");
     expect(section.documentElement.textContent).toContain("라. 예산요구 총액: 800,000원");
     expect(section.documentElement.textContent).toContain("마. 성립전예산 요구내역");
     expect(section.getElementsByTagNameNS("*", "tbl")).toHaveLength(1);
@@ -82,10 +82,10 @@ describe("prebudget HWPX export", () => {
     const section = new DOMParser().parseFromString(await zip.file("Contents/section0.xml")!.async("string"), "application/xml");
     const text = section.documentElement.textContent!;
 
-    expect(text).toContain("라. 품의권한 부여자: Approver");
+    expect(text).toContain("라. 예산(품의) 권한 부여 대상: Approver");
     expect(text).toContain("마. 예산요구 총액: 800,000원");
     expect(text).toContain("바. 성립전예산 요구내역");
-    expect(text.indexOf("라. 품의권한 부여자: Approver"))
+    expect(text.indexOf("라. 예산(품의) 권한 부여 대상: Approver"))
       .toBeLessThan(text.indexOf("마. 예산요구 총액: 800,000원"));
     expect(text.indexOf("마. 예산요구 총액: 800,000원"))
       .toBeLessThan(text.indexOf("바. 성립전예산 요구내역"));

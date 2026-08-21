@@ -4,12 +4,13 @@ import { describe, expect, it, vi } from "vitest";
 import type { DraftStorage } from "./storage";
 import { PrebudgetPage } from "./PrebudgetPage";
 import { createPrebudgetDraft } from "./draft";
-import { exportPrebudgetHwpx } from "./exporters";
+import { exportPrebudgetExcel, exportPrebudgetHwpx } from "./exporters";
 
 vi.mock("./exporters", async (importOriginal) => ({
   ...await importOriginal<typeof import("./exporters")>(),
   downloadBlob: vi.fn(),
   exportPrebudgetHwpx: vi.fn(),
+  exportPrebudgetExcel: vi.fn(),
 }));
 
 const storage: DraftStorage = { load: () => null, save: vi.fn(), clear: vi.fn() };
@@ -76,7 +77,7 @@ describe("성립전예산 예시 통합", () => {
     expect(screen.getByRole("textbox", { name: "부서명" })).toHaveAttribute("placeholder", "예: 체육안전교육부");
     expect(screen.getByRole("textbox", { name: "사업담당자" })).toHaveValue("");
     expect(screen.getByRole("textbox", { name: "사업담당자" })).toHaveAttribute("placeholder", "예: 김담당");
-    expect(screen.getByRole("textbox", { name: "품의권한 부여자" })).toHaveValue("");
+    expect(screen.getByRole("textbox", { name: "예산(품의) 권한 부여 대상" })).toHaveValue("");
     for (const removed of ["교부기관", "사업기간", "편성 사유", "관련 근거"]) {
       expect(screen.queryByLabelText(removed)).not.toBeInTheDocument();
     }
@@ -102,12 +103,16 @@ describe("성립전예산 예시 통합", () => {
     expect(within(paper).getAllByText("200,000원")).toHaveLength(2);
   });
 
-  it("renders HWPX, Word, and PDF downloads without Excel", async () => {
+  it("엑셀과 한글 두 가지 다운로드만 제공한다", async () => {
+    vi.mocked(exportPrebudgetExcel).mockResolvedValue({ blob: new Blob(["xlsx"]), filename: "성립전예산.xlsx" });
     await renderValidPreview();
 
     expect(screen.getByRole("button", { name: "한글(HWPX)" })).toBeVisible();
-    expect(screen.getByRole("button", { name: "Word" })).toBeVisible();
-    expect(screen.getByRole("button", { name: "PDF" })).toBeVisible();
+    expect(screen.getByRole("button", { name: "엑셀" })).toBeVisible();
+    expect(screen.queryByRole("button", { name: "Word" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "PDF" })).not.toBeInTheDocument();
+    await userEvent.setup().click(screen.getByRole("button", { name: "엑셀" }));
+    expect(exportPrebudgetExcel).toHaveBeenCalled();
     expect(screen.queryByRole("button", { name: "Excel" })).not.toBeInTheDocument();
   });
 

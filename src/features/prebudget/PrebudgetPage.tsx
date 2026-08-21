@@ -19,9 +19,8 @@ import {
 } from "./draft";
 import {
   downloadBlob,
+  exportPrebudgetExcel,
   exportPrebudgetHwpx,
-  exportPrebudgetPdf,
-  exportPrebudgetWord,
   prebudgetFilename,
 } from "./exporters";
 import { createBrowserDraftStorage, type DraftStorage } from "./storage";
@@ -281,7 +280,7 @@ export function PrebudgetPage({
             />
           </label>
           <label>
-            품의권한 부여자
+            예산(품의) 권한 부여 대상
             <input
               value={draft.approvalGranter}
               onChange={(e) => field("approvalGranter", e.target.value)}
@@ -466,7 +465,7 @@ export function PrebudgetPage({
             <div>
               <span>AUTO DRAFT</span>
               <h2>기안문 미리보기</h2>
-              <p>복사하거나 한글(HWPX)·Word·PDF로 내려받을 수 있습니다.</p>
+              <p>성립전예산 요구내역을 엑셀 또는 한글(HWPX) 파일로 내려받을 수 있습니다.</p>
             </div>
             <div>
               <button
@@ -482,24 +481,11 @@ export function PrebudgetPage({
               </button>
               <button
                 onClick={async () => {
-                  const f = await exportPrebudgetWord(document);
+                  const f = await exportPrebudgetExcel(document);
                   downloadBlob(f.blob, f.filename);
                 }}
               >
-                <FileText /> Word
-              </button>
-              <button
-                onClick={async () => {
-                  if (previewRef.current) {
-                    const f = await exportPrebudgetPdf(
-                      previewRef.current.querySelector(".prebudget-paper")!,
-                      document.title,
-                    );
-                    downloadBlob(f.blob, f.filename);
-                  }
-                }}
-              >
-                <Download /> PDF
+                <Download /> 엑셀
               </button>
             </div>
           </div>

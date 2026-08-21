@@ -7,7 +7,7 @@ export function createPrebudgetDocument(draft: PrebudgetFormDraft) {
   const total = items.reduce((sum, item) => sum + item.amount, 0);
   const subject = draft.title.replace(/\s*성립전예산(?:\s*편성)?\s*$/, "").trim();
   const approvalLine = draft.approvalGranter.trim()
-    ? [`라. 품의권한 부여자: ${draft.approvalGranter.trim()}`]
+    ? [`라. 예산(품의) 권한 부여 대상: ${draft.approvalGranter.trim()}`]
     : [];
   const totalPrefix = approvalLine.length ? "마" : "라";
   const detailsPrefix = approvalLine.length ? "바" : "마";

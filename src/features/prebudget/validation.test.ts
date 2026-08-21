@@ -5,13 +5,13 @@ import { applyPrebudgetExample } from "./examples/applyExample";
 import { PREBUDGET_EXAMPLES } from "./examples/data";
 
 describe("성립전예산 자동점검", () => {
-  it("사업담당자는 필수이고 품의권한 부여자는 선택사항이다", () => {
+  it("사업담당자는 필수이고 예산(품의) 권한 부여 대상은 선택사항이다", () => {
     const draft = createPrebudgetDraft("학교");
     draft.requester = "";
     draft.approvalGranter = "";
     const messages = validatePrebudgetForm(draft).map((issue) => issue.message);
     expect(messages).toContain("사업담당자를 입력하세요.");
-    expect(messages.some((message) => message.includes("품의권한 부여자"))).toBe(false);
+    expect(messages.some((message) => message.includes("예산(품의) 권한 부여 대상"))).toBe(false);
   });
 
   it("빈 행은 무시하고 일부 입력 행의 누락 필드와 0원 금액을 안내한다", () => {

@@ -24,13 +24,13 @@ const activeDraft = () => {
 };
 
 describe("성립전예산 기안문", () => {
-  it("사업담당자와 품의권한 부여자를 승인된 순서로 생성한다", () => {
+  it("사업담당자와 예산(품의) 권한 부여 대상을 승인된 순서로 생성한다", () => {
     const document = createPrebudgetDocument(activeDraft());
     expect(document.bodyLines).toEqual(expect.arrayContaining([
       "가. 재원구분: 목적사업비(교육청)",
       "나. 요구부서: 체육안전교육부",
       "다. 사업담당자: 김담당",
-      "라. 품의권한 부여자: 이담당",
+      "라. 예산(품의) 권한 부여 대상: 이담당",
       "마. 예산요구 총액: 800,000원",
       "바. 성립전예산 요구내역",
     ]));
@@ -43,7 +43,7 @@ describe("성립전예산 기안문", () => {
     expect(document.copyText).toContain("가. 재원구분: 목적사업비(교육청)");
     expect(document.copyText).toContain("나. 요구부서: 체육안전교육부");
     expect(document.copyText).toContain("다. 사업담당자: 김담당");
-    expect(document.copyText).toContain("라. 품의권한 부여자: 이담당");
+    expect(document.copyText).toContain("라. 예산(품의) 권한 부여 대상: 이담당");
     expect(document.copyText).toContain("마. 예산요구 총액: 800,000원");
     expect(document.copyText).toContain("바. 성립전예산 요구내역");
     expect(document.budgetTable.headers).toEqual(["단위사업", "세부사업", "세부항목", "원가통계비목", "산출내역", "산출식", "요구금액"]);
@@ -54,11 +54,11 @@ describe("성립전예산 기안문", () => {
     expect(document.copyText).not.toContain("붙임");
   });
 
-  it("품의권한 부여자가 공란이면 번호를 건너뛰지 않고 기안문을 생성한다", () => {
+  it("예산(품의) 권한 부여 대상이 공란이면 번호를 건너뛰지 않고 기안문을 생성한다", () => {
     const draft = activeDraft();
     draft.approvalGranter = "";
     const document = createPrebudgetDocument(draft);
-    expect(document.copyText).not.toContain("품의권한 부여자");
+    expect(document.copyText).not.toContain("예산(품의) 권한 부여 대상");
     expect(document.copyText).toContain("라. 예산요구 총액: 800,000원\n마. 성립전예산 요구내역");
   });
 });
