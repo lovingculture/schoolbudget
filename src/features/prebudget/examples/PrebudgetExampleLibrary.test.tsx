@@ -167,5 +167,8 @@ describe("초보자용 성립전예산 예시 화면", () => {
     expect(screen.getByText("(수) 체험활동비")).toBeVisible();
     expect(screen.getByText("2,500원 × 115명 - 1,000원")).toBeVisible();
     expect(screen.getByText("5,164,000원")).toBeVisible();
+    expect(screen.queryByRole("heading", { name: "기안문 미리보기" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("heading", { name: "복사 전 꼭 확인하세요" })).not.toBeInTheDocument();
+    expect(screen.queryByText("현장체험학습비 사업비를 교부 목적과 산출근거에 따라 성립전예산으로 편성합니다.")).not.toBeInTheDocument();
   });
 });

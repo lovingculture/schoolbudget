@@ -111,6 +111,8 @@ const fieldTripIndex = examples.findIndex(({ id }) => id === "beneficiary-field-
 examples[fieldTripIndex] = {
   ...examples[fieldTripIndex],
   useWhen: ["현장학습비 징수계획이 확정된 경우"],
+  draftPreview: "",
+  autoCheckNotes: [],
   items: [
     { unitBusiness: "창의적 체험활동", business: "현장체험학습 활동", detail: "(수) 5학년 현장체험학습", category: "교육운영비", description: "(수) 교통비", unitPrice: 32_900, quantity: 115, count: 1, manualAmount: 3_784_000, formulaText: "32,900원 × 115명" },
     { unitBusiness: "창의적 체험활동", business: "현장체험학습 활동", detail: "(수) 5학년 현장체험학습", category: "교육운영비", description: "(수) 점심식사비", unitPrice: 9_500, quantity: 115, count: 1, manualAmount: 1_093_000, formulaText: "9,500원 × 115명" },
