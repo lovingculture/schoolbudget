@@ -5,8 +5,8 @@ import { validatePrebudgetExamples } from "./validateExamples";
 
 const approvedMappings = {
   "purpose-basic-learning": ["교육격차해소", "기타 교육격차해소 지원", "단위학교 기초학력 책임지도"],
-  "purpose-neulbom": ["방과후 학교운영", "늘봄학교 운영", "맞춤형 늘봄교실 운영"],
-  "purpose-care": ["방과후 학교운영", "돌봄교실운영", "오후돌봄교실 운영"],
+  "purpose-neulbom": ["방과후 학교운영", "늘봄학교운영", "(목)맞춤형교실 운영비"],
+  "purpose-care": ["방과후 학교운영", "돌봄교실운영", "(목)오후돌봄교실 운영비"],
   "purpose-afterschool": ["방과후 학교운영", "방과후 학교운영", "방과후학교 운영 지원"],
   "purpose-digital-ai": ["학습지원실 운영", "정보화실 운영", "AI 디지털교육 지원"],
   "purpose-integrated-student": ["교육격차해소", "기타 교육격차해소 지원", "학생 맞춤통합지원"],
@@ -61,7 +61,9 @@ describe("초보자용 성립전예산 예시", () => {
       expect(item.business).toBeTruthy();
       expect(item.detail).toBeTruthy();
       expect(getDetailBusinesses(item.unitBusiness)).toContain(item.business);
-      if (example.id !== "beneficiary-field-trip") expect(item.detail).not.toMatch(/^\((목|구청|수)\)/);
+      if (!["purpose-neulbom", "purpose-care", "beneficiary-field-trip"].includes(example.id)) {
+        expect(item.detail).not.toMatch(/^\((목|구청|수)\)/);
+      }
     }
   });
 
@@ -79,6 +81,47 @@ describe("초보자용 성립전예산 예시", () => {
     const purposeExamples = PREBUDGET_EXAMPLES.filter((example) => example.fundingCategory === "목적사업비");
     expect(purposeExamples).toHaveLength(10);
     for (const example of purposeExamples) expect(example.draftPreview).toBe("");
+  });
+
+  it("모든 목적사업비 예시는 동일한 5개 확인사항을 표시한다", () => {
+    const expectedNotes = [
+      "공문의 교부금액과 편성금액이 일치하는지",
+      "공문에서 정한 예산 편성기준과 사용 목적에 맞는지",
+      "원가통계비목이 적절하게 선택되었는지",
+      "산출식의 단가 × 인원(수량) × 횟수 계산이 정확한지",
+      "학교의 실제 사업계획과 산출내역이 일치하는지",
+    ];
+    const purposeExamples = PREBUDGET_EXAMPLES.filter((example) => example.fundingCategory === "목적사업비");
+    for (const example of purposeExamples) expect(example.autoCheckNotes).toEqual(expectedNotes);
+  });
+
+  it("맞춤형 늘봄교실 예시에 4천920만7천원 편성항목을 제공한다", () => {
+    const example = PREBUDGET_EXAMPLES.find(({ id }) => id === "purpose-neulbom");
+    expect(example?.items).toEqual([
+      expect.objectContaining({ business: "늘봄학교운영", detail: "(목)맞춤형교실 운영비", category: "교육운영비", description: "(목)간식비", formulaText: "900,000원 × 4실", manualAmount: 3_600_000 }),
+      expect.objectContaining({ category: "교육운영비", description: "(목)강사비", formulaText: "28,800,000원", manualAmount: 28_800_000 }),
+      expect.objectContaining({ category: "교육운영비", description: "(목)업체위탁보전금", formulaText: "4,740원 × 1,976", manualAmount: 9_367_000 }),
+      expect.objectContaining({ category: "교육운영비", description: "(목)재료비", formulaText: "0원", manualAmount: 0 }),
+      expect.objectContaining({ category: "기간제근로자법정부담금", description: "(목)개인강사위탁학교부담보험금", formulaText: "120,000원 × 1회", manualAmount: 120_000 }),
+      expect.objectContaining({ category: "목적사업업무추진비", description: "(목)업무추진비", formulaText: "120,000원 × 1식", manualAmount: 120_000 }),
+      expect.objectContaining({ category: "일반수용비", description: "(목)귀가안전관리비", formulaText: "600,000원 × 12월", manualAmount: 7_200_000 }),
+    ]);
+    expect(example?.items.reduce((sum, item) => sum + (item.manualAmount ?? 0), 0)).toBe(49_207_000);
+  });
+
+  it("초등돌봄교실 예시에 3천230만원 편성항목을 제공한다", () => {
+    const example = PREBUDGET_EXAMPLES.find(({ id }) => id === "purpose-care");
+    expect(example?.items).toEqual([
+      expect.objectContaining({ business: "돌봄교실운영", detail: "(목)오후돌봄교실 운영비", category: "교육운영비", description: "(목)교재교구구입비", formulaText: "745,000원 × 10회", manualAmount: 7_450_000 }),
+      expect.objectContaining({ detail: "(목)오후돌봄교실 운영비", category: "운영수당", description: "(목)돌봄프로그램비", formulaText: "2,500,000원", manualAmount: 2_500_000 }),
+      expect.objectContaining({ detail: "(목)오후돌봄교실 운영비", category: "일반수용비", description: "(목)봉사활동비", formulaText: "3,475,000원 × 2회", manualAmount: 6_950_000 }),
+      expect.objectContaining({ detail: "(목)오후돌봄교실 운영비", category: "일반수용비", description: "(목)소모품구입비", formulaText: "400,000원 × 4학급", manualAmount: 1_600_000 }),
+      expect.objectContaining({ detail: "(목)아침돌봄운영비", category: "일반수용비", description: "(목)봉사활동비", formulaText: "5,000,000원", manualAmount: 5_000_000 }),
+      expect.objectContaining({ detail: "(목)틈새돌봄운영비", category: "일반수용비", description: "(목)봉사활동비", formulaText: "30,000원 × 240일", manualAmount: 7_200_000 }),
+      expect.objectContaining({ detail: "(목)틈새돌봄운영비", category: "일반수용비", description: "(목)틈새돌봄운영비", formulaText: "200,000원 × 4회", manualAmount: 800_000 }),
+      expect.objectContaining({ detail: "(목)저녁돌봄운영비", category: "일반수용비", description: "(목)안전관리비", formulaText: "200,000원 × 4학급", manualAmount: 800_000 }),
+    ]);
+    expect(example?.items.reduce((sum, item) => sum + (item.manualAmount ?? 0), 0)).toBe(32_300_000);
   });
 
   it("교육경비보조금 진로교육 활성화 예시에 2천만원 편성항목을 제공한다", () => {

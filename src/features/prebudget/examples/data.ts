@@ -40,6 +40,36 @@ const makeExample = ([id, fundingCategory, title, searchAliases, unitBusiness, b
   };
 };
 const examples = seeds.map(makeExample);
+
+const neulbomIndex = examples.findIndex(({ id }) => id === "purpose-neulbom");
+examples[neulbomIndex] = {
+  ...examples[neulbomIndex],
+  items: [
+    { unitBusiness: "방과후 학교운영", business: "늘봄학교운영", detail: "(목)맞춤형교실 운영비", category: "교육운영비", description: "(목)간식비", unitPrice: 900_000, quantity: 4, count: 1, manualAmount: 3_600_000, formulaText: "900,000원 × 4실" },
+    { unitBusiness: "방과후 학교운영", business: "늘봄학교운영", detail: "(목)맞춤형교실 운영비", category: "교육운영비", description: "(목)강사비", unitPrice: 28_800_000, quantity: 1, count: 1, manualAmount: 28_800_000, formulaText: "28,800,000원" },
+    { unitBusiness: "방과후 학교운영", business: "늘봄학교운영", detail: "(목)맞춤형교실 운영비", category: "교육운영비", description: "(목)업체위탁보전금", unitPrice: 4_740, quantity: 1_976, count: 1, manualAmount: 9_367_000, formulaText: "4,740원 × 1,976" },
+    { unitBusiness: "방과후 학교운영", business: "늘봄학교운영", detail: "(목)맞춤형교실 운영비", category: "교육운영비", description: "(목)재료비", unitPrice: 0, quantity: 1, count: 1, manualAmount: 0, formulaText: "0원" },
+    { unitBusiness: "방과후 학교운영", business: "늘봄학교운영", detail: "(목)맞춤형교실 운영비", category: "기간제근로자법정부담금", description: "(목)개인강사위탁학교부담보험금", unitPrice: 120_000, quantity: 1, count: 1, manualAmount: 120_000, formulaText: "120,000원 × 1회" },
+    { unitBusiness: "방과후 학교운영", business: "늘봄학교운영", detail: "(목)맞춤형교실 운영비", category: "목적사업업무추진비", description: "(목)업무추진비", unitPrice: 120_000, quantity: 1, count: 1, manualAmount: 120_000, formulaText: "120,000원 × 1식" },
+    { unitBusiness: "방과후 학교운영", business: "늘봄학교운영", detail: "(목)맞춤형교실 운영비", category: "일반수용비", description: "(목)귀가안전관리비", unitPrice: 600_000, quantity: 1, count: 12, manualAmount: 7_200_000, formulaText: "600,000원 × 12월" },
+  ],
+};
+
+const careIndex = examples.findIndex(({ id }) => id === "purpose-care");
+examples[careIndex] = {
+  ...examples[careIndex],
+  items: [
+    { unitBusiness: "방과후 학교운영", business: "돌봄교실운영", detail: "(목)오후돌봄교실 운영비", category: "교육운영비", description: "(목)교재교구구입비", unitPrice: 745_000, quantity: 1, count: 10, manualAmount: 7_450_000, formulaText: "745,000원 × 10회" },
+    { unitBusiness: "방과후 학교운영", business: "돌봄교실운영", detail: "(목)오후돌봄교실 운영비", category: "운영수당", description: "(목)돌봄프로그램비", unitPrice: 2_500_000, quantity: 1, count: 1, manualAmount: 2_500_000, formulaText: "2,500,000원" },
+    { unitBusiness: "방과후 학교운영", business: "돌봄교실운영", detail: "(목)오후돌봄교실 운영비", category: "일반수용비", description: "(목)봉사활동비", unitPrice: 3_475_000, quantity: 1, count: 2, manualAmount: 6_950_000, formulaText: "3,475,000원 × 2회" },
+    { unitBusiness: "방과후 학교운영", business: "돌봄교실운영", detail: "(목)오후돌봄교실 운영비", category: "일반수용비", description: "(목)소모품구입비", unitPrice: 400_000, quantity: 4, count: 1, manualAmount: 1_600_000, formulaText: "400,000원 × 4학급" },
+    { unitBusiness: "방과후 학교운영", business: "돌봄교실운영", detail: "(목)아침돌봄운영비", category: "일반수용비", description: "(목)봉사활동비", unitPrice: 5_000_000, quantity: 1, count: 1, manualAmount: 5_000_000, formulaText: "5,000,000원" },
+    { unitBusiness: "방과후 학교운영", business: "돌봄교실운영", detail: "(목)틈새돌봄운영비", category: "일반수용비", description: "(목)봉사활동비", unitPrice: 30_000, quantity: 240, count: 1, manualAmount: 7_200_000, formulaText: "30,000원 × 240일" },
+    { unitBusiness: "방과후 학교운영", business: "돌봄교실운영", detail: "(목)틈새돌봄운영비", category: "일반수용비", description: "(목)틈새돌봄운영비", unitPrice: 200_000, quantity: 1, count: 4, manualAmount: 800_000, formulaText: "200,000원 × 4회" },
+    { unitBusiness: "방과후 학교운영", business: "돌봄교실운영", detail: "(목)저녁돌봄운영비", category: "일반수용비", description: "(목)안전관리비", unitPrice: 200_000, quantity: 4, count: 1, manualAmount: 800_000, formulaText: "200,000원 × 4학급" },
+  ],
+};
+
 const districtEnglishIndex = examples.findIndex(({ id }) => id === "district-facility");
 examples[districtEnglishIndex] = {
   ...examples[districtEnglishIndex],
@@ -171,8 +201,19 @@ examples[fieldTripIndex] = {
   calculationUnit: "명",
 };
 
+const purposeAutoCheckNotes = [
+  "공문의 교부금액과 편성금액이 일치하는지",
+  "공문에서 정한 예산 편성기준과 사용 목적에 맞는지",
+  "원가통계비목이 적절하게 선택되었는지",
+  "산출식의 단가 × 인원(수량) × 횟수 계산이 정확한지",
+  "학교의 실제 사업계획과 산출내역이 일치하는지",
+];
+
 for (const example of examples) {
-  if (example.fundingCategory === "목적사업비") example.draftPreview = "";
+  if (example.fundingCategory === "목적사업비") {
+    example.draftPreview = "";
+    example.autoCheckNotes = [...purposeAutoCheckNotes];
+  }
 }
 
 export const PREBUDGET_EXAMPLES = examples as readonly PrebudgetExample[];
