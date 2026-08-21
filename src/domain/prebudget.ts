@@ -88,8 +88,12 @@ export function getAccountCategoryDescription(category?: string): string {
 }
 
 export function calculateRequestedAmount(input: CalculationInput): number {
-  if (input.manualAmount !== undefined) return input.manualAmount;
-  return (input.unitPrice ?? 0) * (input.quantity ?? 0) * (input.count ?? 0);
+  const rawAmount = input.manualAmount !== undefined
+    ? input.manualAmount
+    : (input.unitPrice ?? 0) * (input.quantity ?? 0) * (input.count ?? 0);
+
+  // 예산은 천 원 단위로 편성하되, 음수는 유효성 검사에서 발견되도록 유지한다.
+  return rawAmount > 0 ? Math.ceil(rawAmount / 1_000) * 1_000 : rawAmount;
 }
 
 export function convertWon(amount: number, rounding: RoundingMode) {
