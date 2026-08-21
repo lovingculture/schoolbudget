@@ -133,6 +133,20 @@ describe("초보자용 성립전예산 예시 화면", () => {
     expect(screen.getByText("학생수 및 졸업앨범비 단가를 확인하세요.")).toBeVisible();
   });
 
+  it("교육경비보조금 진로교육 활성화 예시에 4개 항목과 합계를 보여준다", async () => {
+    const user = userEvent.setup();
+    render(<PrebudgetExampleLibrary examples={PREBUDGET_EXAMPLES} initialScope="구청보조금" onUseExample={vi.fn()} onBack={vi.fn()} />);
+
+    await user.type(screen.getByRole("searchbox", { name: "예시 검색" }), "진로교육 활성화");
+    await user.click(screen.getByRole("button", { name: "자세히 보기" }));
+
+    expect(screen.getByRole("heading", { name: "진로교육 활성화" })).toBeVisible();
+    expect(screen.getAllByText("(보조금)진로교육 활성화사업 지원")).toHaveLength(4);
+    expect(screen.getByText("(보조)교재교구비 및 예비비")).toBeVisible();
+    expect(screen.getAllByText("35,000원 × 180회")).toHaveLength(3);
+    expect(screen.getByText("20,000,000원")).toBeVisible();
+  });
+
   it("방과후학교 수강료 예시에 레고교실 3개 항목과 합계를 보여준다", async () => {
     const user = userEvent.setup();
     render(<PrebudgetExampleLibrary examples={PREBUDGET_EXAMPLES} initialScope="수익자부담금" onUseExample={vi.fn()} onBack={vi.fn()} />);

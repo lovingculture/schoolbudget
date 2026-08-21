@@ -16,7 +16,7 @@ const approvedMappings = {
   "purpose-career-experience": ["창의적 체험활동", "진로활동", "진로교육·체험활동"],
   "district-facility": ["교육여건 개선", "교육환경개선", "시설·환경개선"],
   "district-curriculum": ["교과 활동", "교과활동지원", "교육과정 운영 지원"],
-  "district-welfare": ["학생 복지", "교육복지우선", "학생복지 지원"],
+  "district-welfare": ["창의적 체험활동", "진로활동", "(보조금)진로교육 활성화사업 지원"],
   "beneficiary-yearbook": ["학생 복지", "학생 복지운영", "졸업앨범 제작"],
   "beneficiary-field-trip": ["창의적 체험활동", "현장체험학습 활동", "(수) 5학년 현장체험학습"],
   "beneficiary-afterschool": ["방과후 학교운영", "방과후 학교운영", "방과후학교 수강료"],
@@ -73,6 +73,17 @@ describe("초보자용 성립전예산 예시", () => {
     for (const example of examplesWithoutPreparation) {
       expect(example.prepareBeforeWriting).toEqual([]);
     }
+  });
+
+  it("교육경비보조금 진로교육 활성화 예시에 2천만원 편성항목을 제공한다", () => {
+    const example = PREBUDGET_EXAMPLES.find(({ id }) => id === "district-welfare");
+    expect(example?.title).toBe("진로교육 활성화");
+    expect(example?.items).toEqual([
+      expect.objectContaining({ category: "교육운영비", description: "(보조)교재교구비 및 예비비", formulaText: "1,100,000원 × 1회", manualAmount: 1_100_000 }),
+      expect.objectContaining({ category: "운영수당", description: "(보조)1,2학년 강사수당", formulaText: "35,000원 × 180회", manualAmount: 6_300_000 }),
+      expect.objectContaining({ category: "운영수당", description: "(보조)3,4학년 강사수당", formulaText: "35,000원 × 180회", manualAmount: 6_300_000 }),
+      expect.objectContaining({ category: "운영수당", description: "(보조)5,6학년 강사수당", formulaText: "35,000원 × 180회", manualAmount: 6_300_000 }),
+    ]);
   });
 
   it("졸업앨범비 예시는 기안문 미리보기를 표시하지 않는다", () => {

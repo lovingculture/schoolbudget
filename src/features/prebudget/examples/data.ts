@@ -40,6 +40,23 @@ const makeExample = ([id, fundingCategory, title, searchAliases, unitBusiness, b
   };
 };
 const examples = seeds.map(makeExample);
+const districtCareerIndex = examples.findIndex(({ id }) => id === "district-welfare");
+examples[districtCareerIndex] = {
+  ...examples[districtCareerIndex],
+  title: "진로교육 활성화",
+  searchAliases: ["구청 지원", "교육경비보조금", "진로교육", "진로활동"],
+  summary: "교육경비보조금 진로교육 활성화 사업을 성립전예산으로 편성할 때 참고하는 예시입니다.",
+  useWhen: ["교육경비보조금 진로교육 활성화 사업비가 교부된 경우"],
+  documentTitle: "진로교육 활성화 성립전예산 편성",
+  draftPreview: "",
+  autoCheckNotes: [],
+  items: [
+    { unitBusiness: "창의적 체험활동", business: "진로활동", detail: "(보조금)진로교육 활성화사업 지원", category: "교육운영비", description: "(보조)교재교구비 및 예비비", unitPrice: 1_100_000, quantity: 1, count: 1, manualAmount: 1_100_000, formulaText: "1,100,000원 × 1회" },
+    { unitBusiness: "창의적 체험활동", business: "진로활동", detail: "(보조금)진로교육 활성화사업 지원", category: "운영수당", description: "(보조)1,2학년 강사수당", unitPrice: 35_000, quantity: 1, count: 180, manualAmount: 6_300_000, formulaText: "35,000원 × 180회" },
+    { unitBusiness: "창의적 체험활동", business: "진로활동", detail: "(보조금)진로교육 활성화사업 지원", category: "운영수당", description: "(보조)3,4학년 강사수당", unitPrice: 35_000, quantity: 1, count: 180, manualAmount: 6_300_000, formulaText: "35,000원 × 180회" },
+    { unitBusiness: "창의적 체험활동", business: "진로활동", detail: "(보조금)진로교육 활성화사업 지원", category: "운영수당", description: "(보조)5,6학년 강사수당", unitPrice: 35_000, quantity: 1, count: 180, manualAmount: 6_300_000, formulaText: "35,000원 × 180회" },
+  ],
+};
 const basicLearningIndex = examples.findIndex(({ id }) => id === "purpose-basic-learning");
 examples[basicLearningIndex] = {
   ...examples[basicLearningIndex],
