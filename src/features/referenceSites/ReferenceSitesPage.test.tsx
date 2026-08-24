@@ -1,4 +1,4 @@
-import { render, screen } from "@testing-library/react";
+import { render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it } from "vitest";
 import { ReferenceSitesPage, type ReferenceSite } from "./ReferenceSitesPage";
@@ -9,6 +9,13 @@ const sites: ReferenceSite[] = [
 ];
 
 describe("참고사이트 게시판", () => {
+  it("본예산 편성 대표강사 교육영상을 기본 링크로 제공한다", () => {
+    render(<ReferenceSitesPage />);
+    const link = screen.getByRole("link", { name: "(25.11.20.) K-에듀파인 학교회계 예산관리(본예산편성) 대표강사 교육영상 바로가기" });
+    expect(link).toHaveAttribute("href", "https://www.youtube.com/watch?v=4eQjyipBuEM&t=1s");
+    expect(within(link.closest("article")!).getByText("학교회계")).toBeVisible();
+  });
+
   it("등록된 링크를 검색하고 분야별로 골라 외부 사이트를 연다", async () => {
     const user = userEvent.setup();
     render(<ReferenceSitesPage sites={sites} />);
