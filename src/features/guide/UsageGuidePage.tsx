@@ -102,6 +102,27 @@ export function UsageGuidePage({ onNavigate }: UsageGuidePageProps) {
         </div>
       </section>
 
+      <section className="usage-guide-section usage-guide-supplementary" aria-labelledby="supplementary-guide-title">
+        <div className="usage-guide-heading">
+          <span>SUPPLEMENTARY BUDGET</span>
+          <h2 id="supplementary-guide-title">추경예산자료 만들기 이용 방법</h2>
+          <p>에듀파인 집행실적 파일을 불러와 검토하고 내려받는 순서입니다.</p>
+        </div>
+        <ol>
+          <li><b>에듀파인 파일 내려받기</b><span>학교회계 → 사업관리 → 사업관리카드 → 집행실적 엑셀저장(실시간)에서 자료코드 102-2를 선택하세요.</span></li>
+          <li><b>집행실적 파일 불러오기</b><span>.xls, .xlsx, .xlsm 파일을 화면에 끌어다 놓거나 ‘파일 선택’을 누르세요.</span></li>
+          <li><b>엑셀형 필터 사용하기</b><span>각 열 제목의 필터 버튼을 눌러 필요한 값만 선택하고 오름차순·내림차순으로 정렬하세요. 필터 결과는 합계와 다운로드 자료에도 반영됩니다.</span></li>
+          <li><b>추경 가능금액 확인하기</b><span>예산액, 원인행위금액, 지출액, 집행잔액과 집행률을 확인하세요.</span></li>
+          <li><b>집행예정액과 추경안 입력하기</b><span>앞으로 지출할 금액을 입력하고 자동 계산된 추경 가능금액을 참고해 추경(안)을 작성하세요.</span></li>
+          <li><b>임시저장하기</b><span>작업 내용과 필터 상태를 현재 브라우저에 저장합니다. 브라우저를 닫았다가 다음 날 다시 접속해도 불러올 수 있습니다.</span></li>
+          <li><b>엑셀 내려받기</b><span>검토가 끝나면 현재 필터와 입력 내용이 반영된 엑셀 파일을 내려받으세요.</span></li>
+        </ol>
+        <aside>
+          <strong>내려받기 전 꼭 확인하세요</strong>
+          <ul><li>회계연도와 집행기준일이 맞는지</li><li>앞으로 지출할 금액이 집행예정액에 모두 포함됐는지</li><li>추경 가능금액이 음수인 항목은 없는지</li></ul>
+        </aside>
+      </section>
+
       <div className="usage-guide-info-grid">
         <section className="usage-guide-info" aria-labelledby="download-guide-title">
           <span className="usage-guide-info-icon"><Download aria-hidden="true" /></span>

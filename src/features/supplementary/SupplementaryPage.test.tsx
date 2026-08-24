@@ -1,4 +1,4 @@
-import { act, fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { act, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { downloadSupplementaryWorkbook } from "./exportExcel";
 import { SupplementaryPage } from "./SupplementaryPage";
@@ -34,7 +34,7 @@ async function loadExecutionFixture() {
 }
 
 describe("집행실적으로 추경자료 만들기 화면", () => {
-  beforeEach(() => { mockedDownload.mockReset(); });
+  beforeEach(() => { mockedDownload.mockReset(); localStorage.clear(); });
 
   it("renders the supplementary workflow in the shared workspace", () => {
     render(<SupplementaryPage />);
@@ -83,6 +83,39 @@ describe("집행실적으로 추경자료 만들기 화면", () => {
     fireEvent.click(screen.getByRole("button", { name: "필터 초기화" }));
     expect(screen.getByText("소모품")).toBeVisible();
     expect(screen.getByRole("button", { name: "전체" })).toHaveAttribute("aria-pressed", "true");
+  });
+
+  it("엑셀처럼 열별 값 필터와 정렬 메뉴를 제공한다", async () => {
+    render(<SupplementaryPage />);
+    await loadExecutionFixture();
+
+    fireEvent.click(screen.getByRole("button", { name: "원가통계비목 필터 열기" }));
+    const menu = screen.getByRole("group", { name: "원가통계비목 필터" });
+    fireEvent.click(within(menu).getByRole("checkbox", { name: "일반업무추진비" }));
+
+    expect(screen.queryByText("협의회")).not.toBeInTheDocument();
+    expect(screen.getByText("소모품")).toBeVisible();
+    expect(screen.getByText("원가통계비목: 일반수용비")).toBeVisible();
+
+    fireEvent.click(within(menu).getByRole("button", { name: "오름차순 정렬" }));
+    expect(screen.getByRole("button", { name: "원가통계비목 필터 열기" })).toHaveAttribute("data-sorted", "ascending");
+  });
+
+  it("작업 상태를 브라우저에 임시저장하고 다음 접속에서 복원한다", async () => {
+    const first = render(<SupplementaryPage />);
+    await loadExecutionFixture();
+    fireEvent.click(screen.getByRole("button", { name: "추경검토자료" }));
+    fireEvent.change(screen.getByLabelText("협의회 집행예정액"), { target: { value: "300" } });
+    fireEvent.click(screen.getByRole("button", { name: "임시저장" }));
+    expect(screen.getByRole("status")).toHaveTextContent("현재 브라우저에 임시저장했습니다");
+    first.unmount();
+
+    render(<SupplementaryPage />);
+    expect(screen.getByText(/서울옥정초등학교.*임시저장 자료/)).toBeVisible();
+    fireEvent.click(screen.getByRole("button", { name: "임시저장 불러오기" }));
+
+    expect(await screen.findByRole("button", { name: "일반 Excel 다운로드" })).toBeVisible();
+    expect(screen.getByLabelText("협의회 집행예정액")).toHaveValue(300);
   });
 
   it("Excel을 만드는 동안 버튼을 비활성화하고 완료 후 복구한다", async () => {

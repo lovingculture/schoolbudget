@@ -21,6 +21,13 @@
 .usage-guide-grid p { margin: 0; color: #61788b; line-height: 1.7; }
 .usage-guide-grid button { display: inline-flex; align-items: center; gap: 8px; align-self: flex-start; margin-top: auto; padding: 14px 0 0; border: 0; background: transparent; color: #0b7480; font-weight: 800; cursor: pointer; }
 .usage-guide-grid button svg { width: 16px; }
+.usage-guide-supplementary ol { display: grid; gap: 10px; margin: 22px 0 0; padding: 0; list-style: none; counter-reset: guide-step; }
+.usage-guide-supplementary li { display: grid; grid-template-columns: 34px minmax(150px, 210px) minmax(0, 1fr); align-items: start; gap: 12px; padding: 13px 14px; border: 1px solid #dce7ec; border-radius: 14px; background: #f8fbfc; counter-increment: guide-step; }
+.usage-guide-supplementary li::before { display: grid; place-items: center; width: 28px; height: 28px; border-radius: 50%; background: #0b7480; color: white; font-size: 12px; font-weight: 850; content: counter(guide-step); }
+.usage-guide-supplementary li b { padding-top: 3px; }
+.usage-guide-supplementary li span { color: #5d7487; line-height: 1.65; }
+.usage-guide-supplementary aside { margin-top: 16px; padding: 17px 20px; border-radius: 15px; background: #fff8df; color: #665414; }
+.usage-guide-supplementary aside ul { margin: 8px 0 0; padding-left: 20px; line-height: 1.75; }
 .usage-guide-info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
 .usage-guide-info,
 .usage-guide-security { display: flex; gap: 16px; padding: 24px; border: 1px solid #d8e5eb; border-radius: 20px; background: #fff; }
@@ -44,4 +51,6 @@
   .usage-guide-grid { grid-template-columns: 1fr; }
   .usage-guide-section,
   .usage-guide-faq { padding: 20px; }
+  .usage-guide-supplementary li { grid-template-columns: 32px minmax(0, 1fr); }
+  .usage-guide-supplementary li span { grid-column: 2; }
 }

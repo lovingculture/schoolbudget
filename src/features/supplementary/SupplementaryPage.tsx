@@ -1,5 +1,5 @@
 import { ChangeEvent, DragEvent, useMemo, useRef, useState } from "react";
-import { Download, FileSpreadsheet, Filter, RefreshCcw, Search, UploadCloud, X } from "lucide-react";
+import { ArrowDownAZ, ArrowUpAZ, ChevronDown, Download, FileSpreadsheet, Filter, FolderOpen, RefreshCcw, Save, Search, Trash2, UploadCloud, X } from "lucide-react";
 import { aggregateByUnitBusiness, calculateExecutionRow } from "./calculations";
 import { ExecutionParseError, parseExecutionWorkbook } from "./parser";
 import { downloadSupplementaryWorkbook } from "./exportExcel";
@@ -10,6 +10,26 @@ import "./supplementaryCharacter.css";
 type ResultTab = "status" | "summary" | "review" | "proposal";
 type QuickFilter = "all" | "balance" | "available" | "low-rate" | "discrepancy";
 type EditValues = Record<string, { planned: number; proposal: number }>;
+type TextColumn = "policy" | "unitBusiness" | "detailBusiness" | "detailItem" | "costCategory" | "description";
+type ColumnFilters = Partial<Record<TextColumn, string[]>>;
+type SortState = { column: TextColumn; direction: "asc" | "desc" } | null;
+type SupplementaryDraft = {
+  version: 1;
+  savedAt: string;
+  source: ExecutionWorkbook;
+  edits: EditValues;
+  tab: ResultTab;
+  query: string;
+  quickFilter: QuickFilter;
+  columnFilters: ColumnFilters;
+  sort: SortState;
+};
+
+const DRAFT_STORAGE_KEY = "school-budget:supplementary-draft:v1";
+const TEXT_COLUMNS: readonly [TextColumn, string][] = [
+  ["policy", "정책사업"], ["unitBusiness", "단위사업"], ["detailBusiness", "세부사업"],
+  ["detailItem", "세부항목"], ["costCategory", "원가통계비목"], ["description", "산출내역"],
+];
 
 const QUICK_FILTERS: readonly [QuickFilter, string][] = [
   ["all", "전체"],
@@ -25,6 +45,17 @@ const displayDate = (value: string) => value.length === 8
   ? `${value.slice(0, 4)}-${value.slice(4, 6)}-${value.slice(6)}`
   : value;
 
+const readDraft = (): SupplementaryDraft | null => {
+  try {
+    const raw = localStorage.getItem(DRAFT_STORAGE_KEY);
+    if (!raw) return null;
+    const draft = JSON.parse(raw) as SupplementaryDraft;
+    return draft.version === 1 && draft.source?.rows ? draft : null;
+  } catch {
+    return null;
+  }
+};
+
 export function SupplementaryPage() {
   const inputRef = useRef<HTMLInputElement>(null);
   const [source, setSource] = useState<ExecutionWorkbook | null>(null);
@@ -32,6 +63,11 @@ export function SupplementaryPage() {
   const [tab, setTab] = useState<ResultTab>("status");
   const [query, setQuery] = useState("");
   const [quickFilter, setQuickFilter] = useState<QuickFilter>("all");
+  const [columnFilters, setColumnFilters] = useState<ColumnFilters>({});
+  const [sort, setSort] = useState<SortState>(null);
+  const [openFilter, setOpenFilter] = useState<TextColumn | null>(null);
+  const [draft, setDraft] = useState<SupplementaryDraft | null>(() => readDraft());
+  const [saveMessage, setSaveMessage] = useState("");
   const [error, setError] = useState("");
   const [dragging, setDragging] = useState(false);
   const [downloading, setDownloading] = useState(false);
@@ -40,20 +76,33 @@ export function SupplementaryPage() {
     const edit = edits[row.id] ?? { planned: 0, proposal: 0 };
     return calculateExecutionRow(row, edit.planned, edit.proposal);
   }) ?? [], [source, edits]);
+  const columnOptions = useMemo(() => Object.fromEntries(TEXT_COLUMNS.map(([column]) => [
+    column,
+    [...new Set(calculated.map(row => row[column]))].sort((a, b) => a.localeCompare(b, "ko")),
+  ])) as Record<TextColumn, string[]>, [calculated]);
   const filtered = useMemo(() => {
     const token = query.trim().toLowerCase();
     const searched = token ? calculated.filter(row => [
       row.policy, row.unitBusiness, row.detailBusiness, row.detailItem,
       row.costCategory, row.description,
     ].some(value => value.toLowerCase().includes(token))) : calculated;
-    return searched.filter(row => {
+    const quickFiltered = searched.filter(row => {
       if (quickFilter === "balance") return row.balance > 0;
       if (quickFilter === "available") return row.availableSupplement > 0;
       if (quickFilter === "low-rate") return row.executionRate < 50;
       if (quickFilter === "discrepancy") return row.discrepancy !== 0;
       return true;
     });
-  }, [calculated, query, quickFilter]);
+    const columnFiltered = quickFiltered.filter(row => TEXT_COLUMNS.every(([column]) => {
+      const selected = columnFilters[column];
+      return !selected || selected.includes(row[column]);
+    }));
+    if (!sort) return columnFiltered;
+    return [...columnFiltered].sort((a, b) => {
+      const compared = a[sort.column].localeCompare(b[sort.column], "ko");
+      return sort.direction === "asc" ? compared : -compared;
+    });
+  }, [calculated, query, quickFilter, columnFilters, sort]);
   const summaries = useMemo(() => aggregateByUnitBusiness(filtered), [filtered]);
   const totals = useMemo(() => filtered.reduce((sum, row) => ({
     budget: sum.budget + row.budgetAmount,
@@ -78,6 +127,9 @@ export function SupplementaryPage() {
       setTab("status");
       setQuery("");
       setQuickFilter("all");
+      setColumnFilters({});
+      setSort(null);
+      setSaveMessage("");
     } catch (reason) {
       setSource(null);
       setError(reason instanceof ExecutionParseError ? reason.message : "파일을 읽지 못했습니다. 에듀파인에서 다시 내려받아 주세요.");
@@ -95,9 +147,46 @@ export function SupplementaryPage() {
   const changeEdit = (id: string, key: "planned" | "proposal", value: number) => {
     setEdits(current => ({ ...current, [id]: { planned: current[id]?.planned ?? 0, proposal: current[id]?.proposal ?? 0, [key]: value } }));
   };
+  const toggleColumnValue = (column: TextColumn, value: string) => {
+    setColumnFilters(current => {
+      const options = columnOptions[column];
+      const selected = current[column] ?? options;
+      const next = selected.includes(value) ? selected.filter(item => item !== value) : [...selected, value];
+      const updated = { ...current };
+      if (next.length === options.length) delete updated[column];
+      else updated[column] = next;
+      return updated;
+    });
+  };
+  const resetFilters = () => {
+    setQuickFilter("all"); setQuery(""); setColumnFilters({}); setSort(null); setOpenFilter(null);
+  };
+  const saveDraft = () => {
+    if (!source) return;
+    const nextDraft: SupplementaryDraft = {
+      version: 1, savedAt: new Date().toISOString(), source, edits, tab, query, quickFilter, columnFilters, sort,
+    };
+    try {
+      localStorage.setItem(DRAFT_STORAGE_KEY, JSON.stringify(nextDraft));
+      setDraft(nextDraft);
+      setSaveMessage("현재 브라우저에 임시저장했습니다. 브라우저를 닫아도 다음 접속에서 불러올 수 있습니다.");
+    } catch {
+      setError("임시저장 공간이 부족합니다. 기존 임시저장 자료를 삭제한 뒤 다시 시도해 주세요.");
+    }
+  };
+  const restoreDraft = () => {
+    if (!draft) return;
+    setSource(draft.source); setEdits(draft.edits); setTab(draft.tab); setQuery(draft.query);
+    setQuickFilter(draft.quickFilter); setColumnFilters(draft.columnFilters); setSort(draft.sort); setError("");
+    setSaveMessage("임시저장 자료를 불러왔습니다.");
+  };
+  const deleteDraft = () => {
+    localStorage.removeItem(DRAFT_STORAGE_KEY);
+    setDraft(null); setSaveMessage("");
+  };
   const reset = () => {
     if (Object.keys(edits).length && !window.confirm("입력한 집행예정액과 추경(안)을 지우고 새로 시작할까요?")) return;
-    setSource(null); setEdits({}); setQuery(""); setQuickFilter("all"); setError("");
+    setSource(null); setEdits({}); setQuery(""); setQuickFilter("all"); setColumnFilters({}); setSort(null); setError(""); setSaveMessage("");
   };
   const downloadExcel = async () => {
     setDownloading(true);
@@ -117,6 +206,11 @@ export function SupplementaryPage() {
       <img src="/characters/cards/main-budget-good.png" alt="추경예산 자료 정리를 돕는 서울시교육청 캐릭터" />
     </div>
     <section className="supplementary-guide"><b>에듀파인에서 파일 받는 경로</b><p>학교회계 → 사업관리 → 사업관리카드 → 집행실적 엑셀저장(실시간)</p><span>자료코드 <strong>102-2</strong>를 선택한 후 엑셀로 내려받아 주세요.</span></section>
+    {draft && <section className="supplementary-draft-card" aria-label="임시저장 자료">
+      <span className="icon green"><FolderOpen/></span>
+      <div><strong>{draft.source.schoolName} 임시저장 자료</strong><small>{draft.source.fiscalYear}회계연도 · {new Date(draft.savedAt).toLocaleString("ko-KR")} 저장</small></div>
+      <div><button type="button" className="primary" onClick={restoreDraft}>임시저장 불러오기</button><button type="button" className="secondary" onClick={deleteDraft}><Trash2 size={16}/>삭제</button></div>
+    </section>}
     <div className={dragging ? "supplementary-dropzone dragging" : "supplementary-dropzone"}
       onDragEnter={() => setDragging(true)} onDragLeave={() => setDragging(false)}
       onDragOver={event => event.preventDefault()} onDrop={onDrop}>
@@ -151,27 +245,66 @@ export function SupplementaryPage() {
     <div className="supplementary-quick-filter" role="group" aria-label="추경자료 빠른 필터">
       <span><Filter size={17}/>빠른 필터</span>
       <div>{QUICK_FILTERS.map(([id, label]) => <button type="button" key={id} aria-pressed={quickFilter === id} onClick={() => setQuickFilter(id)}>{label}</button>)}</div>
-      <button type="button" className="supplementary-filter-reset" onClick={() => { setQuickFilter("all"); setQuery(""); }}><X size={15}/>필터 초기화</button>
+      <button type="button" className="supplementary-filter-reset" onClick={resetFilters}><X size={15}/>필터 초기화</button>
     </div>
-    <ExecutionResults tab={tab} rows={filtered} summaries={summaries} changeEdit={changeEdit}/>
+    {Object.entries(columnFilters).length > 0 && <div className="supplementary-active-filters" aria-label="적용된 열 필터">
+      {Object.entries(columnFilters).map(([column, selected]) => {
+        const label = TEXT_COLUMNS.find(([key]) => key === column)?.[1] ?? column;
+        return <button type="button" key={column} onClick={() => setColumnFilters(current => { const next = { ...current }; delete next[column as TextColumn]; return next; })}>{label}: {(selected ?? []).join(", ")} <X size={14}/></button>;
+      })}
+    </div>}
+    <ExecutionResults tab={tab} rows={filtered} summaries={summaries} changeEdit={changeEdit}
+      columnOptions={columnOptions} columnFilters={columnFilters} openFilter={openFilter} sort={sort}
+      onOpenFilter={setOpenFilter} onToggleColumnValue={toggleColumnValue} onSort={setSort}/>
     {error && <div className="closing-error" role="alert">{error}</div>}
+    {saveMessage && <p className="supplementary-save-message" role="status">{saveMessage}</p>}
     <div className="supplementary-actions">
       <button className="secondary" onClick={reset}><RefreshCcw size={16}/> 초기화</button>
+      <button className="secondary" onClick={saveDraft}><Save size={17}/> 임시저장</button>
       <button className="primary" disabled={downloading} onClick={() => void downloadExcel()}><Download size={17}/>{downloading ? "일반 Excel 생성 중" : "일반 Excel 다운로드"}</button>
     </div>
   </div>;
 }
 
-function ExecutionResults({ tab, rows, summaries, changeEdit }: {
+function ExcelFilterHeader({ column, label, options, selected, isOpen, sort, onOpen, onToggle, onSort }: {
+  column: TextColumn;
+  label: string;
+  options: string[];
+  selected?: string[];
+  isOpen: boolean;
+  sort: SortState;
+  onOpen: (column: TextColumn | null) => void;
+  onToggle: (column: TextColumn, value: string) => void;
+  onSort: (sort: SortState) => void;
+}) {
+  const direction = sort?.column === column ? (sort.direction === "asc" ? "ascending" : "descending") : undefined;
+  return <th className="excel-filter-column">
+    <div className="excel-filter-heading"><span>{label}</span><button type="button" aria-label={`${label} 필터 열기`} aria-expanded={isOpen} data-sorted={direction} onClick={() => onOpen(isOpen ? null : column)}><ChevronDown size={15}/></button></div>
+    {isOpen && <div className="excel-filter-menu" role="group" aria-label={`${label} 필터`}>
+      <div className="excel-filter-sort"><button type="button" aria-label="오름차순 정렬" onClick={() => onSort({ column, direction: "asc" })}><ArrowUpAZ size={16}/>오름차순</button><button type="button" aria-label="내림차순 정렬" onClick={() => onSort({ column, direction: "desc" })}><ArrowDownAZ size={16}/>내림차순</button></div>
+      <div className="excel-filter-values">{options.map(value => <label key={value}><input type="checkbox" checked={!selected || selected.includes(value)} onChange={() => onToggle(column, value)}/><span>{value || "(빈 셀)"}</span></label>)}</div>
+    </div>}
+  </th>;
+}
+
+function ExecutionResults({ tab, rows, summaries, changeEdit, columnOptions, columnFilters, openFilter, sort, onOpenFilter, onToggleColumnValue, onSort }: {
   tab: ResultTab;
   rows: CalculatedExecutionRow[];
   summaries: ReturnType<typeof aggregateByUnitBusiness>;
   changeEdit: (id: string, key: "planned" | "proposal", value: number) => void;
+  columnOptions: Record<TextColumn, string[]>;
+  columnFilters: ColumnFilters;
+  openFilter: TextColumn | null;
+  sort: SortState;
+  onOpenFilter: (column: TextColumn | null) => void;
+  onToggleColumnValue: (column: TextColumn, value: string) => void;
+  onSort: (sort: SortState) => void;
 }) {
   if (tab === "summary") return <div className="execution-table-wrap"><table className="execution-table"><thead><tr><th>정책사업</th><th>단위사업</th><th>예산액(4)</th><th>원인행위</th><th>지출</th><th>집행잔액</th><th>집행률</th></tr></thead><tbody>{summaries.map(row => <tr key={`${row.policy}-${row.unitBusiness}`}><td>{row.policy}</td><td>{row.unitBusiness}</td><td>{money(row.budgetAmount)}</td><td>{money(row.committedAmount)}</td><td>{money(row.paidAmount)}</td><td className={row.balance < 0 ? "negative" : ""}>{money(row.balance)}</td><td>{rate(row.executionRate)}</td></tr>)}</tbody></table></div>;
   const editable = tab === "review" || tab === "proposal";
+  const headerProps = { columnOptions, columnFilters, openFilter, sort, onOpenFilter, onToggleColumnValue, onSort };
   return <div className="execution-table-wrap"><table className="execution-table"><thead><tr>
-    <th>정책사업</th><th>단위사업</th><th>세부사업</th><th>세부항목</th><th>원가통계비목</th><th>산출내역</th>
+    {TEXT_COLUMNS.map(([column, label]) => <ExcelFilterHeader key={column} column={column} label={label} options={headerProps.columnOptions[column]} selected={headerProps.columnFilters[column]} isOpen={headerProps.openFilter === column} sort={headerProps.sort} onOpen={headerProps.onOpenFilter} onToggle={headerProps.onToggleColumnValue} onSort={headerProps.onSort}/>)}
     <th>예산액(4)</th><th>원인행위</th><th>지출</th><th>집행잔액</th>
     {tab === "status" && <><th>불일치</th><th>집행률</th></>}
     {editable && <><th>부서별 집행예정액</th><th>추경 가능금액</th><th>추경(안)</th></>}

@@ -11,6 +11,9 @@ describe("학교예산 한눈에 이용 안내", () => {
     expect(screen.getByRole("heading", { name: "업무별 이용 방법" })).toBeVisible();
     expect(screen.getByRole("heading", { name: "파일 내려받기 안내" })).toBeVisible();
     expect(screen.getByRole("heading", { name: "자주 묻는 질문" })).toBeVisible();
+    expect(screen.getByRole("heading", { name: "추경예산자료 만들기 이용 방법" })).toBeVisible();
+    expect(screen.getByText(/각 열 제목의 필터 버튼/)).toBeVisible();
+    expect(screen.getByText(/브라우저를 닫았다가 다음 날 다시 접속해도/)).toBeVisible();
     expect(screen.getByText("선택한 파일은 이 브라우저에서만 처리되며 서버에 업로드하거나 저장하지 않습니다.")).toBeVisible();
   });
 
