@@ -21,6 +21,13 @@ export const REFERENCE_SITES: ReferenceSite[] = [
     url: "https://mokjeok.sen.go.kr/",
   },
   {
+    id: "sen-budget-office-board",
+    title: "서울시교육청 예산담당관 부서업무방",
+    category: "교육청",
+    description: "학교회계 예산편성 기본지침, 연수자료 및 예산 관련 업무자료를 확인하는 서울특별시교육청 게시판입니다.",
+    url: "https://buseo.sen.go.kr/buseo/bu05/user/bbs/BD_selectBbsList.do?q_bbsSn=1199",
+  },
+  {
     id: "k-edufine-main-budget-training-2025-11-20",
     title: "(25.11.20.) K-에듀파인 학교회계 예산관리(본예산편성) 대표강사 교육영상",
     category: "학교회계",

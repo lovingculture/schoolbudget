@@ -33,6 +33,16 @@ describe("참고사이트 게시판", () => {
     expect(within(card).getByText("사이트 바로가기")).toBeVisible();
   });
 
+  it("서울시교육청 예산담당관 부서업무방을 교육청 링크로 제공한다", () => {
+    render(<ReferenceSitesPage />);
+    const link = screen.getByRole("link", { name: "서울시교육청 예산담당관 부서업무방 바로가기" });
+    const card = link.closest("article")!;
+
+    expect(link).toHaveAttribute("href", "https://buseo.sen.go.kr/buseo/bu05/user/bbs/BD_selectBbsList.do?q_bbsSn=1199");
+    expect(within(card).getByText("교육청")).toBeVisible();
+    expect(within(card).getByText("사이트 바로가기")).toBeVisible();
+  });
+
   it("성립전·추경 교육과 예산관리 1~3장 영상을 기본 링크로 제공한다", () => {
     render(<ReferenceSitesPage />);
     const videos = [
