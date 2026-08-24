@@ -2,6 +2,7 @@ import { fireEvent, render, screen, waitFor, within } from "@testing-library/rea
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
 import type { DraftStorage } from "./storage";
+import type { PrebudgetFormDraft } from "./types";
 import { PrebudgetPage } from "./PrebudgetPage";
 import { createPrebudgetDraft } from "./draft";
 import { exportPrebudgetExcel, exportPrebudgetHwpx } from "./exporters";
@@ -43,6 +44,59 @@ async function renderValidPreview() {
 }
 
 describe("성립전예산 예시 통합", () => {
+  it("같은 사업정보는 한 번만 표시하고 산출 항목만 여러 행으로 묶는다", () => {
+    const draft = validDraft();
+    draft.items.push({
+      ...draft.items[0],
+      id: "second-calculation-row",
+      category: "교육운영비",
+      description: "교재교구비",
+      manualAmount: 300_000,
+    });
+    const loadedStorage: DraftStorage = { load: () => draft, save: vi.fn(), clear: vi.fn() };
+
+    render(<PrebudgetPage initialSchoolName="서울우리학교" storage={loadedStorage} />);
+
+    expect(screen.getAllByLabelText("단위사업")).toHaveLength(1);
+    expect(screen.getAllByLabelText("세부사업")).toHaveLength(1);
+    expect(screen.getAllByLabelText("세부항목")).toHaveLength(1);
+    expect(screen.getAllByLabelText("산출내역")).toHaveLength(2);
+    expect(screen.getByDisplayValue("운영 물품비")).toBeVisible();
+    expect(screen.getByDisplayValue("교재교구비")).toBeVisible();
+  });
+
+  it("같은 사업에 산출 항목을 추가하면 공통 사업정보를 복사한 새 행을 만든다", async () => {
+    const savedDrafts: PrebudgetFormDraft[] = [];
+    const loadedStorage: DraftStorage = {
+      load: () => validDraft(),
+      save: (draft) => savedDrafts.push(draft),
+      clear: vi.fn(),
+    };
+    const user = userEvent.setup();
+    render(<PrebudgetPage initialSchoolName="서울우리학교" storage={loadedStorage} />);
+
+    await user.click(screen.getByRole("button", { name: "이 사업에 산출 항목 추가" }));
+
+    expect(screen.getAllByLabelText("단위사업")).toHaveLength(1);
+    expect(screen.getAllByLabelText("산출내역")).toHaveLength(2);
+    await user.click(screen.getByRole("button", { name: "임시저장" }));
+    expect(savedDrafts.at(-1)?.items[1]).toEqual(expect.objectContaining({
+      unitBusiness: "방과후 학교운영",
+      business: "늘봄학교 운영",
+      detail: "맞춤형 늘봄교실 운영",
+      description: "",
+    }));
+  });
+
+  it("공통 세부항목을 입력하는 동안 입력창을 유지한다", async () => {
+    const user = userEvent.setup();
+    render(<PrebudgetPage initialSchoolName="서울우리학교" storage={storage} />);
+
+    await user.type(screen.getByLabelText("세부항목"), "디지털교육 운영");
+
+    expect(screen.getByLabelText("세부항목")).toHaveValue("디지털교육 운영");
+  });
+
   it("빈 예산항목에 산출내역과 계산요소 예시를 흐린 안내문으로 표시한다", () => {
     render(<PrebudgetPage initialSchoolName="○○초등학교" />);
 

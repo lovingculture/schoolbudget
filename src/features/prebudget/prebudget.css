@@ -86,6 +86,28 @@
 .prebudget-page .prebudget-example-use:hover,
 .prebudget-page .prebudget-example-use:focus-visible { transform: translateY(-1px); box-shadow: 0 10px 22px rgb(20 51 78 / 15%); }
 .prebudget-page .form-card { border-color: var(--prebudget-border); border-radius: 20px; box-shadow: 0 12px 32px rgb(20 51 78 / 6%); }
+.prebudget-page .prebudget-group-list { display: grid; gap: 18px; margin: 18px 0; }
+.prebudget-page .prebudget-item-group { overflow: hidden; border: 1px solid var(--prebudget-border); border-radius: 18px; background: #fff; }
+.prebudget-page .prebudget-group-heading { display: flex; align-items: center; gap: 10px; padding: 15px 18px; border-bottom: 1px solid var(--prebudget-border); }
+.prebudget-page .prebudget-group-heading strong { font-size: 17px; }
+.prebudget-page .prebudget-common-fields { display: grid; grid-template-columns: .85fr 1fr 1.55fr; gap: 14px; padding: 18px; background: linear-gradient(135deg, var(--prebudget-sky), var(--prebudget-mint)); }
+.prebudget-page .prebudget-common-fields label,
+.prebudget-page .prebudget-calculation-row label { color: var(--prebudget-navy); font-size: 15px; font-weight: 750; }
+.prebudget-page .prebudget-common-fields input,
+.prebudget-page .prebudget-common-fields select,
+.prebudget-page .prebudget-calculation-row input,
+.prebudget-page .prebudget-calculation-row select { display: block; width: 100%; margin-top: 7px; border: 1px solid var(--prebudget-border); border-radius: 10px; padding: 11px; background: #fff; font-size: 15px; }
+.prebudget-page .prebudget-calculation-list { display: grid; }
+.prebudget-page .prebudget-calculation-row { display: grid; grid-template-columns: 32px minmax(220px, .9fr) minmax(260px, 1.1fr) 36px; gap: 12px; align-items: start; padding: 16px 18px; border-bottom: 1px solid var(--prebudget-border); }
+.prebudget-page .prebudget-calculation-row .prebudget-row-number { display: grid; place-items: center; width: 26px; height: 26px; margin-top: 30px; border-radius: 50%; background: #e7f4f5; color: var(--prebudget-teal-text); font-size: 13px; font-weight: 800; }
+.prebudget-page .prebudget-calculation-row .category-field { grid-column: 2; grid-template-columns: 1fr; gap: 8px; }
+.prebudget-page .prebudget-calculation-row .description { grid-column: 3; }
+.prebudget-page .prebudget-calculation-row .formula { grid-column: 2 / 4; }
+.prebudget-page .prebudget-calculation-row .remove { grid-column: 4; grid-row: 1 / span 2; margin-top: 28px; }
+.prebudget-page .prebudget-group-footer { display: flex; align-items: center; justify-content: space-between; gap: 14px; padding: 14px 18px; background: #fbfdfd; }
+.prebudget-page .prebudget-add-calculation { display: inline-flex; align-items: center; gap: 7px; border: 0; background: transparent; color: var(--prebudget-teal-text); font-weight: 800; cursor: pointer; }
+.prebudget-page .prebudget-group-footer > span { color: #47647a; }
+.prebudget-page .prebudget-group-footer > span strong { margin-left: 6px; color: var(--prebudget-teal-text); }
 .prebudget-page .form-grid label,
 .prebudget-page .item-fields label { color: var(--prebudget-navy); font-size: 16px; }
 .prebudget-page .form-grid input,
@@ -114,6 +136,16 @@
   .prebudget-page .prebudget-guide-grid { grid-template-columns: 1fr; }
   .prebudget-page .form-grid,
   .prebudget-page .item-fields { grid-template-columns: 1fr; }
+  .prebudget-page .prebudget-common-fields { grid-template-columns: 1fr; }
+  .prebudget-page .prebudget-calculation-row { grid-template-columns: 28px minmax(0, 1fr) 34px; padding: 14px 12px; }
+  .prebudget-page .prebudget-calculation-row .category-field,
+  .prebudget-page .prebudget-calculation-row .description,
+  .prebudget-page .prebudget-calculation-row .formula { grid-column: 2; }
+  .prebudget-page .prebudget-calculation-row .remove { grid-column: 3; grid-row: 1; }
+  .prebudget-page .prebudget-calculation-row .formula { grid-template-columns: 1fr; }
+  .prebudget-page .prebudget-calculation-row .formula output { grid-column: 1; }
+  .prebudget-page .prebudget-group-footer { align-items: stretch; flex-direction: column; }
+  .prebudget-page .prebudget-add-calculation { justify-content: center; border: 1px dashed #9fc7c3; border-radius: 10px; }
   .prebudget-page .prebudget-downloads { align-items: stretch; flex-direction: column; }
   .prebudget-page .prebudget-downloads > div:last-child { display: grid; grid-template-columns: 1fr; }
 }

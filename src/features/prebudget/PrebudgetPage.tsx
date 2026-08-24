@@ -69,6 +69,25 @@ export function PrebudgetPage({
     () => createPrebudgetDraft(initialSchoolName),
     [initialSchoolName],
   );
+  const itemGroups = useMemo(() => {
+    const groups: Array<{ key: string; indices: number[] }> = [];
+    const byKey = new Map<string, { key: string; indices: number[] }>();
+    draft.items.forEach((item, index) => {
+      const commonValues = [item.unitBusiness ?? "", item.business ?? "", item.detail ?? ""];
+      const lookupKey = commonValues.some(Boolean)
+        ? commonValues.join("\u0000")
+        : `blank-${item.id ?? index}`;
+      const existing = byKey.get(lookupKey);
+      if (existing) {
+        existing.indices.push(index);
+        return;
+      }
+      const group = { key: String(item.id ?? index), indices: [index] };
+      byKey.set(lookupKey, group);
+      groups.push(group);
+    });
+    return groups;
+  }, [draft.items]);
   useEffect(() => {
     globalThis.document
       .querySelectorAll(".category-help")
@@ -103,6 +122,35 @@ export function PrebudgetPage({
         return { ...item, [key]: value };
       }),
     }));
+  const updateGroup = (
+    indices: number[],
+    key: "unitBusiness" | "business" | "detail",
+    value: string,
+  ) =>
+    setDraft((current) => ({
+      ...current,
+      items: current.items.map((item, index) => {
+        if (!indices.includes(index)) return item;
+        if (key === "unitBusiness") {
+          return { ...item, unitBusiness: value, business: "" };
+        }
+        return { ...item, [key]: value };
+      }),
+    }));
+  const addCalculationRow = (indices: number[]) =>
+    setDraft((current) => {
+      const first = current.items[indices[0]];
+      const insertAt = Math.max(...indices) + 1;
+      const nextItem = {
+        ...createBlankPrebudgetItem(),
+        unitBusiness: first?.unitBusiness ?? "",
+        business: first?.business ?? "",
+        detail: first?.detail ?? "",
+      };
+      const items = [...current.items];
+      items.splice(insertAt, 0, nextItem);
+      return { ...current, items };
+    });
   const save = () => {
     const savedAt = new Date().toISOString();
     const next = { ...draft, savedAt };
@@ -295,25 +343,35 @@ export function PrebudgetPage({
             <p>산출기초를 입력하면 요구금액이 자동 계산됩니다.</p>
           </div>
           <button
+            type="button"
             className="secondary"
             onClick={() =>
               field("items", [...draft.items, createBlankPrebudgetItem()])
             }
           >
-            <Plus size={16} /> 항목 추가
+            <Plus size={16} /> 새 예산항목 묶음 추가
           </button>
         </div>
-        <div className="item-list">
-          {draft.items.map((item, i) => (
-            <div className="budget-item" key={item.id}>
-              <div className="item-number">{i + 1}</div>
-              <div className="item-fields">
+        <div className="item-list prebudget-group-list">
+          {itemGroups.map((group, groupIndex) => {
+            const sharedItem = draft.items[group.indices[0]];
+            const groupTotal = group.indices.reduce(
+              (sum, index) => sum + calculateRequestedAmount(draft.items[index]),
+              0,
+            );
+            return (
+            <section className="prebudget-item-group" key={group.key || `blank-${groupIndex}`}>
+              <div className="prebudget-group-heading">
+                <div className="item-number">{groupIndex + 1}</div>
+                <strong>예산항목 {groupIndex + 1}</strong>
+              </div>
+              <div className="prebudget-common-fields">
                 <label>
                   단위사업
                   <select
-                    value={item.unitBusiness ?? ""}
+                    value={sharedItem.unitBusiness ?? ""}
                     onChange={(e) =>
-                      updateItem(i, "unitBusiness", e.target.value)
+                      updateGroup(group.indices, "unitBusiness", e.target.value)
                     }
                   >
                     <option value="">선택하세요</option>
@@ -325,16 +383,16 @@ export function PrebudgetPage({
                 <label>
                   세부사업
                   <select
-                    value={item.business ?? ""}
-                    disabled={!item.unitBusiness}
-                    onChange={(e) => updateItem(i, "business", e.target.value)}
+                    value={sharedItem.business ?? ""}
+                    disabled={!sharedItem.unitBusiness}
+                    onChange={(e) => updateGroup(group.indices, "business", e.target.value)}
                   >
                     <option value="">
-                      {item.unitBusiness
+                      {sharedItem.unitBusiness
                         ? "선택하세요"
                         : "단위사업을 먼저 선택하세요"}
                     </option>
-                    {getDetailBusinesses(item.unitBusiness).map((v) => (
+                    {getDetailBusinesses(sharedItem.unitBusiness).map((v) => (
                       <option key={v}>{v}</option>
                     ))}
                   </select>
@@ -342,11 +400,18 @@ export function PrebudgetPage({
                 <label>
                   세부항목
                   <input
-                    value={item.detail ?? ""}
-                    onChange={(e) => updateItem(i, "detail", e.target.value)}
+                    value={sharedItem.detail ?? ""}
+                    onChange={(e) => updateGroup(group.indices, "detail", e.target.value)}
                   />
                 </label>
-                <div className="category-field">
+              </div>
+              <div className="prebudget-calculation-list">
+                {group.indices.map((i, rowIndex) => {
+                  const item = draft.items[i];
+                  return (
+                  <div className="prebudget-calculation-row" key={item.id}>
+                    <span className="prebudget-row-number">{rowIndex + 1}</span>
+                    <div className="category-field">
                   <label>
                     원가통계비목
                     <select
@@ -364,8 +429,8 @@ export function PrebudgetPage({
                     <b>비목 설명</b>
                     <p>{getAccountCategoryDescription(item.category)}</p>
                   </aside>
-                </div>
-                <label className="description">
+                    </div>
+                    <label className="description">
                   산출내역
                   <input
                     aria-label="산출내역"
@@ -375,8 +440,8 @@ export function PrebudgetPage({
                       updateItem(i, "description", e.target.value)
                     }
                   />
-                </label>
-                <div className="formula">
+                    </label>
+                    <div className="formula">
                   {(["unitPrice", "quantity", "count"] as const).map(
                     (key, n) => (
                       <label key={key}>
@@ -398,30 +463,42 @@ export function PrebudgetPage({
                   <output>
                     {calculateRequestedAmount(item).toLocaleString()}원
                   </output>
-                </div>
+                    </div>
+                    <button
+                      type="button"
+                      className="remove"
+                      aria-label={`${groupIndex + 1}번 예산항목의 ${rowIndex + 1}번 산출 항목 삭제`}
+                      onClick={() =>
+                        field(
+                          "items",
+                          draft.items.filter((_, x) => x !== i),
+                        )
+                      }
+                    >
+                      <X size={17} />
+                    </button>
+                  </div>
+                  );
+                })}
               </div>
-              <button
-                className="remove"
-                aria-label={`${i + 1}번 항목 삭제`}
-                onClick={() =>
-                  field(
-                    "items",
-                    draft.items.filter((_, x) => x !== i),
-                  )
-                }
-              >
-                <X size={17} />
-              </button>
-            </div>
-          ))}
+              <div className="prebudget-group-footer">
+                <button type="button" className="prebudget-add-calculation" onClick={() => addCalculationRow(group.indices)}>
+                  <Plus size={17} /> 이 사업에 산출 항목 추가
+                </button>
+                <span>묶음 합계 <strong>{groupTotal.toLocaleString()}원</strong></span>
+              </div>
+            </section>
+            );
+          })}
         </div>
         <button
+          type="button"
           className="add-row"
           onClick={() =>
             field("items", [...draft.items, createBlankPrebudgetItem()])
           }
         >
-          <Plus size={17} /> 예산항목 추가
+          <Plus size={17} /> 새 예산항목 묶음 추가
         </button>
         <div className="total">
           <span>예산요구액 합계</span>

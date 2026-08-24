@@ -96,7 +96,7 @@ describe("예산업무 포털", () => {
     await user.clear(prices[0]); await user.type(prices[0], "30000");
     await user.clear(quantities[0]); await user.type(quantities[0], "10");
     await user.clear(counts[0]); await user.type(counts[0], "1");
-    expect(screen.getAllByText("300,000원")).toHaveLength(2);
+    expect(screen.getAllByText("300,000원")).toHaveLength(3);
   });
 
   it("단위사업에 맞는 세부사업만 선택하고 단위사업 변경 시 초기화한다", async () => {
@@ -105,18 +105,18 @@ describe("예산업무 포털", () => {
     await user.click(screen.getByRole("button", { name: "성립전예산 새로 작성" }));
 
     const unitSelect = screen.getAllByLabelText("단위사업")[0];
-    const detailSelect = screen.getAllByLabelText("세부사업")[0];
-    expect(detailSelect).toBeDisabled();
+    expect(screen.getAllByLabelText("세부사업")[0]).toBeDisabled();
 
     await user.selectOptions(unitSelect, "교과 활동");
+    const detailSelect = screen.getAllByLabelText("세부사업")[0];
     expect(detailSelect).toBeEnabled();
     expect(screen.getAllByRole("option", { name: "수학 교과활동" })).toHaveLength(1);
     expect(screen.queryByRole("option", { name: "학교급식운영" })).not.toBeInTheDocument();
 
     await user.selectOptions(detailSelect, "수학 교과활동");
     expect(detailSelect).toHaveValue("수학 교과활동");
-    await user.selectOptions(unitSelect, "급식 관리");
-    expect(detailSelect).toHaveValue("");
+    await user.selectOptions(screen.getAllByLabelText("단위사업")[0], "급식 관리");
+    expect(screen.getAllByLabelText("세부사업")[0]).toHaveValue("");
     expect(screen.getAllByRole("option", { name: "학교급식운영" })).toHaveLength(1);
     expect(screen.queryByRole("option", { name: "수학 교과활동" })).not.toBeInTheDocument();
   });
@@ -175,7 +175,7 @@ describe("예산업무 포털", () => {
     );
 
     const helpCountBeforeAdd = screen.getAllByLabelText("비목 설명").length;
-    await user.click(screen.getByRole("button", { name: "항목 추가" }));
+    await user.click(screen.getByRole("button", { name: "이 사업에 산출 항목 추가" }));
     const helps = screen.getAllByLabelText("비목 설명");
     expect(helps).toHaveLength(helpCountBeforeAdd + 1);
     expect(helps[0]).toHaveTextContent("공무원이 아닌 기간의 정함이 없는 근로계약");
