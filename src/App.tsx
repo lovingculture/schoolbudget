@@ -26,6 +26,7 @@ import { HomePage } from "./features/home/HomePage";
 import { BudgetResourceLibraryPage } from "./features/resources/BudgetResourceLibraryPage";
 import { VideoGuidePage } from "./features/videos/VideoGuidePage";
 import { UsageGuidePage } from "./features/guide/UsageGuidePage";
+import { ReferenceSitesPage } from "./features/referenceSites/ReferenceSitesPage";
 import "./features/portal/portalWorkspace.css";
 
 export type View = PortalHeaderView;
@@ -379,6 +380,7 @@ export function Portal({
         {view === "resources" && <BudgetResourceLibraryPage isAdmin={isAdmin} userId={userId ?? ""} onAdminLogin={onAdminLogin} />}
         {view === "videos" && <VideoGuidePage />}
         {view === "guide" && <UsageGuidePage onNavigate={go} />}
+        {view === "reference-sites" && <ReferenceSitesPage />}
       </main>
       <footer className="portal-privacy" aria-label="학교 자료 보안 안내">
         <b>학교 자료는 안전하게</b>

@@ -28,6 +28,7 @@ describe("PortalHeader", () => {
     for (const label of [
       "홈",
       "예산 자료실",
+      "참고사이트",
       "예산 업무",
       "동영상 안내",
     ]) {
@@ -41,6 +42,9 @@ describe("PortalHeader", () => {
     await user.click(screen.getByRole("button", { name: "성립전예산" }));
 
     expect(onNavigate).toHaveBeenCalledWith("prebudget");
+
+    await user.click(screen.getByRole("button", { name: "참고사이트" }));
+    expect(onNavigate).toHaveBeenCalledWith("reference-sites");
   });
 
   it("로그인한 사용자에게만 담당자 정보를 표시한다", () => {

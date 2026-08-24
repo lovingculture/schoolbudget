@@ -227,6 +227,18 @@ export function HomePage({ onNavigate }: HomePageProps) {
               확인하기 <ArrowRight aria-hidden="true" />
             </button>
           </article>
+          <article>
+            <small className="site">링크</small>
+            <h3>학교예산 업무 참고사이트</h3>
+            <p>교육청·학교회계·업무지원 사이트를 한곳에서 확인하세요.</p>
+            <button
+              type="button"
+              onClick={() => onNavigate("reference-sites")}
+              aria-label="참고사이트 게시판 확인"
+            >
+              확인하기 <ArrowRight aria-hidden="true" />
+            </button>
+          </article>
         </div>
       </section>
     </div>

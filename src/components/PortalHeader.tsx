@@ -4,6 +4,7 @@ import {
   CircleUserRound,
   FolderOpen,
   Home,
+  Link2,
   LogOut,
   Menu,
   Video,
@@ -20,6 +21,7 @@ export type PortalHeaderView =
   | "supplementary"
   | "guide"
   | "resources"
+  | "reference-sites"
   | "videos";
 
 type PortalHeaderProps = {
@@ -130,6 +132,15 @@ export function PortalHeader({
           >
             <FolderOpen size={17} aria-hidden="true" />
             예산 자료실
+          </button>
+          <button
+            type="button"
+            className={activeView === "reference-sites" ? "active" : undefined}
+            aria-current={activeView === "reference-sites" ? "page" : undefined}
+            onClick={() => navigate("reference-sites")}
+          >
+            <Link2 size={17} aria-hidden="true" />
+            참고사이트
           </button>
           <button
             type="button"

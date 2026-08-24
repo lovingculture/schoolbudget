@@ -442,6 +442,11 @@
   color: #2676af;
 }
 
+.home-news-grid article > small.site {
+  background: #fff2e8;
+  color: #c9662f;
+}
+
 .home-news-grid h3 {
   margin: 20px 0 10px;
   font-size: 17px;
