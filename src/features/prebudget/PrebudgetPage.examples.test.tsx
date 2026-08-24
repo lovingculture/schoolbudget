@@ -39,12 +39,51 @@ async function renderValidPreview() {
   const loadedStorage: DraftStorage = { load: () => draft, save: vi.fn(), clear: vi.fn() };
   render(<PrebudgetPage initialSchoolName="서울우리학교" storage={loadedStorage} />);
   const user = userEvent.setup();
+  await user.click(screen.getByRole("button", { name: "임시저장 불러오기" }));
   await user.click(screen.getByRole("button", { name: "자동점검 후 기안문 생성" }));
   return user;
 }
 
 describe("성립전예산 예시 통합", () => {
-  it("같은 사업정보는 한 번만 표시하고 산출 항목만 여러 행으로 묶는다", () => {
+  it("처음에는 빈 서식으로 시작하고 사용자가 선택할 때만 임시저장본을 불러온다", async () => {
+    const savedDraft = validDraft();
+    const loadedStorage: DraftStorage = {
+      load: () => savedDraft,
+      save: vi.fn(),
+      clear: vi.fn(),
+    };
+    const user = userEvent.setup();
+
+    render(<PrebudgetPage initialSchoolName="서울우리학교" storage={loadedStorage} />);
+
+    expect(screen.getByRole("textbox", { name: "문서 제목" })).toHaveValue("");
+    expect(screen.getByRole("textbox", { name: "부서명" })).toHaveValue("");
+    expect(screen.getByRole("textbox", { name: "사업담당자" })).toHaveValue("");
+
+    await user.click(screen.getByRole("button", { name: "임시저장 불러오기" }));
+
+    expect(screen.getByRole("textbox", { name: "문서 제목" })).toHaveValue(savedDraft.title);
+    expect(screen.getByRole("textbox", { name: "부서명" })).toHaveValue(savedDraft.department);
+    expect(screen.getByRole("textbox", { name: "사업담당자" })).toHaveValue(savedDraft.requester);
+  });
+
+  it("현재 작성 내용을 임시저장해도 같은 화면에 불러오기 안내를 새로 표시하지 않는다", async () => {
+    const previousDraft = validDraft();
+    const loadedStorage: DraftStorage = {
+      load: () => previousDraft,
+      save: vi.fn(),
+      clear: vi.fn(),
+    };
+    const user = userEvent.setup();
+    render(<PrebudgetPage initialSchoolName="서울우리학교" storage={loadedStorage} />);
+
+    await user.type(screen.getByRole("textbox", { name: "문서 제목" }), "새 문서");
+    await user.click(screen.getByRole("button", { name: "임시저장" }));
+
+    expect(screen.queryByRole("button", { name: "임시저장 불러오기" })).not.toBeInTheDocument();
+  });
+
+  it("같은 사업정보는 한 번만 표시하고 산출 항목만 여러 행으로 묶는다", async () => {
     const draft = validDraft();
     draft.items.push({
       ...draft.items[0],
@@ -56,6 +95,7 @@ describe("성립전예산 예시 통합", () => {
     const loadedStorage: DraftStorage = { load: () => draft, save: vi.fn(), clear: vi.fn() };
 
     render(<PrebudgetPage initialSchoolName="서울우리학교" storage={loadedStorage} />);
+    await userEvent.setup().click(screen.getByRole("button", { name: "임시저장 불러오기" }));
 
     expect(screen.getAllByLabelText("단위사업")).toHaveLength(1);
     expect(screen.getAllByLabelText("세부사업")).toHaveLength(1);
@@ -74,6 +114,7 @@ describe("성립전예산 예시 통합", () => {
     };
     const user = userEvent.setup();
     render(<PrebudgetPage initialSchoolName="서울우리학교" storage={loadedStorage} />);
+    await user.click(screen.getByRole("button", { name: "임시저장 불러오기" }));
 
     await user.click(screen.getByRole("button", { name: "이 사업에 산출 항목 추가" }));
 
@@ -110,11 +151,12 @@ describe("성립전예산 예시 통합", () => {
     expect(screen.getAllByLabelText("단가")[0]).toHaveValue("");
   });
 
-  it("계산요소를 천 단위 콤마로 표시하고 클릭하면 기존 값을 전체 선택한다", () => {
+  it("계산요소를 천 단위 콤마로 표시하고 클릭하면 기존 값을 전체 선택한다", async () => {
     const draft = validDraft();
     draft.items[0] = { ...draft.items[0], unitPrice: 20000, quantity: 1000, count: 2 };
     const loadedStorage: DraftStorage = { load: () => draft, save: vi.fn(), clear: vi.fn() };
     render(<PrebudgetPage initialSchoolName="○○초등학교" storage={loadedStorage} />);
+    await userEvent.setup().click(screen.getByRole("button", { name: "임시저장 불러오기" }));
 
     const unitPrice = screen.getAllByLabelText("단가")[0] as HTMLInputElement;
     const quantity = screen.getAllByLabelText("수량")[0] as HTMLInputElement;
@@ -142,7 +184,9 @@ describe("성립전예산 예시 통합", () => {
     const draft = validDraft();
     const loadedStorage: DraftStorage = { load: () => draft, save: vi.fn(), clear: vi.fn() };
     const { container } = render(<PrebudgetPage initialSchoolName="서울우리학교" storage={loadedStorage} />);
-    await userEvent.setup().click(screen.getByRole("button", { name: "자동점검 후 기안문 생성" }));
+    const user = userEvent.setup();
+    await user.click(screen.getByRole("button", { name: "임시저장 불러오기" }));
+    await user.click(screen.getByRole("button", { name: "자동점검 후 기안문 생성" }));
     const paper = container.querySelector<HTMLElement>(".prebudget-paper")!;
     expect(paper.querySelector("h1")).toHaveTextContent(draft.title);
     expect(paper.querySelector("pre")).not.toHaveTextContent(new RegExp(`^${draft.title}`));
@@ -150,7 +194,9 @@ describe("성립전예산 예시 통합", () => {
 
   it("기안문 미리보기의 예산 편성 내역을 7열 표와 합계로 표시한다", async () => {
     const { container } = render(<PrebudgetPage initialSchoolName="서울우리학교" storage={{ load: () => validDraft(), save: vi.fn(), clear: vi.fn() }} />);
-    await userEvent.setup().click(screen.getByRole("button", { name: "자동점검 후 기안문 생성" }));
+    const user = userEvent.setup();
+    await user.click(screen.getByRole("button", { name: "임시저장 불러오기" }));
+    await user.click(screen.getByRole("button", { name: "자동점검 후 기안문 생성" }));
     const paper = container.querySelector<HTMLElement>(".prebudget-paper")!;
     expect(within(paper).getAllByRole("columnheader").map((cell) => cell.textContent)).toEqual(["단위사업", "세부사업", "세부항목", "원가통계비목", "산출내역", "산출식", "요구금액"]);
     expect(within(paper).getByText("합계")).toBeVisible();
@@ -189,6 +235,7 @@ describe("성립전예산 예시 통합", () => {
     const loadedStorage: DraftStorage = { load: () => draft, save: vi.fn(), clear: vi.fn() };
     const { container } = render(<PrebudgetPage initialSchoolName="서울우리학교" storage={loadedStorage} />);
     const user = userEvent.setup();
+    await user.click(screen.getByRole("button", { name: "임시저장 불러오기" }));
     const unitPrice = container.querySelector<HTMLInputElement>(".formula input")!;
 
     expect(container.querySelector(".formula output")).toHaveTextContent("200,000원");
@@ -237,7 +284,7 @@ describe("성립전예산 예시 통합", () => {
     await user.click(screen.getByRole("button", { name: "예시에서 시작하기" }));
     expect(screen.getByText("이 사업비는 어디에서 받았나요?")).toBeInTheDocument();
     await user.click(screen.getByRole("button", { name: /교육청·교육지원청에서 특정 사업/ }));
-    expect(screen.getByText("10건")).toBeInTheDocument();
+    expect(screen.getByText("7건")).toBeInTheDocument();
   });
 
   it("재원 안내 화면의 직접 작성 돌아가기 버튼을 전용 스타일로 표시한다", async () => {

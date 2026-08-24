@@ -47,6 +47,10 @@
 .portal-workspace .prebudget-guide-back:hover,
 .portal-workspace .prebudget-guide-back:focus-visible { border-color: #1596a3; box-shadow: 0 9px 22px rgb(20 51 78 / 12%); transform: translateY(-1px); }
 .prebudget-page .prebudget-example-notice { padding: 16px; border-radius: 14px; background: #fff8df; color: #6b5511; }
+.prebudget-saved-draft { display: flex; align-items: center; justify-content: space-between; gap: 18px; margin: 18px 0; padding: 18px 20px; border: 1px solid #b9ded8; border-radius: 16px; background: #f0faf8; color: #164f4a; }
+.prebudget-saved-draft p { margin: 5px 0 0; color: #52736f; }
+.prebudget-saved-draft button { flex: 0 0 auto; }
+@media (max-width: 640px) { .prebudget-saved-draft { align-items: stretch; flex-direction: column; } .prebudget-saved-draft button { width: 100%; } }
 .prebudget-page .prebudget-example-filters { padding: 16px; border-radius: 16px; background: var(--prebudget-mint); }
 .prebudget-page .prebudget-example-filters label { font-weight: 750; }
 .prebudget-page .prebudget-example-filters select,

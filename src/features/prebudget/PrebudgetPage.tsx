@@ -44,8 +44,11 @@ export function PrebudgetPage({
   initialSchoolName: string;
   storage?: DraftStorage;
 }) {
+  const [storedDraft, setStoredDraft] = useState<PrebudgetFormDraft | null>(
+    () => storage.load(),
+  );
   const [draft, setDraft] = useState<PrebudgetFormDraft>(
-    () => storage.load() ?? createPrebudgetDraft(initialSchoolName),
+    () => createPrebudgetDraft(initialSchoolName),
   );
   const [view, setView] = useState<"form" | "funding-guide" | "examples">(
     "form",
@@ -155,6 +158,7 @@ export function PrebudgetPage({
     const savedAt = new Date().toISOString();
     const next = { ...draft, savedAt };
     storage.save(next);
+    setStoredDraft(null);
     setDraft(next);
     setMessage(
       `이 브라우저에 임시저장했습니다. (${new Date(savedAt).toLocaleString("ko-KR")})`,
@@ -255,6 +259,27 @@ export function PrebudgetPage({
         documentReady={Boolean(document)}
         onOpenExamples={() => setView("funding-guide")}
       />
+      {storedDraft && (
+        <section className="prebudget-saved-draft" aria-label="임시저장 안내">
+          <div>
+            <b>이 브라우저에 임시저장된 내용이 있습니다.</b>
+            <p>이전 작업을 계속하려면 저장된 내용을 불러오세요.</p>
+          </div>
+          <button
+            type="button"
+            className="secondary"
+            onClick={() => {
+              setDraft(storedDraft);
+              setDocument(null);
+              setIssues([]);
+              setMessage("임시저장된 내용을 불러왔습니다.");
+              setStoredDraft(null);
+            }}
+          >
+            임시저장 불러오기
+          </button>
+        </section>
+      )}
       {draft.exampleSourceId && draft.reviewRequiredFields.length > 0 && (
         <section className="prebudget-errors" aria-label="확인 필요 항목">
           <b>예시를 복사한 초안입니다</b>
