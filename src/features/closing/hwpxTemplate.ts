@@ -101,6 +101,7 @@ export function createClosingSectionFromTemplate(draft: ClosingAgendaDraft): str
   replaceText(document, "초·중등교육법 제32조(기능) 심의 - 학교의 예산안 및 결산에 관한 사항", draft.basis);
   replaceText(document, "2025학년도 학교회계 세입·세출 결산에 관한 사항에 대해 심의 및 공개", draft.reason);
   replaceText(document, "별첨 1. 2025학년도 결산서 및 부속자료 각 1부.  끝.", draft.attachment);
+  replaceText(document, "순수한 불용액", "");
   replaceLeafText(document, "2,724,818,217", money(draft.incomeTotal));
   replaceLeafText(document, "2,698,568,069", money(draft.expenseTotal));
 

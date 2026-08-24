@@ -45,6 +45,7 @@ describe("결산 안건설명서 HWPX 생성", () => {
     expect(sectionXml).toContain("지방자치단체이전수입");
     expect(sectionXml).toContain("인적자원 운용");
     expect(sectionXml).toContain("<hp:tbl");
+    expect(sectionXml).not.toContain("순수한 불용액");
   });
 
   it("XML 예약문자가 있는 수정값을 안전하게 저장한다", async () => {

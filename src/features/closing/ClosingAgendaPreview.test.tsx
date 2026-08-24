@@ -22,4 +22,10 @@ describe("결산 안건설명서 A4 미리보기", () => {
     expect(screen.getAllByText("2,724,818,217").length).toBeGreaterThan(0);
     expect(screen.getByText(/별첨 1.*결산서 및 부속자료/)).toBeVisible();
   });
+
+  it("세계잉여금 처리 현황의 비고 칸에 불용액 설명을 표시하지 않는다", () => {
+    render(<ClosingAgendaPreview draft={createClosingDraft(source)}/>);
+
+    expect(screen.queryByText("순수한 불용액")).not.toBeInTheDocument();
+  });
 });
