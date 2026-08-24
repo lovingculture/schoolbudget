@@ -11,6 +11,42 @@
   color: var(--workspace-navy);
 }
 
+.portal-page-navigation {
+  position: sticky;
+  top: 76px;
+  z-index: 9;
+  display: flex;
+  gap: 10px;
+  width: min(calc(100% - 80px), 1240px);
+  margin: 0 auto -20px;
+  padding: 16px 0 0;
+}
+.portal-page-navigation button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  min-height: 44px;
+  padding: 10px 15px;
+  border: 1px solid #c9dde3;
+  border-radius: 12px;
+  background: rgb(255 255 255 / 96%);
+  color: #14334e;
+  box-shadow: 0 8px 22px rgb(20 51 78 / 9%);
+  font-size: 14px;
+  font-weight: 800;
+  cursor: pointer;
+  backdrop-filter: blur(8px);
+}
+.portal-page-navigation button:last-child:not(:only-child) {
+  border-color: #9fd3d4;
+  background: #eaf8f6;
+  color: #0b5f66;
+}
+.portal-page-navigation button:hover { transform: translateY(-1px); }
+.portal-page-navigation button:focus-visible { outline: 3px solid rgb(24 139 193 / 42%); outline-offset: 2px; }
+.portal-page-navigation svg { width: 18px; height: 18px; }
+
 .portal-workspace .page-title h1 { color: var(--workspace-navy); letter-spacing: -0.04em; }
 .portal-workspace .page-title > span { color: var(--workspace-teal-text); font-weight: 800; }
 .portal-workspace .form-card,
@@ -170,4 +206,12 @@
 .portal-workspace .closing-download-buttons button:nth-child(3) { background: var(--workspace-primary-teal); }
 
 /* Do not target .prebudget-paper, .closing-a4-page, or .budget-agenda-a4-page. */
-@media (max-width: 760px) { .portal-workspace { padding-inline: 18px; } }
+@media (max-width: 760px) {
+  .portal-workspace { padding-inline: 18px; }
+  .portal-page-navigation {
+    top: 64px;
+    width: calc(100% - 36px);
+    margin-bottom: -12px;
+  }
+  .portal-page-navigation button { flex: 1; padding-inline: 10px; font-size: 13px; }
+}

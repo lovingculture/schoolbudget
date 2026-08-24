@@ -1,7 +1,10 @@
-import { FormEvent, useEffect, useMemo, useState } from "react";
+import { FormEvent, useEffect, useMemo, useState, type ReactNode } from "react";
 import type { User } from "@supabase/supabase-js";
 import {
+  ArrowLeft,
   Download,
+  House,
+  List,
   Plus,
   Sparkles,
   X,
@@ -30,6 +33,15 @@ import { ReferenceSitesPage } from "./features/referenceSites/ReferenceSitesPage
 import "./features/portal/portalWorkspace.css";
 
 export type View = PortalHeaderView;
+
+const GUIDE_DESTINATIONS = new Set<View>([
+  "resources",
+  "prebudget",
+  "budget",
+  "agenda",
+  "closing",
+  "supplementary",
+]);
 
 const blankItem = (): DraftItem => ({
   id: crypto.randomUUID(),
@@ -331,12 +343,20 @@ export function Portal({
   onAdminLogin?: () => void;
 }) {
   const [view, setView] = useState<View>("home");
+  const [viewHistory, setViewHistory] = useState<View[]>([]);
   const [items, setItems] = useState<DraftItem[]>(
     Array.from({ length: 5 }, blankItem),
   );
   const total = useMemo(() => draftTotal(items), [items]);
   const go = (next: View) => {
+    if (next === view) return;
+    setViewHistory((current) => [...current, view]);
     setView(next);
+  };
+  const goBack = () => {
+    const previous = viewHistory.at(-1) ?? "home";
+    setViewHistory((current) => current.slice(0, -1));
+    setView(previous);
   };
 
   const updateItem = (
@@ -364,6 +384,23 @@ export function Portal({
         schoolName={schoolName}
       />
       <main className="main portal-main">
+        {view === "guide" && (
+          <PortalPageNavigation>
+            <button type="button" onClick={() => go("home")}>
+              <House aria-hidden="true" /> 홈으로
+            </button>
+          </PortalPageNavigation>
+        )}
+        {GUIDE_DESTINATIONS.has(view) && (
+          <PortalPageNavigation>
+            <button type="button" onClick={goBack}>
+              <ArrowLeft aria-hidden="true" /> 이전 화면
+            </button>
+            <button type="button" onClick={() => go("guide")}>
+              <List aria-hidden="true" /> 이용안내 목록으로
+            </button>
+          </PortalPageNavigation>
+        )}
         {view === "home" && (
           <HomePage
             displayName={displayName}
@@ -388,6 +425,10 @@ export function Portal({
       </footer>
     </div>
   );
+}
+
+function PortalPageNavigation({ children }: { children: ReactNode }) {
+  return <nav className="portal-page-navigation" aria-label="페이지 이동">{children}</nav>;
 }
 
 function Prebudget({

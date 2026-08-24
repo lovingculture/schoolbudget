@@ -262,6 +262,40 @@ describe("예산업무 포털", () => {
     expect(screen.getByText("안내 동영상을 준비하고 있습니다.")).toBeVisible();
   });
 
+  it("이용안내에서 연 모든 업무 화면은 이용안내 목록으로 돌아갈 수 있다", async () => {
+    const user = userEvent.setup();
+    render(<Portal displayName="김담당" schoolName="서울한빛초등학교" />);
+    await user.click(screen.getByRole("button", { name: "학교예산 한눈에 이용 안내 확인" }));
+
+    const destinations = [
+      "예산 자료실로 이동",
+      "성립전예산 작성으로 이동",
+      "본예산으로 이동",
+      "예산안건 설명서로 이동",
+      "결산 설명서로 이동",
+      "추경예산자료로 이동",
+    ];
+
+    for (const destination of destinations) {
+      await user.click(screen.getByRole("button", { name: destination }));
+      expect(screen.getByRole("button", { name: "이전 화면" })).toBeVisible();
+      await user.click(screen.getByRole("button", { name: "이용안내 목록으로" }));
+      expect(screen.getByRole("heading", { name: "학교예산 한눈에 이용 안내" })).toBeVisible();
+    }
+  });
+
+  it("업무 화면의 이전 화면 버튼은 직전에 보던 이용안내로 돌아간다", async () => {
+    const user = userEvent.setup();
+    render(<Portal displayName="김담당" schoolName="서울한빛초등학교" />);
+    await user.click(screen.getByRole("button", { name: "학교예산 한눈에 이용 안내 확인" }));
+    expect(screen.getByRole("button", { name: "홈으로" })).toBeVisible();
+    await user.click(screen.getByRole("button", { name: "결산 설명서로 이동" }));
+
+    await user.click(screen.getByRole("button", { name: "이전 화면" }));
+
+    expect(screen.getByRole("heading", { name: "학교예산 한눈에 이용 안내" })).toBeVisible();
+  });
+
   it("통합검색 준비 중 메뉴를 표시하지 않는다", () => {
     render(<Portal displayName="김담당" schoolName="서울한빛초등학교" />);
     expect(screen.queryByRole("button", { name: "통합검색 준비 중" })).not.toBeInTheDocument();
