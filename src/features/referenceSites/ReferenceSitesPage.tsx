@@ -69,6 +69,13 @@ export const REFERENCE_SITES: ReferenceSite[] = [
     description: "K-에듀파인 학교회계 본예산 편성과 관리 방법을 안내하는 교육영상입니다.",
     url: "https://www.youtube.com/watch?v=zaMVS8WLWTo&t=16s",
   },
+  {
+    id: "job-cock-main-budget-adjustment-meeting",
+    title: "[직무콕] 한눈에 쏙 들어오는 본예산 조정회의 자료 만들기",
+    category: "학교회계",
+    description: "본예산 조정회의에 필요한 자료를 한눈에 보기 좋게 정리하는 방법을 안내하는 교육영상입니다.",
+    url: "https://www.youtube.com/watch?v=5epYRQu4Ov4",
+  },
 ];
 
 const CATEGORIES = ["전체", "교육청", "학교회계", "업무지원", "기타"] as const;

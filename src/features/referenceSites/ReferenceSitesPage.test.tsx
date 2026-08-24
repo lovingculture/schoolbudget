@@ -59,6 +59,20 @@ describe("참고사이트 게시판", () => {
     });
   });
 
+  it("본예산 조정회의 자료 만들기 영상을 학교회계 링크로 제공한다", () => {
+    render(<ReferenceSitesPage />);
+    const title = "[직무콕] 한눈에 쏙 들어오는 본예산 조정회의 자료 만들기";
+    const link = screen.getByRole("link", { name: `${title} 바로가기` });
+    const card = link.closest("article")!;
+
+    expect(link).toHaveAttribute("href", "https://www.youtube.com/watch?v=5epYRQu4Ov4");
+    expect(within(card).getByText("학교회계")).toBeVisible();
+    expect(within(card).getByRole("img", { name: `${title} 미리보기` })).toHaveAttribute(
+      "src",
+      "https://i.ytimg.com/vi/5epYRQu4Ov4/hqdefault.jpg",
+    );
+  });
+
   it("유튜브 미리보기를 누르면 유튜브 영상 페이지를 새 창으로 연다", () => {
     render(<ReferenceSitesPage />);
     const title = "[학교회계 - 예산관리] 1장 예산관리개요";
