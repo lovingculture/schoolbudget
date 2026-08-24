@@ -10,7 +10,7 @@ import "./supplementaryCharacter.css";
 type ResultTab = "status" | "summary" | "review" | "proposal";
 type QuickFilter = "all" | "balance" | "available" | "low-rate" | "discrepancy";
 type EditValues = Record<string, { planned: number; proposal: number }>;
-type TextColumn = "policy" | "unitBusiness" | "detailBusiness" | "detailItem" | "costCategory" | "description";
+type TextColumn = "policy" | "unitBusiness" | "detailBusiness" | "detailItem" | "account" | "subAccount" | "costCategory" | "description";
 type ColumnFilters = Partial<Record<TextColumn, string[]>>;
 type SortState = { column: TextColumn; direction: "asc" | "desc" } | null;
 type SupplementaryDraft = {
@@ -28,7 +28,8 @@ type SupplementaryDraft = {
 const DRAFT_STORAGE_KEY = "school-budget:supplementary-draft:v1";
 const TEXT_COLUMNS: readonly [TextColumn, string][] = [
   ["policy", "정책사업"], ["unitBusiness", "단위사업"], ["detailBusiness", "세부사업"],
-  ["detailItem", "세부항목"], ["costCategory", "원가통계비목"], ["description", "산출내역"],
+  ["detailItem", "세부항목"], ["account", "목명"], ["subAccount", "세목명"],
+  ["costCategory", "원가통계비목"], ["description", "산출내역"],
 ];
 
 const QUICK_FILTERS: readonly [QuickFilter, string][] = [
@@ -36,7 +37,7 @@ const QUICK_FILTERS: readonly [QuickFilter, string][] = [
   ["balance", "잔액 있음"],
   ["available", "추경 가능금액 있음"],
   ["low-rate", "집행률 50% 미만"],
-  ["discrepancy", "불일치 있음"],
+  ["discrepancy", "원인행위·지출 불일치"],
 ];
 
 const money = (value: number) => value.toLocaleString("ko-KR");
@@ -44,6 +45,12 @@ const rate = (value: number) => `${value.toFixed(2)}%`;
 const displayDate = (value: string) => value.length === 8
   ? `${value.slice(0, 4)}-${value.slice(4, 6)}-${value.slice(6)}`
   : value;
+
+const filterSummary = (selectedCount: number, totalCount: number) => {
+  if (selectedCount === 0) return "전체 해제";
+  const excludedCount = totalCount - selectedCount;
+  return excludedCount < selectedCount ? `${excludedCount}개 제외됨` : `${selectedCount}개 선택`;
+};
 
 function MoneyInput({ label, value, allowNegative = false, onChange }: {
   label: string;
@@ -120,7 +127,7 @@ export function SupplementaryPage() {
   const filtered = useMemo(() => {
     const token = query.trim().toLowerCase();
     const searched = token ? calculated.filter(row => [
-      row.policy, row.unitBusiness, row.detailBusiness, row.detailItem,
+      row.policy, row.unitBusiness, row.detailBusiness, row.detailItem, row.account, row.subAccount,
       row.costCategory, row.description,
     ].some(value => value.toLowerCase().includes(token))) : calculated;
     const quickFiltered = searched.filter(row => {
@@ -192,6 +199,16 @@ export function SupplementaryPage() {
       const updated = { ...current };
       if (next.length === options.length) delete updated[column];
       else updated[column] = next;
+      return updated;
+    });
+  };
+  const toggleAllColumnValues = (column: TextColumn) => {
+    setColumnFilters(current => {
+      const options = columnOptions[column];
+      const selected = current[column];
+      if (!selected || selected.length === options.length) return { ...current, [column]: [] };
+      const updated = { ...current };
+      delete updated[column];
       return updated;
     });
   };
@@ -287,12 +304,12 @@ export function SupplementaryPage() {
     {Object.entries(columnFilters).length > 0 && <div className="supplementary-active-filters" aria-label="적용된 열 필터">
       {Object.entries(columnFilters).map(([column, selected]) => {
         const label = TEXT_COLUMNS.find(([key]) => key === column)?.[1] ?? column;
-        return <button type="button" key={column} onClick={() => setColumnFilters(current => { const next = { ...current }; delete next[column as TextColumn]; return next; })}>{label}: {(selected ?? []).join(", ")} <X size={14}/></button>;
+        return <button type="button" key={column} onClick={() => setColumnFilters(current => { const next = { ...current }; delete next[column as TextColumn]; return next; })}>{label}: {filterSummary(selected?.length ?? 0, columnOptions[column as TextColumn].length)} <X size={14}/></button>;
       })}
     </div>}
     <ExecutionResults tab={tab} rows={filtered} summaries={summaries} changeEdit={changeEdit}
       columnOptions={columnOptions} columnFilters={columnFilters} openFilter={openFilter} sort={sort}
-      onOpenFilter={setOpenFilter} onToggleColumnValue={toggleColumnValue} onSort={setSort}/>
+      onOpenFilter={setOpenFilter} onToggleColumnValue={toggleColumnValue} onToggleAllColumnValues={toggleAllColumnValues} onSort={setSort}/>
     {error && <div className="closing-error" role="alert">{error}</div>}
     {saveMessage && <p className="supplementary-save-message" role="status">{saveMessage}</p>}
     <div className="supplementary-actions">
@@ -303,7 +320,7 @@ export function SupplementaryPage() {
   </div>;
 }
 
-function ExcelFilterHeader({ column, label, options, selected, isOpen, sort, onOpen, onToggle, onSort }: {
+function ExcelFilterHeader({ column, label, options, selected, isOpen, sort, onOpen, onToggle, onToggleAll, onSort }: {
   column: TextColumn;
   label: string;
   options: string[];
@@ -312,6 +329,7 @@ function ExcelFilterHeader({ column, label, options, selected, isOpen, sort, onO
   sort: SortState;
   onOpen: (column: TextColumn | null) => void;
   onToggle: (column: TextColumn, value: string) => void;
+  onToggleAll: (column: TextColumn) => void;
   onSort: (sort: SortState) => void;
 }) {
   const direction = sort?.column === column ? (sort.direction === "asc" ? "ascending" : "descending") : undefined;
@@ -319,12 +337,12 @@ function ExcelFilterHeader({ column, label, options, selected, isOpen, sort, onO
     <div className="excel-filter-heading"><span>{label}</span><button type="button" aria-label={`${label} 필터 열기`} aria-expanded={isOpen} data-sorted={direction} onClick={() => onOpen(isOpen ? null : column)}><ChevronDown size={15}/></button></div>
     {isOpen && <div className="excel-filter-menu" role="group" aria-label={`${label} 필터`}>
       <div className="excel-filter-sort"><button type="button" aria-label="오름차순 정렬" onClick={() => onSort({ column, direction: "asc" })}><ArrowUpAZ size={16}/>오름차순</button><button type="button" aria-label="내림차순 정렬" onClick={() => onSort({ column, direction: "desc" })}><ArrowDownAZ size={16}/>내림차순</button></div>
-      <div className="excel-filter-values">{options.map(value => <label key={value}><input type="checkbox" checked={!selected || selected.includes(value)} onChange={() => onToggle(column, value)}/><span>{value || "(빈 셀)"}</span></label>)}</div>
+      <div className="excel-filter-values"><label className="excel-filter-select-all"><input type="checkbox" aria-label="전체 선택" checked={!selected || selected.length === options.length} ref={input => { if (input) input.indeterminate = Boolean(selected && selected.length > 0 && selected.length < options.length); }} onChange={() => onToggleAll(column)}/><span>전체 선택</span></label>{options.map(value => <label key={value}><input type="checkbox" checked={!selected || selected.includes(value)} onChange={() => onToggle(column, value)}/><span>{value || "(빈 셀)"}</span></label>)}</div>
     </div>}
   </th>;
 }
 
-function ExecutionResults({ tab, rows, summaries, changeEdit, columnOptions, columnFilters, openFilter, sort, onOpenFilter, onToggleColumnValue, onSort }: {
+function ExecutionResults({ tab, rows, summaries, changeEdit, columnOptions, columnFilters, openFilter, sort, onOpenFilter, onToggleColumnValue, onToggleAllColumnValues, onSort }: {
   tab: ResultTab;
   rows: CalculatedExecutionRow[];
   summaries: ReturnType<typeof aggregateByUnitBusiness>;
@@ -335,18 +353,19 @@ function ExecutionResults({ tab, rows, summaries, changeEdit, columnOptions, col
   sort: SortState;
   onOpenFilter: (column: TextColumn | null) => void;
   onToggleColumnValue: (column: TextColumn, value: string) => void;
+  onToggleAllColumnValues: (column: TextColumn) => void;
   onSort: (sort: SortState) => void;
 }) {
   if (tab === "summary") return <div className="execution-table-wrap"><table className="execution-table"><thead><tr><th>정책사업</th><th>단위사업</th><th>예산액(4)</th><th>원인행위</th><th>지출</th><th>집행잔액</th><th>집행률</th></tr></thead><tbody>{summaries.map(row => <tr key={`${row.policy}-${row.unitBusiness}`}><td>{row.policy}</td><td>{row.unitBusiness}</td><td>{money(row.budgetAmount)}</td><td>{money(row.committedAmount)}</td><td>{money(row.paidAmount)}</td><td className={row.balance < 0 ? "negative" : ""}>{money(row.balance)}</td><td>{rate(row.executionRate)}</td></tr>)}</tbody></table></div>;
   const editable = tab === "review" || tab === "proposal";
-  const headerProps = { columnOptions, columnFilters, openFilter, sort, onOpenFilter, onToggleColumnValue, onSort };
+  const headerProps = { columnOptions, columnFilters, openFilter, sort, onOpenFilter, onToggleColumnValue, onToggleAllColumnValues, onSort };
   return <div className="execution-table-wrap"><table className="execution-table"><thead><tr>
-    {TEXT_COLUMNS.map(([column, label]) => <ExcelFilterHeader key={column} column={column} label={label} options={headerProps.columnOptions[column]} selected={headerProps.columnFilters[column]} isOpen={headerProps.openFilter === column} sort={headerProps.sort} onOpen={headerProps.onOpenFilter} onToggle={headerProps.onToggleColumnValue} onSort={headerProps.onSort}/>)}
-    <th>예산액(4)</th><th>원인행위</th><th>지출</th><th>집행잔액</th>
+    {TEXT_COLUMNS.map(([column, label]) => <ExcelFilterHeader key={column} column={column} label={label} options={headerProps.columnOptions[column]} selected={headerProps.columnFilters[column]} isOpen={headerProps.openFilter === column} sort={headerProps.sort} onOpen={headerProps.onOpenFilter} onToggle={headerProps.onToggleColumnValue} onToggleAll={headerProps.onToggleAllColumnValues} onSort={headerProps.onSort}/>)}
+    <th>{editable ? "예산액" : "예산액(4)"}</th><th>{editable ? "원인행위금액" : "원인행위"}</th><th>{editable ? "지출금액" : "지출"}</th><th>집행잔액</th>
     {tab === "status" && <><th>불일치</th><th>집행률</th></>}
-    {editable && <><th>부서별 집행예정액</th><th>추경 가능금액</th><th>추경(안)</th></>}
+    {editable && <><th>부서별집행예정액</th><th>추경감액가능금액</th><th>추경(안)</th></>}
   </tr></thead><tbody>{rows.map(row => <tr key={row.id}>
-    <td>{row.policy}</td><td>{row.unitBusiness}</td><td>{row.detailBusiness}</td><td>{row.detailItem}</td><td>{row.costCategory}</td><td>{row.description}</td>
+    <td>{row.policy}</td><td>{row.unitBusiness}</td><td>{row.detailBusiness}</td><td>{row.detailItem}</td><td>{row.account}</td><td>{row.subAccount}</td><td>{row.costCategory}</td><td>{row.description}</td>
     <td>{money(row.budgetAmount)}</td><td>{money(row.committedAmount)}</td><td>{money(row.paidAmount)}</td><td className={row.balance < 0 ? "negative" : ""}>{money(row.balance)}</td>
     {tab === "status" && <><td className={row.discrepancy !== 0 ? "warning-number" : ""}>{money(row.discrepancy)}</td><td>{rate(row.executionRate)}</td></>}
     {editable && <><td><MoneyInput label={`${row.description} 집행예정액`} value={row.plannedAmount} onChange={value => changeEdit(row.id, "planned", value)}/></td><td className={row.availableSupplement < 0 ? "negative" : ""}>{money(row.availableSupplement)}</td><td><MoneyInput label={`${row.description} 추경안`} value={row.supplementProposal} allowNegative onChange={value => changeEdit(row.id, "proposal", value)}/></td></>}

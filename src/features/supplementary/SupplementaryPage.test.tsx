@@ -95,10 +95,56 @@ describe("집행실적으로 추경자료 만들기 화면", () => {
 
     expect(screen.queryByText("협의회")).not.toBeInTheDocument();
     expect(screen.getByText("소모품")).toBeVisible();
-    expect(screen.getByText("원가통계비목: 일반수용비")).toBeVisible();
+    expect(screen.getByText("원가통계비목: 1개 선택")).toBeVisible();
 
     fireEvent.click(within(menu).getByRole("button", { name: "오름차순 정렬" }));
     expect(screen.getByRole("button", { name: "원가통계비목 필터 열기" })).toHaveAttribute("data-sorted", "ascending");
+  });
+
+  it("열 필터의 전체 선택을 한 번에 해제하고 다시 선택한다", async () => {
+    render(<SupplementaryPage />);
+    await loadExecutionFixture();
+
+    fireEvent.click(screen.getByRole("button", { name: "원가통계비목 필터 열기" }));
+    const menu = screen.getByRole("group", { name: "원가통계비목 필터" });
+    const selectAll = within(menu).getByRole("checkbox", { name: "전체 선택" });
+
+    expect(selectAll).toBeChecked();
+    fireEvent.click(selectAll);
+    expect(screen.queryByText("협의회")).not.toBeInTheDocument();
+    expect(screen.queryByText("소모품")).not.toBeInTheDocument();
+
+    fireEvent.click(within(menu).getByRole("checkbox", { name: "일반수용비" }));
+    expect(screen.queryByText("협의회")).not.toBeInTheDocument();
+    expect(screen.getByText("소모품")).toBeVisible();
+    expect(screen.getByText("원가통계비목: 1개 선택")).toBeVisible();
+
+    fireEvent.click(selectAll);
+    expect(screen.getByText("협의회")).toBeVisible();
+    expect(screen.getByText("소모품")).toBeVisible();
+  });
+
+  it("추경검토 시트의 15개 열을 같은 순서로 보여준다", async () => {
+    render(<SupplementaryPage />);
+    await loadExecutionFixture();
+    fireEvent.click(screen.getByRole("button", { name: "추경검토자료" }));
+
+    const table = screen.getByRole("table");
+    const headers = within(table).getAllByRole("columnheader").map(header => header.textContent?.trim());
+    expect(headers).toEqual([
+      "정책사업", "단위사업", "세부사업", "세부항목", "목명", "세목명", "원가통계비목", "산출내역",
+      "예산액", "원인행위금액", "지출금액", "집행잔액", "부서별집행예정액", "추경감액가능금액", "추경(안)",
+    ]);
+    expect(within(table).getAllByText("목")).toHaveLength(2);
+    expect(within(table).getAllByText("세목")).toHaveLength(2);
+  });
+
+  it("원인행위와 지출금액이 다른 항목임을 빠른 필터에 명확히 표시한다", async () => {
+    render(<SupplementaryPage />);
+    await loadExecutionFixture();
+
+    expect(screen.getByRole("button", { name: "원인행위·지출 불일치" })).toBeVisible();
+    expect(screen.queryByRole("button", { name: "불일치 있음" })).not.toBeInTheDocument();
   });
 
   it("작업 상태를 브라우저에 임시저장하고 다음 접속에서 복원한다", async () => {
