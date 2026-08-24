@@ -16,6 +16,7 @@ const seeds: Seed[] = [
   ["purpose-afterschool", "목적사업비", "방과후사업비", ["방과후", "방과후사업비", "강좌", "수강"], "방과후 학교운영", "늘봄학교운영", "(목)초등방과후교실사업 지원비"],
   ["purpose-digital-ai", "목적사업비", "디지털·AI 교육 지원", ["디지털", "AI", "인공지능", "연구학교"], "교과 활동", "교과활동지원", "디지털기반 학생 맞춤교육을 위한 연구학교운영"],
   ["purpose-integrated-student", "목적사업비", "학생 맞춤통합지원", ["맞춤통합", "학생지원", "통합지원"], "교육격차해소", "기타 교육격차해소 지원", "학생 맞춤통합지원"],
+  ["purpose-entrance-preparation", "목적사업비", "입학준비금(제로페이·교복)", ["입학준비금", "제로페이", "교복", "신입생"], "학생 복지", "학생복지운영", "(목) 입학준비금(제로페이, 교복)"],
   ["district-facility", "구청보조금", "시설·환경개선 지원", ["구청 지원", "시설", "환경개선"], "교육여건 개선", "교육환경개선", "시설·환경개선"],
   ["district-curriculum", "구청보조금", "교육과정·체험활동 지원", ["구청 지원", "교육과정", "체험"], "교과 활동", "교과활동지원", "교육과정 운영 지원"],
   ["district-welfare", "구청보조금", "학생복지 지원", ["구청 지원", "학생복지", "복지"], "학생 복지", "교육복지우선", "학생복지 지원"],
@@ -234,6 +235,28 @@ examples[fieldTripIndex] = {
     { unitBusiness: "창의적 체험활동", business: "현장체험학습 활동", detail: "(수) 5학년 현장체험학습", category: "교육운영비", description: "(수) 점심식사비", unitPrice: 9_500, quantity: 115, count: 1, manualAmount: 1_093_000, formulaText: "9,500원 × 115명" },
     { unitBusiness: "창의적 체험활동", business: "현장체험학습 활동", detail: "(수) 5학년 현장체험학습", category: "교육운영비", description: "(수) 체험활동비", unitPrice: 2_500, quantity: 115, count: 1, manualAmount: 287_000, formulaText: "2,500원 × 115명 - 1,000원" },
   ],
+  calculationUnit: "명",
+};
+
+const entrancePreparationIndex = examples.findIndex(({ id }) => id === "purpose-entrance-preparation");
+examples[entrancePreparationIndex] = {
+  ...examples[entrancePreparationIndex],
+  summary: "입학준비금(제로페이·교복)을 성립전예산으로 처음 편성할 때 참고하는 예시입니다.",
+  useWhen: ["입학준비금이 목적사업비로 교부된 경우"],
+  prepareBeforeWriting: [],
+  documentTitle: "입학준비금(제로페이·교복) 성립전예산 편성",
+  items: [{
+    unitBusiness: "학생 복지",
+    business: "학생복지운영",
+    detail: "(목) 입학준비금(제로페이, 교복)",
+    category: "교육운영비",
+    description: "입학준비금(제로페이)",
+    unitPrice: 300_000,
+    quantity: 100,
+    count: 1,
+    manualAmount: 30_000_000,
+    formulaText: "300,000원 × 100명",
+  }],
   calculationUnit: "명",
 };
 

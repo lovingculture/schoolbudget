@@ -15,10 +15,10 @@ describe("초보자용 성립전예산 예시 화면", () => {
     expect(onUnsure).toHaveBeenCalled();
   });
 
-  it("목적사업비 6건에서 방과후사업비 예시를 찾고 상세를 연다", async () => {
+  it("목적사업비 7건에서 방과후사업비 예시를 찾고 상세를 연다", async () => {
     const user = userEvent.setup();
     render(<PrebudgetExampleLibrary examples={PREBUDGET_EXAMPLES} initialScope="목적사업비" onUseExample={vi.fn()} onBack={vi.fn()} />);
-    expect(screen.getByText("6건")).toBeInTheDocument();
+    expect(screen.getByText("7건")).toBeInTheDocument();
     await user.type(screen.getByRole("searchbox", { name: "예시 검색" }), "방과후사업비");
     const afterschoolCard = screen.getByRole("heading", { name: "방과후사업비" }).closest("article")!;
     await user.click(within(afterschoolCard).getByRole("button", { name: "자세히 보기" }));
@@ -28,6 +28,21 @@ describe("초보자용 성립전예산 예시 화면", () => {
       "세부사업", "세부항목", "원가통계비목", "산출내역", "산출식", "요구금액",
     ]);
     expect(screen.getByRole("button", { name: "이 예시로 작성하기" })).toBeInTheDocument();
+  });
+
+  it("입학준비금 목적사업비 예시를 검색하고 100명 산출내역을 불러온다", async () => {
+    const onUseExample = vi.fn();
+    const user = userEvent.setup();
+    render(<PrebudgetExampleLibrary examples={PREBUDGET_EXAMPLES} initialScope="목적사업비" onUseExample={onUseExample} onBack={vi.fn()} />);
+
+    await user.type(screen.getByRole("searchbox", { name: "예시 검색" }), "입학준비금");
+    await user.click(screen.getByRole("button", { name: "자세히 보기" }));
+
+    expect(screen.getByRole("heading", { name: "입학준비금(제로페이·교복)" })).toBeVisible();
+    expect(screen.getByText("300,000원 × 100명")).toBeVisible();
+    expect(screen.getByText("30,000,000원")).toBeVisible();
+    await user.click(screen.getByRole("button", { name: "이 예시로 작성하기" }));
+    expect(onUseExample).toHaveBeenCalledWith(expect.objectContaining({ id: "purpose-entrance-preparation" }));
   });
 
   it("예시 목록과 상세 미리보기를 명확한 영역으로 제공한다", async () => {

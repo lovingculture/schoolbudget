@@ -10,6 +10,7 @@ const approvedMappings = {
   "purpose-afterschool": ["방과후 학교운영", "늘봄학교운영", "(목)초등방과후교실사업 지원비"],
   "purpose-digital-ai": ["교과 활동", "교과활동지원", "디지털기반 학생 맞춤교육을 위한 연구학교운영"],
   "purpose-integrated-student": ["교육격차해소", "기타 교육격차해소 지원", "학생 맞춤통합지원"],
+  "purpose-entrance-preparation": ["학생 복지", "학생복지운영", "(목) 입학준비금(제로페이, 교복)"],
   "district-facility": ["교과 활동", "외국어 교과활동", "(보조)미래글로벌체험센터 초등 영어체험학습"],
   "district-curriculum": ["독서활동", "독서활동 운영", "(보조금)책향성독서교육"],
   "district-welfare": ["창의적 체험활동", "진로활동", "(보조금)진로교육 활성화사업 지원"],
@@ -19,12 +20,12 @@ const approvedMappings = {
 } as const;
 
 describe("초보자용 성립전예산 예시", () => {
-  it("승인된 6·3·3 구성의 예시 12종을 제공한다", () => {
-    expect(PREBUDGET_EXAMPLES).toHaveLength(12);
-    expect(PREBUDGET_EXAMPLES.filter((item) => item.fundingCategory === "목적사업비")).toHaveLength(6);
+  it("승인된 7·3·3 구성의 예시 13종을 제공한다", () => {
+    expect(PREBUDGET_EXAMPLES).toHaveLength(13);
+    expect(PREBUDGET_EXAMPLES.filter((item) => item.fundingCategory === "목적사업비")).toHaveLength(7);
     expect(PREBUDGET_EXAMPLES.filter((item) => item.fundingCategory === "구청보조금")).toHaveLength(3);
     expect(PREBUDGET_EXAMPLES.filter((item) => item.fundingCategory === "수익자부담금")).toHaveLength(3);
-    expect(new Set(PREBUDGET_EXAMPLES.map((item) => item.id)).size).toBe(12);
+    expect(new Set(PREBUDGET_EXAMPLES.map((item) => item.id)).size).toBe(13);
   });
 
   it("필수값·금액계산·개인정보 검증을 모두 통과한다", () => {
@@ -41,7 +42,7 @@ describe("초보자용 성립전예산 예시", () => {
     }
   });
 
-  it("12개 예시에 승인된 단위·세부사업·세부항목을 지정한다", () => {
+  it("13개 예시에 승인된 단위·세부사업·세부항목을 지정한다", () => {
     for (const example of PREBUDGET_EXAMPLES) {
       const item = example.items[0];
       expect([item.unitBusiness, item.business, item.detail]).toEqual(
@@ -57,7 +58,7 @@ describe("초보자용 성립전예산 예시", () => {
       expect(item.business).toBeTruthy();
       expect(item.detail).toBeTruthy();
       expect(getDetailBusinesses(item.unitBusiness)).toContain(item.business);
-      if (!["purpose-neulbom", "purpose-care", "purpose-afterschool", "beneficiary-field-trip"].includes(example.id)) {
+      if (!["purpose-neulbom", "purpose-care", "purpose-afterschool", "purpose-entrance-preparation", "beneficiary-field-trip"].includes(example.id)) {
         expect(item.detail).not.toMatch(/^\((목|구청|수)\)/);
       }
     }
@@ -75,7 +76,7 @@ describe("초보자용 성립전예산 예시", () => {
 
   it("모든 목적사업비 예시는 성립전예산 기안문 미리보기를 표시하지 않는다", () => {
     const purposeExamples = PREBUDGET_EXAMPLES.filter((example) => example.fundingCategory === "목적사업비");
-    expect(purposeExamples).toHaveLength(6);
+    expect(purposeExamples).toHaveLength(7);
     for (const example of purposeExamples) expect(example.draftPreview).toBe("");
   });
 
@@ -89,6 +90,23 @@ describe("초보자용 성립전예산 예시", () => {
     ];
     const purposeExamples = PREBUDGET_EXAMPLES.filter((example) => example.fundingCategory === "목적사업비");
     for (const example of purposeExamples) expect(example.autoCheckNotes).toEqual(expectedNotes);
+  });
+
+  it("입학준비금 목적사업비 예시에 100명 기준 3천만원 편성항목을 제공한다", () => {
+    const example = PREBUDGET_EXAMPLES.find(({ id }) => id === "purpose-entrance-preparation");
+    expect(example?.title).toBe("입학준비금(제로페이·교복)");
+    expect(example?.useWhen).toEqual(["입학준비금이 목적사업비로 교부된 경우"]);
+    expect(example?.items).toEqual([
+      expect.objectContaining({
+        unitBusiness: "학생 복지",
+        business: "학생복지운영",
+        detail: "(목) 입학준비금(제로페이, 교복)",
+        category: "교육운영비",
+        description: "입학준비금(제로페이)",
+        formulaText: "300,000원 × 100명",
+        manualAmount: 30_000_000,
+      }),
+    ]);
   });
 
   it("맞춤형 늘봄교실 예시에 4천970만7천원 편성항목을 제공한다", () => {
