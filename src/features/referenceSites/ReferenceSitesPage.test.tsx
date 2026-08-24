@@ -39,6 +39,26 @@ describe("참고사이트 게시판", () => {
     });
   });
 
+  it("유튜브 미리보기를 누르면 사이트 안에서 영상을 재생하고 닫는다", async () => {
+    const user = userEvent.setup();
+    render(<ReferenceSitesPage />);
+    const title = "[학교회계 - 예산관리] 1장 예산관리개요";
+
+    expect(screen.getByRole("img", { name: `${title} 미리보기` })).toHaveAttribute(
+      "src",
+      "https://i.ytimg.com/vi/dr-dxp9UCLE/hqdefault.jpg",
+    );
+    await user.click(screen.getByRole("button", { name: `${title} 사이트에서 재생` }));
+
+    const dialog = screen.getByRole("dialog", { name: title });
+    expect(within(dialog).getByTitle(title)).toHaveAttribute(
+      "src",
+      "https://www.youtube.com/embed/dr-dxp9UCLE?autoplay=1",
+    );
+    await user.click(within(dialog).getByRole("button", { name: "영상 닫기" }));
+    expect(screen.queryByRole("dialog", { name: title })).not.toBeInTheDocument();
+  });
+
   it("등록된 링크를 검색하고 분야별로 골라 외부 사이트를 연다", async () => {
     const user = userEvent.setup();
     render(<ReferenceSitesPage sites={sites} />);
