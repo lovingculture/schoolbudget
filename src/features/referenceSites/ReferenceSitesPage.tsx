@@ -14,6 +14,13 @@ export type ReferenceSite = {
 
 export const REFERENCE_SITES: ReferenceSite[] = [
   {
+    id: "sen-purpose-budget-settlement-system",
+    title: "서울시교육청 목적사업비 정산시스템",
+    category: "교육청",
+    description: "목적사업비 정산보고 등록, 수정요청 내역 및 관련 자료를 확인하는 서울특별시교육청 업무 시스템입니다.",
+    url: "https://mokjeok.sen.go.kr/",
+  },
+  {
     id: "k-edufine-main-budget-training-2025-11-20",
     title: "(25.11.20.) K-에듀파인 학교회계 예산관리(본예산편성) 대표강사 교육영상",
     category: "학교회계",
@@ -130,7 +137,7 @@ export function ReferenceSitesPage({ sites = REFERENCE_SITES }: { sites?: Refere
           <small>{site.category}</small>
           <h2>{site.title}</h2>
           <p>{site.description}</p>
-          <a href={site.url} target="_blank" rel="noreferrer" aria-label={`${site.title} 바로가기`}>유튜브에서 보기 <ExternalLink aria-hidden="true"/></a>
+          <a href={site.url} target="_blank" rel="noreferrer" aria-label={`${site.title} 바로가기`}>{youtube ? "유튜브에서 보기" : "사이트 바로가기"} <ExternalLink aria-hidden="true"/></a>
         </article>;
       })}
     </section> : <section className="reference-sites-empty" aria-live="polite">
