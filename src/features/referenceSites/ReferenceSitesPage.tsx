@@ -20,6 +20,13 @@ export const REFERENCE_SITES: ReferenceSite[] = [
     description: "K-에듀파인 학교회계 본예산 편성 절차를 안내하는 대표강사 교육영상입니다.",
     url: "https://www.youtube.com/watch?v=4eQjyipBuEM&t=1s",
   },
+  {
+    id: "k-edufine-budget-closing-training-2026-02-12",
+    title: "(26.02.12) K-에듀파인 학교회계 예산결산 사용자 교육",
+    category: "학교회계",
+    description: "K-에듀파인 학교회계 예산·결산 업무를 안내하는 사용자 교육영상입니다.",
+    url: "https://www.youtube.com/watch?v=J9wdZZCYYVk",
+  },
 ];
 
 const CATEGORIES = ["전체", "교육청", "학교회계", "업무지원", "기타"] as const;

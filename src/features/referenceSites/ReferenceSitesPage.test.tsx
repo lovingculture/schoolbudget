@@ -16,6 +16,13 @@ describe("참고사이트 게시판", () => {
     expect(within(link.closest("article")!).getByText("학교회계")).toBeVisible();
   });
 
+  it("학교회계 예산결산 사용자 교육영상을 기본 링크로 제공한다", () => {
+    render(<ReferenceSitesPage />);
+    const link = screen.getByRole("link", { name: "(26.02.12) K-에듀파인 학교회계 예산결산 사용자 교육 바로가기" });
+    expect(link).toHaveAttribute("href", "https://www.youtube.com/watch?v=J9wdZZCYYVk");
+    expect(within(link.closest("article")!).getByText("학교회계")).toBeVisible();
+  });
+
   it("등록된 링크를 검색하고 분야별로 골라 외부 사이트를 연다", async () => {
     const user = userEvent.setup();
     render(<ReferenceSitesPage sites={sites} />);
