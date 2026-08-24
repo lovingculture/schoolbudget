@@ -38,6 +38,12 @@ const makeExample = ([id, fundingCategory, title, searchAliases, unitBusiness, b
 };
 const examples = seeds.map(makeExample);
 
+const integratedStudentIndex = examples.findIndex(({ id }) => id === "purpose-integrated-student");
+examples[integratedStudentIndex] = {
+  ...examples[integratedStudentIndex],
+  prepareBeforeWriting: [],
+};
+
 const neulbomIndex = examples.findIndex(({ id }) => id === "purpose-neulbom");
 examples[neulbomIndex] = {
   ...examples[neulbomIndex],

@@ -45,6 +45,19 @@ describe("초보자용 성립전예산 예시 화면", () => {
     expect(onUseExample).toHaveBeenCalledWith(expect.objectContaining({ id: "purpose-entrance-preparation" }));
   });
 
+  it("학생 맞춤통합지원 예시에는 작성 전 준비사항을 표시하지 않는다", async () => {
+    const user = userEvent.setup();
+    render(<PrebudgetExampleLibrary examples={PREBUDGET_EXAMPLES} initialScope="목적사업비" onUseExample={vi.fn()} onBack={vi.fn()} />);
+
+    await user.type(screen.getByRole("searchbox", { name: "예시 검색" }), "학생 맞춤통합지원");
+    await user.click(screen.getByRole("button", { name: "자세히 보기" }));
+
+    expect(screen.getByRole("heading", { name: "학생 맞춤통합지원" })).toBeVisible();
+    expect(screen.queryByRole("heading", { name: "작성 전에 준비하세요" })).not.toBeInTheDocument();
+    expect(screen.queryByText("교부공문 또는 징수계획")).not.toBeInTheDocument();
+    expect(screen.queryByText("실제 사업기간과 산출근거")).not.toBeInTheDocument();
+  });
+
   it("예시 목록과 상세 미리보기를 명확한 영역으로 제공한다", async () => {
     const user = userEvent.setup();
     render(<PrebudgetExampleLibrary examples={PREBUDGET_EXAMPLES} initialScope="전체" onUseExample={vi.fn()} onBack={vi.fn()} />);
