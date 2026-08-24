@@ -27,6 +27,34 @@ export const REFERENCE_SITES: ReferenceSite[] = [
     description: "K-에듀파인 학교회계 예산·결산 업무를 안내하는 사용자 교육영상입니다.",
     url: "https://www.youtube.com/watch?v=J9wdZZCYYVk",
   },
+  {
+    id: "k-edufine-supplementary-budget-training-2025-03-20",
+    title: "('25.03.20.) K-에듀파인 학교회계 예산관리(성립전예산 및 추가경정예산) 대표강사 교육",
+    category: "학교회계",
+    description: "성립전예산과 추가경정예산의 편성·관리 절차를 안내하는 대표강사 교육영상입니다.",
+    url: "https://www.youtube.com/watch?v=q73d3QkwmP4",
+  },
+  {
+    id: "k-edufine-budget-management-chapter-1",
+    title: "[학교회계 - 예산관리] 1장 예산관리개요",
+    category: "학교회계",
+    description: "K-에듀파인 학교회계 예산관리의 기본 개념과 업무 흐름을 안내하는 교육영상입니다.",
+    url: "https://www.youtube.com/watch?v=dr-dxp9UCLE&list=PLnNTGUWLwu1sBH5y4_WZV05q5U_UD7wB1",
+  },
+  {
+    id: "k-edufine-budget-management-chapter-2",
+    title: "[학교회계 - 예산관리] 2장 예산편성 사전작업",
+    category: "학교회계",
+    description: "K-에듀파인에서 예산을 편성하기 전에 필요한 사전작업을 안내하는 교육영상입니다.",
+    url: "https://www.youtube.com/watch?v=a5VfrWqDcNo&t=20s",
+  },
+  {
+    id: "k-edufine-budget-management-chapter-3",
+    title: "[학교회계 - 예산관리] 3장 본예산관리",
+    category: "학교회계",
+    description: "K-에듀파인 학교회계 본예산 편성과 관리 방법을 안내하는 교육영상입니다.",
+    url: "https://www.youtube.com/watch?v=zaMVS8WLWTo&t=16s",
+  },
 ];
 
 const CATEGORIES = ["전체", "교육청", "학교회계", "업무지원", "기타"] as const;

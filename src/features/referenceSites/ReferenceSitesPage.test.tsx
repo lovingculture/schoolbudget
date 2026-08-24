@@ -23,6 +23,22 @@ describe("참고사이트 게시판", () => {
     expect(within(link.closest("article")!).getByText("학교회계")).toBeVisible();
   });
 
+  it("성립전·추경 교육과 예산관리 1~3장 영상을 기본 링크로 제공한다", () => {
+    render(<ReferenceSitesPage />);
+    const videos = [
+      ["('25.03.20.) K-에듀파인 학교회계 예산관리(성립전예산 및 추가경정예산) 대표강사 교육", "https://www.youtube.com/watch?v=q73d3QkwmP4"],
+      ["[학교회계 - 예산관리] 1장 예산관리개요", "https://www.youtube.com/watch?v=dr-dxp9UCLE&list=PLnNTGUWLwu1sBH5y4_WZV05q5U_UD7wB1"],
+      ["[학교회계 - 예산관리] 2장 예산편성 사전작업", "https://www.youtube.com/watch?v=a5VfrWqDcNo&t=20s"],
+      ["[학교회계 - 예산관리] 3장 본예산관리", "https://www.youtube.com/watch?v=zaMVS8WLWTo&t=16s"],
+    ];
+
+    videos.forEach(([title, url]) => {
+      const link = screen.getByRole("link", { name: `${title} 바로가기` });
+      expect(link).toHaveAttribute("href", url);
+      expect(within(link.closest("article")!).getByText("학교회계")).toBeVisible();
+    });
+  });
+
   it("등록된 링크를 검색하고 분야별로 골라 외부 사이트를 연다", async () => {
     const user = userEvent.setup();
     render(<ReferenceSitesPage sites={sites} />);
