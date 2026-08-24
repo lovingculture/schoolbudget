@@ -1,5 +1,5 @@
-import { useEffect, useMemo, useState } from "react";
-import { ExternalLink, Link2, Play, Search, X } from "lucide-react";
+import { useMemo, useState } from "react";
+import { ExternalLink, Link2, Play, Search } from "lucide-react";
 import "./referenceSites.css";
 
 export type ReferenceSiteCategory = "교육청" | "학교회계" | "업무지원" | "기타";
@@ -79,11 +79,7 @@ function getYouTubeDetails(url: string) {
     const isYouTube = parsed.hostname === "youtube.com" || parsed.hostname.endsWith(".youtube.com");
     const videoId = isYouTube ? parsed.searchParams.get("v") : parsed.hostname === "youtu.be" ? parsed.pathname.slice(1) : null;
     if (!videoId) return null;
-    const time = parsed.searchParams.get("t")?.match(/^\d+/)?.[0];
-    return {
-      thumbnailUrl: `https://i.ytimg.com/vi/${videoId}/hqdefault.jpg`,
-      embedUrl: `https://www.youtube.com/embed/${videoId}?autoplay=1${time ? `&start=${time}` : ""}`,
-    };
+    return { thumbnailUrl: `https://i.ytimg.com/vi/${videoId}/hqdefault.jpg` };
   } catch {
     return null;
   }
@@ -92,8 +88,6 @@ function getYouTubeDetails(url: string) {
 export function ReferenceSitesPage({ sites = REFERENCE_SITES }: { sites?: ReferenceSite[] }) {
   const [query, setQuery] = useState("");
   const [category, setCategory] = useState<(typeof CATEGORIES)[number]>("전체");
-  const [activeVideo, setActiveVideo] = useState<ReferenceSite | null>(null);
-  const activeYouTube = activeVideo ? getYouTubeDetails(activeVideo.url) : null;
   const filtered = useMemo(() => {
     const token = query.trim().toLocaleLowerCase("ko-KR");
     return sites.filter((site) => {
@@ -103,20 +97,6 @@ export function ReferenceSitesPage({ sites = REFERENCE_SITES }: { sites?: Refere
       return categoryMatches && textMatches;
     });
   }, [category, query, sites]);
-
-  useEffect(() => {
-    if (!activeVideo) return;
-    const previousOverflow = document.body.style.overflow;
-    const closeOnEscape = (event: KeyboardEvent) => {
-      if (event.key === "Escape") setActiveVideo(null);
-    };
-    document.body.style.overflow = "hidden";
-    window.addEventListener("keydown", closeOnEscape);
-    return () => {
-      document.body.style.overflow = previousOverflow;
-      window.removeEventListener("keydown", closeOnEscape);
-    };
-  }, [activeVideo]);
 
   return <div className="content reference-sites-page">
     <section className="reference-sites-hero" aria-labelledby="reference-sites-title">
@@ -137,10 +117,10 @@ export function ReferenceSitesPage({ sites = REFERENCE_SITES }: { sites?: Refere
       {filtered.map((site) => {
         const youtube = getYouTubeDetails(site.url);
         return <article key={site.id}>
-          {youtube && <button className="reference-video-preview" type="button" aria-label={`${site.title} 사이트에서 재생`} onClick={() => setActiveVideo(site)}>
+          {youtube && <a className="reference-video-preview" href={site.url} target="_blank" rel="noreferrer" aria-label={`${site.title} 미리보기에서 유튜브로 이동`}>
             <img src={youtube.thumbnailUrl} alt={`${site.title} 미리보기`} loading="lazy"/>
             <span aria-hidden="true"><Play fill="currentColor"/></span>
-          </button>}
+          </a>}
           <small>{site.category}</small>
           <h2>{site.title}</h2>
           <p>{site.description}</p>
@@ -153,16 +133,5 @@ export function ReferenceSitesPage({ sites = REFERENCE_SITES }: { sites?: Refere
       <p>링크를 알려주시면 확인 후 게시판에 반영합니다.</p>
     </section>}
 
-    {activeVideo && activeYouTube && <div className="reference-video-backdrop" onClick={() => setActiveVideo(null)}>
-      <section className="reference-video-dialog" role="dialog" aria-modal="true" aria-label={activeVideo.title} onClick={(event) => event.stopPropagation()}>
-        <header>
-          <h2>{activeVideo.title}</h2>
-          <button type="button" aria-label="영상 닫기" onClick={() => setActiveVideo(null)}><X aria-hidden="true"/></button>
-        </header>
-        <div className="reference-video-frame">
-          <iframe src={activeYouTube.embedUrl} title={activeVideo.title} allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowFullScreen/>
-        </div>
-      </section>
-    </div>}
   </div>;
 }

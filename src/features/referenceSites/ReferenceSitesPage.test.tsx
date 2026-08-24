@@ -59,8 +59,7 @@ describe("참고사이트 게시판", () => {
     });
   });
 
-  it("유튜브 미리보기를 누르면 사이트 안에서 영상을 재생하고 닫는다", async () => {
-    const user = userEvent.setup();
+  it("유튜브 미리보기를 누르면 유튜브 영상 페이지를 새 창으로 연다", () => {
     render(<ReferenceSitesPage />);
     const title = "[학교회계 - 예산관리] 1장 예산관리개요";
 
@@ -68,15 +67,10 @@ describe("참고사이트 게시판", () => {
       "src",
       "https://i.ytimg.com/vi/dr-dxp9UCLE/hqdefault.jpg",
     );
-    await user.click(screen.getByRole("button", { name: `${title} 사이트에서 재생` }));
-
-    const dialog = screen.getByRole("dialog", { name: title });
-    expect(within(dialog).getByTitle(title)).toHaveAttribute(
-      "src",
-      "https://www.youtube.com/embed/dr-dxp9UCLE?autoplay=1",
-    );
-    await user.click(within(dialog).getByRole("button", { name: "영상 닫기" }));
-    expect(screen.queryByRole("dialog", { name: title })).not.toBeInTheDocument();
+    const preview = screen.getByRole("link", { name: `${title} 미리보기에서 유튜브로 이동` });
+    expect(preview).toHaveAttribute("href", "https://www.youtube.com/watch?v=dr-dxp9UCLE&list=PLnNTGUWLwu1sBH5y4_WZV05q5U_UD7wB1");
+    expect(preview).toHaveAttribute("target", "_blank");
+    expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
   });
 
   it("등록된 링크를 검색하고 분야별로 골라 외부 사이트를 연다", async () => {
