@@ -115,7 +115,33 @@ describe("집행실적으로 추경자료 만들기 화면", () => {
     fireEvent.click(screen.getByRole("button", { name: "임시저장 불러오기" }));
 
     expect(await screen.findByRole("button", { name: "일반 Excel 다운로드" })).toBeVisible();
-    expect(screen.getByLabelText("협의회 집행예정액")).toHaveValue(300);
+    expect(screen.getByLabelText("협의회 집행예정액")).toHaveValue("300");
+  });
+
+  it("금액을 화살표 없이 직접 입력하고 추경안에는 음수를 허용한다", async () => {
+    mockedDownload.mockResolvedValue();
+    render(<SupplementaryPage />);
+    await loadExecutionFixture();
+    fireEvent.click(screen.getByRole("button", { name: "추경검토자료" }));
+
+    const planned = screen.getByLabelText("협의회 집행예정액");
+    const proposal = screen.getByLabelText("협의회 추경안");
+    expect(planned).toHaveAttribute("type", "text");
+    expect(proposal).toHaveAttribute("type", "text");
+
+    fireEvent.focus(planned);
+    fireEvent.change(planned, { target: { value: "1,200" } });
+    fireEvent.blur(planned);
+    expect(planned).toHaveValue("1,200");
+
+    fireEvent.focus(proposal);
+    fireEvent.change(proposal, { target: { value: "-500,000" } });
+    fireEvent.blur(proposal);
+    expect(proposal).toHaveValue("-500,000");
+
+    fireEvent.click(screen.getByRole("button", { name: "일반 Excel 다운로드" }));
+    await waitFor(() => expect(mockedDownload).toHaveBeenCalled());
+    expect(mockedDownload.mock.calls[0][1][0]).toMatchObject({ plannedAmount: 1200, supplementProposal: -500000 });
   });
 
   it("Excel을 만드는 동안 버튼을 비활성화하고 완료 후 복구한다", async () => {

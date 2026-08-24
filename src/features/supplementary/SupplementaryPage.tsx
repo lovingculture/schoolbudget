@@ -1,4 +1,4 @@
-import { ChangeEvent, DragEvent, useMemo, useRef, useState } from "react";
+import { ChangeEvent, DragEvent, useEffect, useMemo, useRef, useState } from "react";
 import { ArrowDownAZ, ArrowUpAZ, ChevronDown, Download, FileSpreadsheet, Filter, FolderOpen, RefreshCcw, Save, Search, Trash2, UploadCloud, X } from "lucide-react";
 import { aggregateByUnitBusiness, calculateExecutionRow } from "./calculations";
 import { ExecutionParseError, parseExecutionWorkbook } from "./parser";
@@ -44,6 +44,43 @@ const rate = (value: number) => `${value.toFixed(2)}%`;
 const displayDate = (value: string) => value.length === 8
   ? `${value.slice(0, 4)}-${value.slice(4, 6)}-${value.slice(6)}`
   : value;
+
+function MoneyInput({ label, value, allowNegative = false, onChange }: {
+  label: string;
+  value: number;
+  allowNegative?: boolean;
+  onChange: (value: number) => void;
+}) {
+  const [editing, setEditing] = useState(false);
+  const [text, setText] = useState(() => money(value));
+
+  useEffect(() => {
+    if (!editing) setText(money(value));
+  }, [editing, value]);
+
+  return <input
+    className={allowNegative && value < 0 ? "signed-money-input negative" : "signed-money-input"}
+    aria-label={label}
+    type="text"
+    inputMode="decimal"
+    value={editing ? text : money(value)}
+    onFocus={event => {
+      setEditing(true);
+      setText(String(value));
+      event.currentTarget.select();
+    }}
+    onChange={event => {
+      const next = event.target.value.replaceAll(",", "").replaceAll(" ", "");
+      if (!/^-?\d*$/.test(next) || (!allowNegative && next.startsWith("-"))) return;
+      setText(next);
+      if (next && next !== "-") onChange(Number(next));
+    }}
+    onBlur={() => {
+      setEditing(false);
+      setText(money(value));
+    }}
+  />;
+}
 
 const readDraft = (): SupplementaryDraft | null => {
   try {
@@ -312,6 +349,6 @@ function ExecutionResults({ tab, rows, summaries, changeEdit, columnOptions, col
     <td>{row.policy}</td><td>{row.unitBusiness}</td><td>{row.detailBusiness}</td><td>{row.detailItem}</td><td>{row.costCategory}</td><td>{row.description}</td>
     <td>{money(row.budgetAmount)}</td><td>{money(row.committedAmount)}</td><td>{money(row.paidAmount)}</td><td className={row.balance < 0 ? "negative" : ""}>{money(row.balance)}</td>
     {tab === "status" && <><td className={row.discrepancy !== 0 ? "warning-number" : ""}>{money(row.discrepancy)}</td><td>{rate(row.executionRate)}</td></>}
-    {editable && <><td><input aria-label={`${row.description} 집행예정액`} type="number" value={row.plannedAmount} onChange={e => changeEdit(row.id, "planned", Number(e.target.value))}/></td><td className={row.availableSupplement < 0 ? "negative" : ""}>{money(row.availableSupplement)}</td><td><input aria-label={`${row.description} 추경안`} type="number" value={row.supplementProposal} onChange={e => changeEdit(row.id, "proposal", Number(e.target.value))}/></td></>}
+    {editable && <><td><MoneyInput label={`${row.description} 집행예정액`} value={row.plannedAmount} onChange={value => changeEdit(row.id, "planned", value)}/></td><td className={row.availableSupplement < 0 ? "negative" : ""}>{money(row.availableSupplement)}</td><td><MoneyInput label={`${row.description} 추경안`} value={row.supplementProposal} allowNegative onChange={value => changeEdit(row.id, "proposal", value)}/></td></>}
   </tr>)}</tbody></table></div>;
 }
