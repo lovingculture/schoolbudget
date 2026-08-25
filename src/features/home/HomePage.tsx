@@ -33,6 +33,16 @@ const workCards: WorkCard[] = [
     actionLabel: "성립전예산 새로 작성",
   },
   {
+    view: "supplementary",
+    imageSrc: "/characters/cards/main-budget-good.png",
+    imageAlt: "추경예산 자료 정리를 돕는 서울시교육청 캐릭터",
+    tone: "green",
+    badge: "추경 검토",
+    title: "추경예산자료 만들기",
+    description: "집행실적을 분석해 감액 가능액과 추경 검토자료를 만드세요.",
+    actionLabel: "추경예산자료 만들기 시작하기",
+  },
+  {
     view: "budget",
     imageSrc: "/characters/cards/main-budget-good.png",
     imageAlt: "본예산 편성을 응원하는 서울교육 캐릭터 자라나",
@@ -61,16 +71,6 @@ const workCards: WorkCard[] = [
     title: "결산 설명서 만들기",
     description: "결산 총괄표를 바탕으로 결산 안건설명서를 작성하세요.",
     actionLabel: "결산 설명서 만들기 시작하기",
-  },
-  {
-    view: "supplementary",
-    imageSrc: "/characters/cards/main-budget-good.png",
-    imageAlt: "추경예산 자료 정리를 돕는 서울시교육청 캐릭터",
-    tone: "green",
-    badge: "추경 검토",
-    title: "추경예산자료 만들기",
-    description: "집행실적을 분석해 감액 가능액과 추경 검토자료를 만드세요.",
-    actionLabel: "추경예산자료 만들기 시작하기",
   },
 ];
 
@@ -134,7 +134,7 @@ export function HomePage({ onNavigate }: HomePageProps) {
         <button
           type="button"
           data-testid="budget-step"
-          onClick={() => onNavigate("resources")}
+          onClick={() => onNavigate("guide")}
           aria-label="처음 오셨나요? 안내 확인"
         >
           <span className="home-quick-icon green" aria-hidden="true">
@@ -142,7 +142,7 @@ export function HomePage({ onNavigate }: HomePageProps) {
           </span>
           <span>
             <strong>처음 오셨나요?</strong>
-            <small>이용 안내와 자료실</small>
+            <small>홈페이지 이용 안내</small>
           </span>
           <ArrowRight aria-hidden="true" />
         </button>
@@ -165,7 +165,7 @@ export function HomePage({ onNavigate }: HomePageProps) {
           <div className="home-work-grid">
             {workCards.map((card) => (
               <article
-                className={`home-work-card ${card.view === "supplementary" ? "wide" : ""}`}
+                className={`home-work-card ${["prebudget", "supplementary", "budget"].includes(card.view) ? "primary" : "secondary"}`}
                 data-testid="budget-step"
                 data-view={card.view}
                 key={card.view}

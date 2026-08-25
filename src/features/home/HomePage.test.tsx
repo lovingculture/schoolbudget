@@ -82,10 +82,10 @@ describe("승인된 포털 홈", () => {
       workCards.map((card) => within(card).getByRole("heading").textContent),
     ).toEqual([
       "성립전예산요구서작성(사업담당자용)",
+      "추경예산자료 만들기",
       "본예산",
       "안건설명서 만들기",
       "결산 설명서 만들기",
-      "추경예산자료 만들기",
     ]);
 
     expect(screen.getByRole("region", { name: "자주 찾는 서비스" })).toBeVisible();
@@ -102,6 +102,36 @@ describe("승인된 포털 홈", () => {
     expect(screen.queryByRole("button", { name: "통합검색 준비 중 안내 보기" })).not.toBeInTheDocument();
     expect(screen.queryByText("통합검색 기능은 현재 준비 중입니다.")).not.toBeInTheDocument();
     expect(screen.queryByRole("searchbox")).not.toBeInTheDocument();
+  });
+
+  it("핵심 예산업무 3개와 설명서 업무 2개를 두 줄로 구분한다", () => {
+    const style = document.createElement("style");
+    style.textContent = homeStyles;
+    document.head.append(style);
+
+    try {
+      const { container } = render(
+        <HomePage
+          displayName="김담당"
+          schoolName="서울한빛초등학교"
+          onNavigate={() => {}}
+        />,
+      );
+      const cards = Array.from(container.querySelectorAll<HTMLElement>(".home-work-card"));
+      expect(cards.slice(0, 3).every((card) => card.classList.contains("primary"))).toBe(true);
+      expect(cards.slice(3).every((card) => card.classList.contains("secondary"))).toBe(true);
+
+      const rules = Array.from((style.sheet as CSSStyleSheet).cssRules).filter(
+        (rule): rule is CSSStyleRule => "selectorText" in rule,
+      );
+      expect(rules.find((rule) => rule.selectorText === ".home-work-grid")?.style.getPropertyValue("grid-template-columns")).toBe(
+        "repeat(6, minmax(0, 1fr))",
+      );
+      expect(rules.find((rule) => rule.selectorText === ".home-work-card.primary")?.style.getPropertyValue("grid-column")).toBe("span 2");
+      expect(rules.find((rule) => rule.selectorText === ".home-work-card.secondary")?.style.getPropertyValue("grid-column")).toBe("span 3");
+    } finally {
+      style.remove();
+    }
   });
 
   it("문자 아이콘 대신 예산 업무별 캐릭터 이미지를 제공합니다", () => {
@@ -203,7 +233,7 @@ describe("승인된 포털 홈", () => {
       ["결산 설명서 만들기 시작하기", "결산 안건설명서 자동작성"],
       ["추경예산자료 만들기 시작하기", "집행실적으로 추경자료 만들기"],
       ["2026 학교회계 예산편성 기본지침 보기", "예산 자료실"],
-      ["처음 오셨나요? 안내 확인", "예산 자료실"],
+      ["처음 오셨나요? 안내 확인", "학교예산 한눈에 이용 안내"],
       ["2026학년도 학교회계 예산편성 기본지침 확인", "예산 자료실"],
       ["학교예산 한눈에 이용 안내 확인", "학교예산 한눈에 이용 안내"],
       ["참고사이트 게시판 확인", "참고사이트"],

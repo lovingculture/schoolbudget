@@ -293,8 +293,16 @@
 
 .home-work-grid {
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-template-columns: repeat(6, minmax(0, 1fr));
   gap: 18px;
+}
+
+.home-work-card.primary {
+  grid-column: span 2;
+}
+
+.home-work-card.secondary {
+  grid-column: span 3;
 }
 
 .home-work-card {
@@ -305,15 +313,6 @@
   border: 1px solid #dce5eb;
   border-radius: 19px;
   background: #fff;
-}
-
-.home-work-card.wide {
-  grid-column: 1 / -1;
-  min-height: 148px;
-  display: grid;
-  grid-template-columns: auto minmax(180px, .7fr) minmax(280px, 1.5fr) auto;
-  align-items: center;
-  gap: 22px;
 }
 
 .home-work-card-head {
@@ -390,19 +389,6 @@
 .home-news-grid article button svg {
   width: 14px;
   color: #0989ad;
-}
-
-.home-work-card.wide .home-work-card-head {
-  display: block;
-}
-
-.home-work-card.wide .home-work-card-head small {
-  display: none;
-}
-
-.home-work-card.wide h3,
-.home-work-card.wide button {
-  margin: 0;
 }
 
 .home-news {
@@ -501,6 +487,11 @@
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
+  .home-work-card.primary,
+  .home-work-card.secondary {
+    grid-column: span 1;
+  }
+
   .home-news-grid {
     grid-template-columns: 1fr 1fr;
   }
@@ -577,22 +568,9 @@
     grid-template-columns: 1fr;
   }
 
-  .home-work-card.wide {
+  .home-work-card.primary,
+  .home-work-card.secondary {
     grid-column: auto;
-    min-height: 310px;
-    display: flex;
-  }
-
-  .home-work-card.wide .home-work-card-head {
-    display: flex;
-  }
-
-  .home-work-card.wide h3 {
-    margin: 30px 0 13px;
-  }
-
-  .home-work-card.wide button {
-    margin-top: auto;
   }
 
   .home-search-card {
