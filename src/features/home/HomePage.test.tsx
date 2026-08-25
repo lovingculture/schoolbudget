@@ -106,7 +106,7 @@ describe("승인된 포털 홈", () => {
 
   it("핵심 예산업무 3개와 설명서 업무 2개를 두 줄로 구분한다", () => {
     const style = document.createElement("style");
-    style.textContent = homeStyles;
+    style.textContent = `${homeStyles}\n.primary { background: #f07450; color: white; }\n.secondary { background: white; }`;
     document.head.append(style);
 
     try {
@@ -118,8 +118,10 @@ describe("승인된 포털 홈", () => {
         />,
       );
       const cards = Array.from(container.querySelectorAll<HTMLElement>(".home-work-card"));
-      expect(cards.slice(0, 3).every((card) => card.classList.contains("primary"))).toBe(true);
-      expect(cards.slice(3).every((card) => card.classList.contains("secondary"))).toBe(true);
+      expect(cards.slice(0, 3).every((card) => card.classList.contains("home-work-primary"))).toBe(true);
+      expect(cards.slice(3).every((card) => card.classList.contains("home-work-secondary"))).toBe(true);
+      expect(cards.every((card) => !card.classList.contains("primary") && !card.classList.contains("secondary"))).toBe(true);
+      expect(getComputedStyle(cards[0]).backgroundColor).toBe("rgb(255, 255, 255)");
 
       const rules = Array.from((style.sheet as CSSStyleSheet).cssRules).filter(
         (rule): rule is CSSStyleRule => "selectorText" in rule,
@@ -127,8 +129,8 @@ describe("승인된 포털 홈", () => {
       expect(rules.find((rule) => rule.selectorText === ".home-work-grid")?.style.getPropertyValue("grid-template-columns")).toBe(
         "repeat(6, minmax(0, 1fr))",
       );
-      expect(rules.find((rule) => rule.selectorText === ".home-work-card.primary")?.style.getPropertyValue("grid-column")).toBe("span 2");
-      expect(rules.find((rule) => rule.selectorText === ".home-work-card.secondary")?.style.getPropertyValue("grid-column")).toBe("span 3");
+      expect(rules.find((rule) => rule.selectorText === ".home-work-card.home-work-primary")?.style.getPropertyValue("grid-column")).toBe("span 2");
+      expect(rules.find((rule) => rule.selectorText === ".home-work-card.home-work-secondary")?.style.getPropertyValue("grid-column")).toBe("span 3");
     } finally {
       style.remove();
     }

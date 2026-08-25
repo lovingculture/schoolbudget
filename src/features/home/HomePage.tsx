@@ -165,7 +165,7 @@ export function HomePage({ onNavigate }: HomePageProps) {
           <div className="home-work-grid">
             {workCards.map((card) => (
               <article
-                className={`home-work-card ${["prebudget", "supplementary", "budget"].includes(card.view) ? "primary" : "secondary"}`}
+                className={`home-work-card ${["prebudget", "supplementary", "budget"].includes(card.view) ? "home-work-primary" : "home-work-secondary"}`}
                 data-testid="budget-step"
                 data-view={card.view}
                 key={card.view}
