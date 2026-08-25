@@ -28,6 +28,13 @@ export const REFERENCE_SITES: ReferenceSite[] = [
     url: "https://buseo.sen.go.kr/buseo/bu05/user/bbs/BD_selectBbsList.do?q_bbsSn=1199",
   },
   {
+    id: "sen-current-autonomous-regulations",
+    title: "서울시교육청 자치법규 검색",
+    category: "교육청",
+    description: "서울특별시교육청의 현행 조례·규칙·훈령을 검색하고 관련 법규 내용을 확인하는 공식 사이트입니다.",
+    url: "https://www.sen.go.kr/user/bbs/nowlaw.do",
+  },
+  {
     id: "k-edufine-main-budget-training-2025-11-20",
     title: "(25.11.20.) K-에듀파인 학교회계 예산관리(본예산편성) 대표강사 교육영상",
     category: "학교회계",

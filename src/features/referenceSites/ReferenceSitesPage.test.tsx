@@ -43,6 +43,17 @@ describe("참고사이트 게시판", () => {
     expect(within(card).getByText("사이트 바로가기")).toBeVisible();
   });
 
+  it("서울시교육청 자치법규 검색을 교육청 링크로 제공한다", () => {
+    render(<ReferenceSitesPage />);
+    const link = screen.getByRole("link", { name: "서울시교육청 자치법규 검색 바로가기" });
+    const card = link.closest("article")!;
+
+    expect(link).toHaveAttribute("href", "https://www.sen.go.kr/user/bbs/nowlaw.do");
+    expect(within(card).getByText("교육청")).toBeVisible();
+    expect(within(card).getByText("사이트 바로가기")).toBeVisible();
+    expect(within(card).getByText(/현행 조례·규칙·훈령/)).toBeVisible();
+  });
+
   it("성립전·추경 교육과 예산관리 1~3장 영상을 기본 링크로 제공한다", () => {
     render(<ReferenceSitesPage />);
     const videos = [
