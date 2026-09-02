@@ -54,6 +54,17 @@ describe("참고사이트 게시판", () => {
     expect(within(card).getByText(/현행 조례·규칙·훈령/)).toBeVisible();
   });
 
+  it("센스쿨을 업무지원 링크로 제공한다", () => {
+    render(<ReferenceSitesPage />);
+    const link = screen.getByRole("link", { name: "센스쿨 바로가기" });
+    const card = link.closest("article")!;
+
+    expect(link).toHaveAttribute("href", "https://senedu.kr/");
+    expect(within(card).getByText("업무지원")).toBeVisible();
+    expect(within(card).getByText("사이트 바로가기")).toBeVisible();
+    expect(within(card).getByText("미리캔버스, 센지피티, 캔바 등에 로그인하여 교육 활동에 활용할 수 있는 사이트입니다.")).toBeVisible();
+  });
+
   it("성립전·추경 교육과 예산관리 1~3장 영상을 기본 링크로 제공한다", () => {
     render(<ReferenceSitesPage />);
     const videos = [

@@ -35,6 +35,13 @@ export const REFERENCE_SITES: ReferenceSite[] = [
     url: "https://www.sen.go.kr/user/bbs/nowlaw.do",
   },
   {
+    id: "sen-school",
+    title: "센스쿨",
+    category: "업무지원",
+    description: "미리캔버스, 센지피티, 캔바 등에 로그인하여 교육 활동에 활용할 수 있는 사이트입니다.",
+    url: "https://senedu.kr/",
+  },
+  {
     id: "k-edufine-main-budget-training-2025-11-20",
     title: "(25.11.20.) K-에듀파인 학교회계 예산관리(본예산편성) 대표강사 교육영상",
     category: "학교회계",
