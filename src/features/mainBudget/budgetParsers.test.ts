@@ -9,6 +9,53 @@ const revenueHeader = ["장", "관", "항", "목", "원가통계비목", "예산
 const expenditureHeader = ["정책사업", "단위사업", "세부사업", "세부항목", "원가통계비목", "예산액"];
 
 describe("본예산 공통 구역 파서", () => {
+  it("PDF 행의 배열 열이 달라도 좌표로 현재 예산액과 비목을 맞춘다", () => {
+    const at = (x: number, width: number) => ({ x, y: 0, width, height: 10 });
+    const rows = [
+      { cells: ["본예산"], coordinates: [at(10, 30)], sourcePage: 1, sourceRow: 1, confidence: 0.99 },
+      { cells: ["세입 세출 예산 총괄"], coordinates: [at(10, 100)], sourcePage: 1, sourceRow: 2, confidence: 0.99 },
+      { cells: ["예산액"], coordinates: [at(100, 30)], sourcePage: 1, sourceRow: 3, confidence: 0.99 },
+      { cells: ["본예산", "1,010,749"], coordinates: [at(10, 30), at(94, 36)], sourcePage: 1, sourceRow: 4, confidence: 0.99 },
+      { cells: ["세입예산명세서"], coordinates: [at(10, 100)], sourcePage: 2, sourceRow: 1, confidence: 0.99 },
+      { cells: ["원가통계비목"], coordinates: [at(40, 60)], sourcePage: 2, sourceRow: 2, confidence: 0.99 },
+      { cells: ["예산액"], coordinates: [at(140, 30)], sourcePage: 2, sourceRow: 3, confidence: 0.99 },
+      { cells: ["목적사업비전입금", 0, 6_660], coordinates: [at(30, 68), at(166, 4), at(190, 24)], sourcePage: 2, sourceRow: 4, confidence: 0.99 },
+      { cells: ["수익자부담수입", 207_176, 0], coordinates: [at(30, 64), at(142, 28), at(190, 4)], sourcePage: 2, sourceRow: 5, confidence: 0.99 },
+      { cells: ["학교운영비전입금", 721_573], coordinates: [at(30, 68), at(142, 28)], sourcePage: 2, sourceRow: 6, confidence: 0.99 },
+      { cells: ["이자수입", 2_000], coordinates: [at(55, 30), at(150, 20)], sourcePage: 2, sourceRow: 7, confidence: 0.99 },
+      { cells: ["순세계잉여금", 80_000], coordinates: [at(45, 50), at(146, 24)], sourcePage: 2, sourceRow: 8, confidence: 0.99 },
+      { cells: ["세입합계", 1_010_749], coordinates: [at(45, 40), at(134, 36)], sourcePage: 2, sourceRow: 9, confidence: 0.99 },
+      { cells: ["세출예산명세서"], coordinates: [at(10, 100)], sourcePage: 3, sourceRow: 1, confidence: 0.99 },
+      {
+        cells: ["정책사업", "단위사업", "세부사업", "세부항목", "원가통계비목"],
+        coordinates: [at(10, 30), at(45, 30), at(80, 30), at(115, 30), at(150, 60)],
+        sourcePage: 3,
+        sourceRow: 2,
+        confidence: 0.99,
+      },
+      { cells: ["예산액"], coordinates: [at(230, 30)], sourcePage: 3, sourceRow: 3, confidence: 0.99 },
+      {
+        cells: ["교육활동", "교육지원", "학생지원", "학부모협력", "일반업무추진비", 23_020],
+        coordinates: [at(10, 30), at(45, 30), at(80, 30), at(115, 30), at(145, 65), at(236, 24)],
+        sourcePage: 3,
+        sourceRow: 4,
+        confidence: 0.99,
+      },
+      { cells: ["세출합계", 23_020], coordinates: [at(45, 40), at(236, 24)], sourcePage: 3, sourceRow: 5, confidence: 0.99 },
+    ];
+
+    expect(parseBudgetSummary(rows)).toMatchObject({ isComplete: true, totalRevenue: { amount: 1_010_749 } });
+    expect(parseRevenueStatement(rows)).toMatchObject({
+      purposeRevenue: { amount: 0 },
+      beneficiaryRevenue: { amount: 207_176 },
+      verificationRevenue: { isComplete: true },
+    });
+    expect(parseExpenditureStatement(rows)).toMatchObject({
+      isComplete: true,
+      expenses: [expect.objectContaining({ costItem: "일반업무추진비", amount: 23_020 })],
+    });
+  });
+
   it("띄어쓴 총괄 제목과 2026회계연도 예산안을 확인한 후 현재 예산액을 읽는다", () => {
     const summary = parseBudgetSummary(logicalBudgetRows);
 

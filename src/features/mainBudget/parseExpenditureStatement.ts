@@ -1,8 +1,9 @@
 import type { AnalysisWarning, BudgetLogicalRow, GeneralBusinessExpense } from "./analysisTypes";
 import { parseBudgetNumber } from "./normalizeBudgetValue";
 import {
+  cellAtBudgetColumn,
   canonicalBudgetLabel,
-  findCurrentBudgetColumn,
+  currentBudgetContexts,
   findSectionStart,
   isClosingTotal,
   isNonBlankBudgetRow,
@@ -19,11 +20,17 @@ export type ExpenditureStatementParseResult = {
 type HeaderContext = {
   start: number;
   currentColumn: number;
+  currentHeaderRow: BudgetLogicalRow;
   policyColumn: number;
+  policyHeaderRow: BudgetLogicalRow;
   unitColumn: number;
+  unitHeaderRow: BudgetLogicalRow;
   businessColumn: number;
+  businessHeaderRow: BudgetLogicalRow;
   detailColumn: number;
+  detailHeaderRow: BudgetLogicalRow;
   costItemColumn: number;
+  costItemHeaderRow: BudgetLogicalRow;
   isReliable: boolean;
 };
 
@@ -73,9 +80,8 @@ function expenditureSectionSpan(rows: BudgetLogicalRow[], start: number): Sectio
 
 function headerContexts(rows: BudgetLogicalRow[], start: number, end: number): HeaderContext[] {
   const contexts: HeaderContext[] = [];
-  for (let index = start + 1; index < end; index += 1) {
-    const currentColumn = findCurrentBudgetColumn(rows[index]);
-    if (currentColumn < 0) continue;
+  for (const current of currentBudgetContexts(rows, start, end)) {
+    const index = current.start;
     const policy = columnInWindow(rows, start, index, end, hierarchyHeaders.policyColumn);
     const unit = columnInWindow(rows, start, index, end, hierarchyHeaders.unitColumn);
     const business = columnInWindow(rows, start, index, end, hierarchyHeaders.businessColumn);
@@ -83,16 +89,24 @@ function headerContexts(rows: BudgetLogicalRow[], start: number, end: number): H
     const costItem = columnInWindow(rows, start, index, end, hierarchyHeaders.costItemColumn);
     const context = {
       start: index,
-      currentColumn,
+      currentColumn: current.currentColumn,
+      currentHeaderRow: current.currentHeaderRow,
       policyColumn: policy.column,
+      policyHeaderRow: policy.row,
       unitColumn: unit.column,
+      unitHeaderRow: unit.row,
       businessColumn: business.column,
+      businessHeaderRow: business.row,
       detailColumn: detail.column,
+      detailHeaderRow: detail.row,
       costItemColumn: costItem.column,
-      isReliable: [rows[index], policy.row, unit.row, business.row, detail.row, costItem.row].every(isReliableBudgetRow),
+      costItemHeaderRow: costItem.row,
+      isReliable: [current.currentHeaderRow, policy.row, unit.row, business.row, detail.row, costItem.row].every(isReliableBudgetRow),
     };
     if ([context.policyColumn, context.unitColumn, context.businessColumn, context.detailColumn, context.costItemColumn]
-      .every((column) => column >= 0)) contexts.push(context);
+      .every((column) => column >= 0)
+      && context.policyHeaderRow && context.unitHeaderRow && context.businessHeaderRow
+      && context.detailHeaderRow && context.costItemHeaderRow) contexts.push(context as HeaderContext);
   }
   return contexts;
 }
@@ -103,7 +117,8 @@ function hasParsedData(rows: BudgetLogicalRow[], start: number, end: number, con
     while (contextIndex + 1 < contexts.length && contexts[contextIndex + 1].start <= index) contextIndex += 1;
     const context = contexts[contextIndex];
     if (!context || index === context.start || isSectionHeading(rows[index], "expenditure") || isClosingTotal(rows[index], "expenditure")) continue;
-    if (parseBudgetNumber(rows[index].cells[context.currentColumn]) !== null && !rows[index].cells.some(isHierarchyHeader)) return true;
+    if (parseBudgetNumber(cellAtBudgetColumn(rows[index], context.currentHeaderRow, context.currentColumn)) !== null
+      && !rows[index].cells.some(isHierarchyHeader)) return true;
   }
   return false;
 }
@@ -136,10 +151,10 @@ export function parseExpenditureStatement(rows: BudgetLogicalRow[]): Expenditure
       if (!context || index === context.start || isSectionHeading(rows[index], "expenditure") || isClosingTotal(rows[index], "expenditure")) continue;
       if (rows[index].cells.some(isHierarchyHeader)) continue;
 
-      const nextPolicy = canonicalBudgetLabel(rows[index].cells[context.policyColumn]);
-      const nextUnit = canonicalBudgetLabel(rows[index].cells[context.unitColumn]);
-      const nextBusiness = canonicalBudgetLabel(rows[index].cells[context.businessColumn]);
-      const nextDetail = canonicalBudgetLabel(rows[index].cells[context.detailColumn]);
+      const nextPolicy = canonicalBudgetLabel(cellAtBudgetColumn(rows[index], context.policyHeaderRow, context.policyColumn));
+      const nextUnit = canonicalBudgetLabel(cellAtBudgetColumn(rows[index], context.unitHeaderRow, context.unitColumn));
+      const nextBusiness = canonicalBudgetLabel(cellAtBudgetColumn(rows[index], context.businessHeaderRow, context.businessColumn));
+      const nextDetail = canonicalBudgetLabel(cellAtBudgetColumn(rows[index], context.detailHeaderRow, context.detailColumn));
       if (nextPolicy && nextPolicy !== policy) {
         policy = nextPolicy;
         unit = "";
@@ -157,9 +172,9 @@ export function parseExpenditureStatement(rows: BudgetLogicalRow[]): Expenditure
       }
       if (nextDetail) detail = nextDetail;
 
-      const costItem = canonicalBudgetLabel(rows[index].cells[context.costItemColumn]);
+      const costItem = canonicalBudgetLabel(cellAtBudgetColumn(rows[index], context.costItemHeaderRow, context.costItemColumn));
       if (costItem !== "일반업무추진비") continue;
-      const amount = parseBudgetNumber(rows[index].cells[context.currentColumn]);
+      const amount = parseBudgetNumber(cellAtBudgetColumn(rows[index], context.currentHeaderRow, context.currentColumn));
       expenses.push({ id: expenseId(rows[index], index), policy, unit, business, detail, costItem, amount, row: rows[index] });
       if (amount === null) warnings.push({
         code: "GENERAL_BUSINESS_EXPENSE_AMOUNT",

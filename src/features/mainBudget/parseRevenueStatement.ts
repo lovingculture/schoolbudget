@@ -1,8 +1,9 @@
 import type { AnalysisWarning, BudgetLogicalRow, RevenueFact, RevenueFactCollection } from "./analysisTypes";
 import { parseBudgetNumber } from "./normalizeBudgetValue";
 import {
+  cellAtBudgetColumn,
   canonicalBudgetLabel,
-  findCurrentBudgetColumn,
+  currentBudgetContexts,
   findSectionStart,
   isClosingTotal,
   isNonBlankBudgetRow,
@@ -20,7 +21,14 @@ export type RevenueStatementParseResult = {
   warnings: AnalysisWarning[];
 };
 
-type HeaderContext = { start: number; currentColumn: number; itemColumn: number; isReliable: boolean };
+type HeaderContext = {
+  start: number;
+  currentColumn: number;
+  currentHeaderRow: BudgetLogicalRow;
+  itemColumn: number;
+  itemHeaderRow: BudgetLogicalRow;
+  isReliable: boolean;
+};
 
 type SectionSpan = { end: number; hasReliableClosure: boolean };
 
@@ -45,9 +53,8 @@ function revenueSectionSpan(rows: BudgetLogicalRow[], start: number): SectionSpa
 
 function headerContexts(rows: BudgetLogicalRow[], start: number, end: number): HeaderContext[] {
   const contexts: HeaderContext[] = [];
-  for (let index = start + 1; index < end; index += 1) {
-    const currentColumn = findCurrentBudgetColumn(rows[index]);
-    if (currentColumn < 0) continue;
+  for (const current of currentBudgetContexts(rows, start, end)) {
+    const index = current.start;
     let itemColumn = -1;
     let itemHeaderRow: BudgetLogicalRow | undefined;
     for (let candidate = Math.max(start + 1, index - 2); candidate < Math.min(end, index + 3); candidate += 1) {
@@ -58,11 +65,13 @@ function headerContexts(rows: BudgetLogicalRow[], start: number, end: number): H
         break;
       }
     }
-    if (itemColumn >= 0) contexts.push({
+    if (itemColumn >= 0 && itemHeaderRow) contexts.push({
       start: index,
-      currentColumn,
+      currentColumn: current.currentColumn,
+      currentHeaderRow: current.currentHeaderRow,
       itemColumn,
-      isReliable: isReliableBudgetRow(rows[index]) && isReliableBudgetRow(itemHeaderRow),
+      itemHeaderRow,
+      isReliable: isReliableBudgetRow(current.currentHeaderRow) && isReliableBudgetRow(itemHeaderRow),
     });
   }
   return contexts;
@@ -80,10 +89,10 @@ function targetFacts(
     while (contextIndex + 1 < contexts.length && contexts[contextIndex + 1].start <= index) contextIndex += 1;
     const context = contexts[contextIndex];
     if (!context || index === context.start || isSectionHeading(rows[index], "revenue")) continue;
-    const label = canonicalBudgetLabel(rows[index].cells[context.itemColumn]);
+    const label = canonicalBudgetLabel(cellAtBudgetColumn(rows[index], context.itemHeaderRow, context.itemColumn));
     if (!label) continue;
     if (!targetLabels.has(label)) continue;
-    const amount = parseBudgetNumber(rows[index].cells[context.currentColumn]);
+    const amount = parseBudgetNumber(cellAtBudgetColumn(rows[index], context.currentHeaderRow, context.currentColumn));
     const existing = facts.get(label);
     if (!existing || existing.amount === null) facts.set(label, { label, amount, row: rows[index] });
   }
@@ -96,8 +105,8 @@ function hasParsedData(rows: BudgetLogicalRow[], start: number, end: number, con
     while (contextIndex + 1 < contexts.length && contexts[contextIndex + 1].start <= index) contextIndex += 1;
     const context = contexts[contextIndex];
     if (!context || index === context.start || isSectionHeading(rows[index], "revenue") || isClosingTotal(rows[index], "revenue")) continue;
-    const label = canonicalBudgetLabel(rows[index].cells[context.itemColumn]);
-    if (label && parseBudgetNumber(rows[index].cells[context.currentColumn]) !== null) return true;
+    const label = canonicalBudgetLabel(cellAtBudgetColumn(rows[index], context.itemHeaderRow, context.itemColumn));
+    if (label && parseBudgetNumber(cellAtBudgetColumn(rows[index], context.currentHeaderRow, context.currentColumn)) !== null) return true;
   }
   return false;
 }

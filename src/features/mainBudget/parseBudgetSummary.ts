@@ -1,4 +1,4 @@
-import type { AnalysisWarning, BudgetLogicalRow, RevenueFact } from "./analysisTypes";
+import type { AnalysisWarning, BudgetCellCoordinate, BudgetLogicalRow, RevenueFact } from "./analysisTypes";
 import { normalizeLabel, parseBudgetNumber, stripHierarchyPrefix } from "./normalizeBudgetValue";
 
 export type BudgetSection = "summary" | "revenue" | "expenditure";
@@ -43,6 +43,10 @@ export function isSectionHeading(row: BudgetLogicalRow, section: BudgetSection):
 }
 
 export function findSectionStart(rows: BudgetLogicalRow[], section: BudgetSection): number {
+  if (section === "summary") {
+    const strict = rows.findIndex((row) => rowText(row).includes("세입세출예산총괄"));
+    if (strict >= 0) return strict;
+  }
   return rows.findIndex((row) => isSectionHeading(row, section));
 }
 
@@ -66,6 +70,62 @@ export function findCurrentBudgetColumn(row: BudgetLogicalRow): number {
   return row.cells.findIndex(isCurrentBudgetHeader);
 }
 
+export type CurrentBudgetContext = {
+  start: number;
+  currentColumn: number;
+  currentHeaderRow: BudgetLogicalRow;
+};
+
+export function currentBudgetContexts(
+  rows: BudgetLogicalRow[],
+  start: number,
+  end: number,
+): CurrentBudgetContext[] {
+  const contexts: CurrentBudgetContext[] = [];
+  for (let index = start + 1; index < end; index += 1) {
+    const currentColumn = findCurrentBudgetColumn(rows[index]);
+    if (currentColumn < 0) continue;
+    const previous = contexts.at(-1);
+    const samePdfHeader = previous
+      && rows[index].sourcePage !== undefined
+      && rows[index].sourcePage === previous.currentHeaderRow.sourcePage
+      && index - previous.start <= 2;
+    if (samePdfHeader) continue;
+    contexts.push({ start: index, currentColumn, currentHeaderRow: rows[index] });
+  }
+  return contexts;
+}
+
+function intervalGap(left: BudgetCellCoordinate, right: BudgetCellCoordinate): number {
+  const leftEnd = left.x + (left.width ?? 0);
+  const rightEnd = right.x + (right.width ?? 0);
+  if (leftEnd < right.x) return right.x - leftEnd;
+  if (rightEnd < left.x) return left.x - rightEnd;
+  return 0;
+}
+
+export function cellAtBudgetColumn(
+  row: BudgetLogicalRow,
+  headerRow: BudgetLogicalRow,
+  headerColumn: number,
+): unknown {
+  const fallback = row.cells[headerColumn];
+  if (row.sourcePage === undefined || row.sourcePage !== headerRow.sourcePage) return fallback;
+  const header = headerRow.coordinates?.[headerColumn];
+  if (!header || !row.coordinates) return fallback;
+  const headerEnd = header.x + (header.width ?? 0);
+  const candidates = row.cells.flatMap((cell, index) => {
+    const coordinate = row.coordinates?.[index];
+    return coordinate && (canonicalBudgetLabel(cell) !== "" || parseBudgetNumber(cell) !== null)
+      ? [{ cell, coordinate, gap: intervalGap(coordinate, header) }]
+      : [];
+  }).sort((left, right) => left.gap - right.gap
+    || Math.abs((left.coordinate.x + (left.coordinate.width ?? 0)) - headerEnd)
+      - Math.abs((right.coordinate.x + (right.coordinate.width ?? 0)) - headerEnd));
+  const closest = candidates[0];
+  return closest && closest.gap <= Math.max(12, (header.width ?? 0) * 0.75) ? closest.cell : fallback;
+}
+
 function warning(code: string, message: string, row?: BudgetLogicalRow): AnalysisWarning {
   return { code, message, severity: "error", row };
 }
@@ -87,31 +147,56 @@ export function parseBudgetSummary(rows: BudgetLogicalRow[]): BudgetSummaryParse
   let currentHeaderRow: BudgetLogicalRow | undefined;
   let currentColumn = -1;
   let totalRow: BudgetLogicalRow | undefined;
+  let amount: number | null = null;
 
   if (start >= 0) {
+    const contexts = currentBudgetContexts(rows, start, end);
+    let contextIndex = -1;
     for (let index = start + 1; index < end; index += 1) {
-      const foundColumn = findCurrentBudgetColumn(rows[index]);
-      if (foundColumn >= 0) {
-        currentColumn = foundColumn;
-        currentHeaderRow = rows[index];
-      }
+      while (contextIndex + 1 < contexts.length && contexts[contextIndex + 1].start <= index) contextIndex += 1;
+      const context = contexts[contextIndex];
       if (rows[index].cells.some((cell) => ["세입예산총액", "세입합계"].includes(canonicalBudgetLabel(cell)))) {
         totalRow = rows[index];
+        if (context) {
+          currentColumn = context.currentColumn;
+          currentHeaderRow = context.currentHeaderRow;
+          amount = parseBudgetNumber(cellAtBudgetColumn(totalRow, currentHeaderRow, currentColumn));
+        }
+        break;
+      }
+    }
+
+    if (!totalRow) {
+      for (const context of contexts) {
+        const candidate = rows.slice(context.start + 1, end).find((row) => row.sourcePage === context.currentHeaderRow.sourcePage
+          && rowText(row).includes("본예산")
+          && parseBudgetNumber(cellAtBudgetColumn(row, context.currentHeaderRow, context.currentColumn)) !== null);
+        if (!candidate) continue;
+        totalRow = candidate;
+        currentColumn = context.currentColumn;
+        currentHeaderRow = context.currentHeaderRow;
+        amount = parseBudgetNumber(cellAtBudgetColumn(candidate, currentHeaderRow, currentColumn));
         break;
       }
     }
   }
 
-  let amount = totalRow && currentColumn >= 0 ? parseBudgetNumber(totalRow.cells[currentColumn]) : null;
-  if (!totalRow && start >= 0) {
-    const inlineRow = rows.slice(start, end).find((row) => findCurrentBudgetColumn(row) >= 0
-      && row.cells.slice(findCurrentBudgetColumn(row) + 1).some((cell) => parseBudgetNumber(cell) !== null));
-    if (inlineRow) {
-      totalRow = inlineRow;
-      const labelColumn = findCurrentBudgetColumn(inlineRow);
-      amount = inlineRow.cells.slice(labelColumn + 1).map(parseBudgetNumber).find((value) => value !== null) ?? null;
-      currentColumn = labelColumn;
-      currentHeaderRow = inlineRow;
+  if (!totalRow) {
+    const revenueStart = findSectionStart(rows, "revenue");
+    const revenueEnd = findSectionEnd(rows, revenueStart, ["expenditure", "summary"]);
+    const contexts = revenueStart < 0 ? [] : currentBudgetContexts(rows, revenueStart, revenueEnd);
+    let contextIndex = -1;
+    for (let index = revenueStart + 1; index < revenueEnd; index += 1) {
+      while (contextIndex + 1 < contexts.length && contexts[contextIndex + 1].start <= index) contextIndex += 1;
+      if (!isClosingTotal(rows[index], "revenue")) continue;
+      const context = contexts[contextIndex];
+      if (context) {
+        totalRow = rows[index];
+        currentColumn = context.currentColumn;
+        currentHeaderRow = context.currentHeaderRow;
+        amount = parseBudgetNumber(cellAtBudgetColumn(totalRow, currentHeaderRow, currentColumn));
+      }
+      break;
     }
   }
 
