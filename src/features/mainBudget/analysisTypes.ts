@@ -35,6 +35,7 @@ export type GeneralBusinessExpense = {
   unit: string;
   business: string;
   detail: string;
+  costItem: string;
   amount: number | null;
   row?: BudgetLogicalRow;
 };
@@ -46,15 +47,23 @@ export type AnalysisWarning = {
   row?: BudgetLogicalRow;
 };
 
-export type RevenueVerification = Record<string, number | null>;
+export type RevenueFactCollection = {
+  facts: RevenueFact[];
+  isComplete: boolean;
+};
+
+export type GeneralBusinessExpenseCollection = {
+  facts: GeneralBusinessExpense[];
+  isComplete: boolean;
+};
 
 export type ParsedMainBudgetInput = {
   source: BudgetSource;
-  totalRevenue: number | null;
-  purposeRevenue: number | null;
-  beneficiaryRevenue: number | null;
-  verificationRevenue: RevenueVerification;
-  generalBusinessExpenses: GeneralBusinessExpense[];
+  totalRevenue: RevenueFact;
+  purposeRevenue: RevenueFact;
+  beneficiaryRevenue: RevenueFact;
+  verificationRevenue: RevenueFactCollection;
+  generalBusinessExpenses: GeneralBusinessExpenseCollection;
   warnings: AnalysisWarning[];
 };
 
@@ -67,13 +76,14 @@ export type MainBudgetComparison = {
 
 export type MainBudgetAnalysisResult = {
   source: BudgetSource;
-  totalRevenue: number | null;
-  purposeRevenue: number | null;
-  beneficiaryRevenue: number | null;
+  totalRevenue: RevenueFact;
+  purposeRevenue: RevenueFact;
+  beneficiaryRevenue: RevenueFact;
   revenueBaseline: number | null;
-  verificationRevenue: RevenueVerification;
+  verificationRevenue: RevenueFactCollection;
   verificationRevenueTotal: number | null;
   generalBusinessExpenses: GeneralBusinessExpense[];
+  generalBusinessExpenseFacts: GeneralBusinessExpenseCollection;
   generalBusinessExpenseTotal: number | null;
   ratio: number | null;
   comparison: MainBudgetComparison;
