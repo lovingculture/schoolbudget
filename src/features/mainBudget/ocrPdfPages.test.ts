@@ -9,7 +9,11 @@ vi.mock("tesseract.js", () => ({
 }));
 
 import type { PdfImagePage } from "./extractPdfPages";
-import { ocrPdfPages, type OcrProgress } from "./ocrPdfPages";
+import {
+  OCR_ASSET_LOAD_ERROR_MESSAGE,
+  ocrPdfPages,
+  type OcrProgress,
+} from "./ocrPdfPages";
 import { isReliableBudgetRow } from "./parseBudgetSummary";
 
 type Logger = (message: {
@@ -22,11 +26,11 @@ type Logger = (message: {
 
 type TestCanvas = HTMLCanvasElement & { context: CanvasRenderingContext2D };
 
-function loggerMessage(progress: number) {
+function loggerMessage(progress: number, status = "recognizing text") {
   return {
     jobId: "job-1",
     progress,
-    status: "recognizing text",
+    status,
     userJobId: "user-job-1",
     workerId: "worker-1",
   };
@@ -70,16 +74,27 @@ function ocrPage(words: Array<{ text: string; confidence: number; bbox: { x0: nu
 
 function pdfImagePage(pageNumber: number, events: string[], renderPromise: Promise<void> = Promise.resolve()) {
   const cleanup = vi.fn(() => events.push(`cleanup-${pageNumber}`));
+  const cancel = vi.fn();
   const render = vi.fn(() => {
     events.push(`render-${pageNumber}`);
-    return { promise: renderPromise, cancel: vi.fn() };
+    return { promise: renderPromise, cancel };
   });
   const page = {
     getViewport: vi.fn(({ scale }: { scale: number }) => ({ width: 300 * scale, height: 400 * scale, scale })),
     render,
     cleanup,
   };
-  return { imagePage: { pageNumber, page } as unknown as PdfImagePage, page, cleanup, render };
+  return { imagePage: { pageNumber, page } as unknown as PdfImagePage, page, cleanup, render, cancel };
+}
+
+function deferred<T>() {
+  let resolve!: (value: T | PromiseLike<T>) => void;
+  let reject!: (reason?: unknown) => void;
+  const promise = new Promise<T>((onResolve, onReject) => {
+    resolve = onResolve;
+    reject = onReject;
+  });
+  return { promise, resolve, reject };
 }
 
 function installCanvasFactory() {
@@ -139,7 +154,9 @@ describe("ocrPdfPages", () => {
     ) => {
       const call = recognize.mock.calls.length;
       events.push(`recognize-${call}`);
+      logger(loggerMessage(0));
       logger(loggerMessage(call === 1 ? 0.6 : 0.25));
+      logger(loggerMessage(1));
       if (call === 1) {
         return ocrPage([
           { text: "목적사업비전입금", confidence: 92, bbox: { x0: 20, y0: 40, x1: 180, y1: 60 } },
@@ -158,7 +175,12 @@ describe("ocrPdfPages", () => {
       expect(oem).toBeUndefined();
       expect(options).toEqual({ logger: expect.any(Function) });
       logger = options.logger;
-      logger(loggerMessage(0.1));
+      logger(loggerMessage(0, "loading tesseract core"));
+      logger(loggerMessage(1, "loading tesseract core"));
+      logger(loggerMessage(0, "loading language traineddata"));
+      logger(loggerMessage(1, "loading language traineddata"));
+      logger(loggerMessage(0, "initializing api"));
+      logger(loggerMessage(1, "initialized api"));
       return { recognize, terminate };
     });
     const progress: OcrProgress[] = [];
@@ -209,14 +231,24 @@ describe("ocrPdfPages", () => {
     ]);
     expect(isReliableBudgetRow(rows[0])).toBe(false);
     expect(isReliableBudgetRow(rows[1])).toBe(true);
-    expect(progress).toEqual([
-      { phase: "ocr", completed: 0, total: 2 },
-      { phase: "ocr", completed: 0.1, total: 2 },
-      { phase: "ocr", completed: 0.6, total: 2 },
-      { phase: "ocr", completed: 1, total: 2 },
-      { phase: "ocr", completed: 1.25, total: 2 },
-      { phase: "ocr", completed: 2, total: 2 },
+    const initialization = progress.filter(({ phase }) => phase === "ocr-initializing");
+    expect(initialization.map(({ status }) => status)).toEqual([
+      "loading OCR worker",
+      "loading tesseract core",
+      "loading tesseract core",
+      "loading language traineddata",
+      "loading language traineddata",
+      "initializing api",
+      "initialized api",
     ]);
+    expect(initialization.every(({ completed }) => completed < 1)).toBe(true);
+    expect(progress).toEqual(expect.arrayContaining([
+      { phase: "ocr-recognizing", status: "recognizing text", completed: 0.1, total: 2 },
+      { phase: "ocr-recognizing", status: "recognizing text", completed: 0.64, total: 2 },
+      { phase: "ocr-recognizing", status: "recognizing text", completed: 1, total: 2 },
+      { phase: "ocr-recognizing", status: "recognizing text", completed: 1.25, total: 2 },
+      { phase: "ocr-recognizing", status: "page complete", completed: 2, total: 2 },
+    ]));
     expect(progress.every((update, index) => index === 0 || update.completed >= progress[index - 1].completed)).toBe(true);
     expect(first.cleanup).toHaveBeenCalledTimes(1);
     expect(second.cleanup).toHaveBeenCalledTimes(1);
@@ -281,6 +313,100 @@ describe("ocrPdfPages", () => {
     expect(first.cleanup).toHaveBeenCalledTimes(1);
     expect(second.render).not.toHaveBeenCalled();
     expect(canvases[0]).toMatchObject({ width: 0, height: 0 });
+    expect(terminate).toHaveBeenCalledTimes(1);
+  });
+
+  it("rejects promptly when aborted while worker creation is still pending", async () => {
+    const events: string[] = [];
+    const imagePage = pdfImagePage(1, events);
+    const creation = deferred<never>();
+    const controller = new AbortController();
+    tesseractMock.createWorker.mockReturnValue(creation.promise);
+
+    const pending = ocrPdfPages([imagePage.imagePage], controller.signal, vi.fn());
+    await vi.waitFor(() => expect(tesseractMock.createWorker).toHaveBeenCalledTimes(1));
+    controller.abort();
+
+    expect(await settleWithin(pending)).toMatchObject({
+      status: "rejected",
+      error: { name: "AbortError" },
+    });
+    expect(imagePage.render).not.toHaveBeenCalled();
+  });
+
+  it("terminates a worker exactly once when creation resolves after an abort", async () => {
+    const events: string[] = [];
+    const imagePage = pdfImagePage(1, events);
+    const creation = deferred<{ recognize: ReturnType<typeof vi.fn>; terminate: ReturnType<typeof vi.fn> }>();
+    const controller = new AbortController();
+    const terminate = vi.fn().mockResolvedValue({ jobId: "terminate", data: {} });
+    const lateWorker = { recognize: vi.fn(), terminate };
+    tesseractMock.createWorker.mockReturnValue(creation.promise);
+
+    const pending = ocrPdfPages([imagePage.imagePage], controller.signal, vi.fn());
+    await vi.waitFor(() => expect(tesseractMock.createWorker).toHaveBeenCalledTimes(1));
+    controller.abort();
+    await expect(pending).rejects.toMatchObject({ name: "AbortError" });
+
+    creation.resolve(lateWorker);
+    await vi.waitFor(() => expect(terminate).toHaveBeenCalledTimes(1));
+    expect(imagePage.render).not.toHaveBeenCalled();
+  });
+
+  it("handles a delayed worker-creation rejection after abort without replacing AbortError", async () => {
+    const events: string[] = [];
+    const imagePage = pdfImagePage(1, events);
+    const creation = deferred<never>();
+    const controller = new AbortController();
+    tesseractMock.createWorker.mockReturnValue(creation.promise);
+
+    const pending = ocrPdfPages([imagePage.imagePage], controller.signal, vi.fn());
+    await vi.waitFor(() => expect(tesseractMock.createWorker).toHaveBeenCalledTimes(1));
+    controller.abort();
+    await expect(pending).rejects.toMatchObject({ name: "AbortError" });
+
+    creation.reject(new Error("late asset failure"));
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    expect(imagePage.render).not.toHaveBeenCalled();
+  });
+
+  it("surfaces an actionable network message when worker assets fail to load", async () => {
+    const events: string[] = [];
+    const imagePage = pdfImagePage(1, events);
+    const assetError = new Error("failed to fetch traineddata");
+    tesseractMock.createWorker.mockRejectedValue(assetError);
+
+    const pending = ocrPdfPages([imagePage.imagePage], new AbortController().signal, vi.fn());
+
+    await expect(pending).rejects.toMatchObject({
+      message: OCR_ASSET_LOAD_ERROR_MESSAGE,
+      cause: assetError,
+    });
+    expect(imagePage.render).not.toHaveBeenCalled();
+  });
+
+  it("cancels a pending render and preserves AbortError when cancellation rejects the render", async () => {
+    const events: string[] = [];
+    const render = deferred<void>();
+    const imagePage = pdfImagePage(1, events, render.promise);
+    imagePage.cancel.mockImplementation(() => render.reject(new Error("render cancelled")));
+    installCanvasFactory();
+    const controller = new AbortController();
+    const terminate = vi.fn().mockResolvedValue({ jobId: "terminate", data: {} });
+    const recognize = vi.fn();
+    tesseractMock.createWorker.mockResolvedValue({ recognize, terminate });
+
+    const pending = ocrPdfPages([imagePage.imagePage], controller.signal, vi.fn());
+    await vi.waitFor(() => expect(imagePage.render).toHaveBeenCalledTimes(1));
+    controller.abort();
+
+    expect(await settleWithin(pending)).toMatchObject({
+      status: "rejected",
+      error: { name: "AbortError" },
+    });
+    expect(imagePage.cancel).toHaveBeenCalledTimes(1);
+    expect(imagePage.cleanup).toHaveBeenCalledTimes(1);
+    expect(recognize).not.toHaveBeenCalled();
     expect(terminate).toHaveBeenCalledTimes(1);
   });
 });

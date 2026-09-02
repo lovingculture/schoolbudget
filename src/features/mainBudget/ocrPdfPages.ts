@@ -3,15 +3,19 @@ import type { PdfImagePage } from "./extractPdfPages";
 import { normalizePdfLines, type PdfLineItem } from "./normalizePdfLines";
 
 export type OcrProgress = {
-  phase: "ocr";
+  phase: "ocr-initializing" | "ocr-rendering" | "ocr-recognizing";
+  status: string;
   completed: number;
   total: number;
 };
+
+export const OCR_ASSET_LOAD_ERROR_MESSAGE = "OCR assets could not be loaded. An internet connection or network permission is required.";
 
 type TesseractModule = typeof import("tesseract.js");
 type TesseractWorker = Awaited<ReturnType<TesseractModule["createWorker"]>>;
 
 const ANALYSIS_SCALE = 2;
+const INITIALIZATION_PROGRESS_CEILING = 0.1;
 
 function abortError(): DOMException {
   return new DOMException("OCR was aborted.", "AbortError");
@@ -19,6 +23,10 @@ function abortError(): DOMException {
 
 function throwIfAborted(signal: AbortSignal): void {
   if (signal.aborted) throw abortError();
+}
+
+function isAbortError(error: unknown): boolean {
+  return error instanceof DOMException && error.name === "AbortError";
 }
 
 function awaitWithAbort<T>(promise: Promise<T>, signal: AbortSignal, onAbort?: () => void): Promise<T> {
@@ -90,14 +98,20 @@ export async function ocrPdfPages(
   if (pages.length === 0) return [];
 
   let completedPages = 0;
-  let lastProgress = -1;
-  const report = (completed: number) => {
+  let activePageIndex: number | undefined;
+  let initializationStage = -1;
+  let initializationStatus = "";
+  let lastProgress: OcrProgress | undefined;
+  const report = (phase: OcrProgress["phase"], status: string, completed: number) => {
     const bounded = Math.min(pages.length, Math.max(0, completed));
-    if (bounded <= lastProgress) return;
-    lastProgress = bounded;
-    onProgress({ phase: "ocr", completed: bounded, total: pages.length });
+    const monotonicCompleted = Math.max(lastProgress?.completed ?? 0, bounded);
+    if (lastProgress?.completed === monotonicCompleted
+      && lastProgress.phase === phase
+      && lastProgress.status === status) return;
+    lastProgress = { phase, status, completed: monotonicCompleted, total: pages.length };
+    onProgress(lastProgress);
   };
-  report(0);
+  report("ocr-initializing", "loading OCR worker", 0);
   throwIfAborted(signal);
 
   let worker: TesseractWorker | undefined;
@@ -111,25 +125,50 @@ export async function ocrPdfPages(
   try {
     const tesseract = await awaitWithAbort(import("tesseract.js"), signal);
     const workerPromise = tesseract.createWorker("kor+eng", undefined, {
-      logger: ({ progress }) => {
+      logger: ({ progress, status }) => {
         if (!Number.isFinite(progress)) return;
-        report(completedPages + Math.min(1, Math.max(0, progress)));
+        const fraction = Math.min(1, Math.max(0, progress));
+        if (activePageIndex === undefined) {
+          if (status !== initializationStatus) {
+            initializationStatus = status;
+            initializationStage += 1;
+          }
+          const stageStart = INITIALIZATION_PROGRESS_CEILING * (1 - (2 ** -initializationStage));
+          const stageEnd = INITIALIZATION_PROGRESS_CEILING * (1 - (2 ** -(initializationStage + 1)));
+          report("ocr-initializing", status, stageStart + ((stageEnd - stageStart) * fraction));
+          return;
+        }
+        const pageProgress = activePageIndex === 0
+          ? INITIALIZATION_PROGRESS_CEILING + (fraction * (1 - INITIALIZATION_PROGRESS_CEILING))
+          : activePageIndex + fraction;
+        report("ocr-recognizing", status, pageProgress);
       },
     });
     try {
       worker = await awaitWithAbort(workerPromise, signal);
     } catch (error) {
-      if (signal.aborted) {
-        void workerPromise.then((lateWorker) => terminateOnce(lateWorker)).catch(() => undefined);
+      if (isAbortError(error)) {
+        // Tesseract exposes no worker handle until createWorker resolves. This guarded
+        // continuation is the earliest possible point to terminate a late worker and
+        // also consumes a late creation rejection so it cannot become unhandled.
+        void workerPromise.then(
+          (lateWorker) => terminateOnce(lateWorker),
+          () => undefined,
+        ).catch(() => undefined);
+        throw error;
       }
-      throw error;
+      throw new Error(OCR_ASSET_LOAD_ERROR_MESSAGE, { cause: error });
     }
 
     const rows: BudgetLogicalRow[] = [];
-    for (const { pageNumber, page } of pages) {
+    for (let pageIndex = 0; pageIndex < pages.length; pageIndex += 1) {
+      const { pageNumber, page } = pages[pageIndex];
       throwIfAborted(signal);
       let canvas: HTMLCanvasElement | undefined;
       try {
+        activePageIndex = pageIndex;
+        const pageStart = pageIndex === 0 ? INITIALIZATION_PROGRESS_CEILING : pageIndex;
+        report("ocr-rendering", "rendering page", pageStart);
         const viewport = page.getViewport({ scale: ANALYSIS_SCALE });
         canvas = document.createElement("canvas");
         canvas.width = Math.ceil(viewport.width);
@@ -142,7 +181,7 @@ export async function ocrPdfPages(
         const result = await awaitWithAbort(worker.recognize(canvas, {}, { blocks: true }), signal);
         rows.push(...wordsFromResult(result, pageNumber, viewport.height));
         completedPages += 1;
-        report(completedPages);
+        report("ocr-recognizing", "page complete", completedPages);
         throwIfAborted(signal);
       } finally {
         if (canvas) {
