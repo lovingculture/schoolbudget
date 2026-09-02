@@ -1,0 +1,267 @@
+import { analyzeMainBudget } from "./analyzeMainBudget";
+import type {
+  BudgetFileFormat,
+  BudgetLogicalRow,
+  GeneralBusinessExpense,
+  MainBudgetAnalysisResult,
+  ParsedMainBudgetInput,
+  RevenueFact,
+  RevenueFactCollection,
+} from "./analysisTypes";
+import { extractPdfPages, type PdfExtractionProgress } from "./extractPdfPages";
+import { extractWorkbookRows } from "./extractWorkbookRows";
+import { ocrPdfPages, type OcrProgress } from "./ocrPdfPages";
+import { parseBudgetSummary } from "./parseBudgetSummary";
+import { parseExpenditureStatement } from "./parseExpenditureStatement";
+import { parseRevenueStatement } from "./parseRevenueStatement";
+
+export type AnalysisProgress = PdfExtractionProgress | OcrProgress | {
+  phase: "reading" | "parsing" | "complete";
+  completed: number;
+  total: number;
+};
+
+export type AnalyzeBudgetFileOptions = {
+  signal: AbortSignal;
+  onProgress: (progress: AnalysisProgress) => void;
+};
+
+const PDF_MAGIC = [0x25, 0x50, 0x44, 0x46, 0x2d] as const;
+const XLS_MAGIC = [0xd0, 0xcf, 0x11, 0xe0, 0xa1, 0xb1, 0x1a, 0xe1] as const;
+const ZIP_MAGICS = [
+  [0x50, 0x4b, 0x03, 0x04],
+  [0x50, 0x4b, 0x05, 0x06],
+  [0x50, 0x4b, 0x07, 0x08],
+] as const;
+
+type BudgetSection = "summary" | "revenue" | "expenditure";
+type ExplicitMoneyUnit = "won" | "thousand-won" | "million-won";
+
+function abortError(): DOMException {
+  return new DOMException("파일 분석이 취소되었습니다.", "AbortError");
+}
+
+function throwIfAborted(signal: AbortSignal): void {
+  if (signal.aborted) throw abortError();
+}
+
+function isAbortError(error: unknown): boolean {
+  return error instanceof DOMException && error.name === "AbortError";
+}
+
+function isFileLike(value: unknown): value is File {
+  return typeof value === "object"
+    && value !== null
+    && typeof (value as { name?: unknown }).name === "string"
+    && typeof (value as { slice?: unknown }).slice === "function";
+}
+
+function extensionFormat(fileName: string): BudgetFileFormat | null {
+  const match = /\.([^.]+)$/.exec(fileName.trim());
+  const extension = match?.[1].toLowerCase();
+  if (extension === "pdf" || extension === "xls" || extension === "xlsx") return extension;
+  return null;
+}
+
+function startsWith(bytes: Uint8Array, magic: readonly number[]): boolean {
+  return magic.every((byte, index) => bytes[index] === byte);
+}
+
+function detectedFormat(bytes: Uint8Array): BudgetFileFormat | null {
+  if (startsWith(bytes, PDF_MAGIC)) return "pdf";
+  if (startsWith(bytes, XLS_MAGIC)) return "xls";
+  if (ZIP_MAGICS.some((magic) => startsWith(bytes, magic))) return "xlsx";
+  return null;
+}
+
+function blobArrayBuffer(blob: Blob): Promise<ArrayBuffer> {
+  if (typeof (blob as Blob & { arrayBuffer?: unknown }).arrayBuffer === "function") {
+    return (blob as Blob & { arrayBuffer: () => Promise<ArrayBuffer> }).arrayBuffer();
+  }
+  return new Promise<ArrayBuffer>((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onerror = () => reject(reader.error ?? new Error("파일을 읽지 못했습니다."));
+    reader.onload = () => {
+      if (reader.result instanceof ArrayBuffer) resolve(reader.result);
+      else reject(new Error("파일을 바이너리로 읽지 못했습니다."));
+    };
+    reader.readAsArrayBuffer(blob);
+  });
+}
+
+async function verifiedFormat(file: File, signal: AbortSignal): Promise<BudgetFileFormat> {
+  const extension = extensionFormat(file.name);
+  if (!extension) {
+    throw new Error(`${file.name}: 지원하지 않는 파일 형식입니다. PDF, XLS, XLSX 파일만 선택해 주세요.`);
+  }
+  throwIfAborted(signal);
+  const bytes = new Uint8Array(await blobArrayBuffer(file.slice(0, 8)));
+  throwIfAborted(signal);
+  const content = detectedFormat(bytes);
+  if (!content) throw new Error(`${file.name}: 손상되었거나 지원하지 않는 ${extension.toUpperCase()} 파일입니다.`);
+  if (content !== extension) {
+    throw new Error(`${file.name}: 파일 확장자와 내용이 일치하지 않습니다. 올바른 ${content.toUpperCase()} 파일을 선택해 주세요.`);
+  }
+  return extension;
+}
+
+function rowText(row: BudgetLogicalRow): string {
+  return row.cells.map((cell) => typeof cell === "string" ? cell : "").join("").replace(/[\s\-:()（）\[\]·•・ㆍ]/g, "");
+}
+
+function sectionForHeading(row: BudgetLogicalRow): BudgetSection | null {
+  const text = rowText(row);
+  if (text.includes("세입예산명세서")) return "revenue";
+  if (text.includes("세출예산명세서")) return "expenditure";
+  if (text.includes("세입세출예산총괄") || (text.includes("세입세출예산서") && !text.includes("명세서"))) return "summary";
+  return null;
+}
+
+function explicitUnit(value: unknown): ExplicitMoneyUnit | null {
+  if (typeof value !== "string") return null;
+  const normalized = value.replace(/\s/g, "");
+  const match = /^[(（]?단위[:：]?(백만원|천원|원)[)）]?$/.exec(normalized);
+  if (!match) return null;
+  if (match[1] === "원") return "won";
+  if (match[1] === "천원") return "thousand-won";
+  return "million-won";
+}
+
+function sectionUnits(rows: readonly BudgetLogicalRow[]): Partial<Record<BudgetSection, ExplicitMoneyUnit>> {
+  const found = new Map<BudgetSection, Set<ExplicitMoneyUnit>>();
+  let section: BudgetSection | null = null;
+  for (const row of rows) {
+    section = sectionForHeading(row) ?? section;
+    if (!section) continue;
+    const joinedText = row.cells.filter((cell): cell is string => typeof cell === "string").join("");
+    for (const cell of [...row.cells, joinedText]) {
+      const unit = explicitUnit(cell);
+      if (!unit) continue;
+      const units = found.get(section) ?? new Set<ExplicitMoneyUnit>();
+      units.add(unit);
+      found.set(section, units);
+    }
+  }
+  const result: Partial<Record<BudgetSection, ExplicitMoneyUnit>> = {};
+  for (const [target, units] of found) {
+    if (units.size === 1) result[target] = [...units][0];
+  }
+  return result;
+}
+
+function amountInThousandWon(amount: number | null, unit: ExplicitMoneyUnit | undefined): number | null {
+  if (amount === null || unit === undefined) return amount;
+  if (unit === "won") return amount / 1_000;
+  if (unit === "million-won") return amount * 1_000;
+  return amount;
+}
+
+function scaledRevenueFact(fact: RevenueFact, unit: ExplicitMoneyUnit | undefined): RevenueFact {
+  return { ...fact, amount: amountInThousandWon(fact.amount, unit) };
+}
+
+function scaledRevenueCollection(collection: RevenueFactCollection, unit: ExplicitMoneyUnit | undefined): RevenueFactCollection {
+  return { ...collection, facts: collection.facts.map((fact) => scaledRevenueFact(fact, unit)) };
+}
+
+function scaledExpense(expense: GeneralBusinessExpense, unit: ExplicitMoneyUnit | undefined): GeneralBusinessExpense {
+  return { ...expense, amount: amountInThousandWon(expense.amount, unit) };
+}
+
+function parsedInput(
+  source: ParsedMainBudgetInput["source"],
+  rows: BudgetLogicalRow[],
+): ParsedMainBudgetInput {
+  const summary = parseBudgetSummary(rows);
+  const revenue = parseRevenueStatement(rows);
+  const expenditure = parseExpenditureStatement(rows);
+  const units = sectionUnits(rows);
+  return {
+    source,
+    totalRevenue: scaledRevenueFact(summary.totalRevenue, units.summary),
+    purposeRevenue: scaledRevenueFact(revenue.purposeRevenue, units.revenue),
+    beneficiaryRevenue: scaledRevenueFact(revenue.beneficiaryRevenue, units.revenue),
+    verificationRevenue: scaledRevenueCollection(revenue.verificationRevenue, units.revenue),
+    generalBusinessExpenses: {
+      facts: expenditure.expenses.map((expense) => scaledExpense(expense, units.expenditure)),
+      isComplete: expenditure.isComplete,
+    },
+    warnings: [...summary.warnings, ...revenue.warnings, ...expenditure.warnings],
+  };
+}
+
+function sourceOrder(left: BudgetLogicalRow, right: BudgetLogicalRow): number {
+  const page = (left.sourcePage ?? Number.MAX_SAFE_INTEGER) - (right.sourcePage ?? Number.MAX_SAFE_INTEGER);
+  if (page !== 0) return page;
+  return (left.sourceRow ?? Number.MAX_SAFE_INTEGER) - (right.sourceRow ?? Number.MAX_SAFE_INTEGER);
+}
+
+function corruptFileError(file: File, format: BudgetFileFormat, cause: unknown): Error {
+  return new Error(`${file.name}: 손상되었거나 지원하지 않는 ${format.toUpperCase()} 파일입니다.`, { cause });
+}
+
+async function analyzePdf(file: File, options: AnalyzeBudgetFileOptions): Promise<MainBudgetAnalysisResult> {
+  let extraction;
+  try {
+    extraction = await extractPdfPages(file, options.signal, options.onProgress);
+  } catch (error) {
+    if (isAbortError(error)) throw error;
+    throw corruptFileError(file, "pdf", error);
+  }
+
+  let primaryError: unknown;
+  try {
+    throwIfAborted(options.signal);
+    const directRows = extraction.textPages.flatMap((page) => page.rows);
+    const ocrRows = extraction.imagePages.length === 0
+      ? []
+      : await ocrPdfPages(extraction.imagePages, options.signal, options.onProgress);
+    throwIfAborted(options.signal);
+    const rows = [...directRows, ...ocrRows].sort(sourceOrder);
+    options.onProgress({ phase: "parsing", completed: 0, total: 1 });
+    throwIfAborted(options.signal);
+    const result = analyzeMainBudget(parsedInput({
+      fileName: file.name,
+      format: "pdf",
+      pageCount: extraction.metadata.pageCount,
+    }, rows));
+    options.onProgress({ phase: "complete", completed: 1, total: 1 });
+    throwIfAborted(options.signal);
+    return result;
+  } catch (error) {
+    primaryError = error;
+    throw error;
+  } finally {
+    try {
+      await extraction.cleanup();
+    } catch (cleanupError) {
+      if (primaryError === undefined) throw cleanupError;
+    }
+  }
+}
+
+export async function analyzeBudgetFile(file: File, options: AnalyzeBudgetFileOptions): Promise<MainBudgetAnalysisResult> {
+  if (!isFileLike(file)) throw new Error("분석할 파일을 하나만 선택해 주세요.");
+  throwIfAborted(options.signal);
+  options.onProgress({ phase: "reading", completed: 0, total: 1 });
+  const format = await verifiedFormat(file, options.signal);
+  if (format === "pdf") return analyzePdf(file, options);
+
+  let extracted;
+  try {
+    extracted = await extractWorkbookRows(file);
+  } catch (error) {
+    if (isAbortError(error)) throw error;
+    throw corruptFileError(file, format, error);
+  }
+  throwIfAborted(options.signal);
+  options.onProgress({ phase: "reading", completed: 1, total: 1 });
+  throwIfAborted(options.signal);
+  options.onProgress({ phase: "parsing", completed: 0, total: 1 });
+  throwIfAborted(options.signal);
+  const result = analyzeMainBudget(parsedInput(extracted.source, extracted.rows));
+  throwIfAborted(options.signal);
+  options.onProgress({ phase: "complete", completed: 1, total: 1 });
+  throwIfAborted(options.signal);
+  return result;
+}

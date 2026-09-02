@@ -1,0 +1,278 @@
+import { beforeEach, describe, expect, it, vi } from "vitest";
+import type { BudgetLogicalRow, MainBudgetAnalysisResult } from "./analysisTypes";
+
+const adapterMocks = vi.hoisted(() => ({
+  extractWorkbookRows: vi.fn(),
+  extractPdfPages: vi.fn(),
+  ocrPdfPages: vi.fn(),
+}));
+
+const parserMocks = vi.hoisted(() => ({
+  parseBudgetSummary: vi.fn(),
+  parseRevenueStatement: vi.fn(),
+  parseExpenditureStatement: vi.fn(),
+  analyzeMainBudget: vi.fn(),
+}));
+
+vi.mock("./extractWorkbookRows", () => ({ extractWorkbookRows: adapterMocks.extractWorkbookRows }));
+vi.mock("./extractPdfPages", () => ({ extractPdfPages: adapterMocks.extractPdfPages }));
+vi.mock("./ocrPdfPages", () => ({ ocrPdfPages: adapterMocks.ocrPdfPages }));
+vi.mock("./parseBudgetSummary", () => ({ parseBudgetSummary: parserMocks.parseBudgetSummary }));
+vi.mock("./parseRevenueStatement", () => ({ parseRevenueStatement: parserMocks.parseRevenueStatement }));
+vi.mock("./parseExpenditureStatement", () => ({ parseExpenditureStatement: parserMocks.parseExpenditureStatement }));
+vi.mock("./analyzeMainBudget", () => ({ analyzeMainBudget: parserMocks.analyzeMainBudget }));
+
+import { analyzeBudgetFile } from "./analyzeBudgetFile";
+
+const pdfMagic = [0x25, 0x50, 0x44, 0x46, 0x2d, 0x31, 0x2e, 0x37];
+const xlsMagic = [0xd0, 0xcf, 0x11, 0xe0, 0xa1, 0xb1, 0x1a, 0xe1];
+const xlsxMagic = [0x50, 0x4b, 0x03, 0x04, 0x14, 0x00, 0x00, 0x00];
+
+function budgetFile(name: string, bytes: number[], type = "") {
+  return new File([new Uint8Array(bytes)], name, { type });
+}
+
+function resultFor(format: "pdf" | "xls" | "xlsx", fileName = `budget.${format}`): MainBudgetAnalysisResult {
+  return {
+    source: { fileName, format },
+    totalRevenue: { label: "세입예산총액", amount: 1_000 },
+    purposeRevenue: { label: "목적사업비전입금", amount: 0 },
+    beneficiaryRevenue: { label: "수익자부담수입", amount: 0 },
+    revenueBaseline: 1_000,
+    verificationRevenue: { facts: [], isComplete: true },
+    verificationRevenueTotal: 1_000,
+    generalBusinessExpenses: [],
+    generalBusinessExpenseFacts: { facts: [], isComplete: true },
+    generalBusinessExpenseTotal: 0,
+    ratio: 0,
+    comparison: { status: "match", revenueBaseline: 1_000, verificationRevenueTotal: 1_000, difference: 0 },
+    warnings: [],
+  };
+}
+
+const summary = { totalRevenue: { label: "세입예산총액", amount: 1_000 }, isComplete: true, warnings: [] };
+const revenue = {
+  purposeRevenue: { label: "목적사업비전입금", amount: 0 },
+  beneficiaryRevenue: { label: "수익자부담수입", amount: 0 },
+  verificationRevenue: { facts: [], isComplete: true },
+  warnings: [],
+};
+const expenditure = { expenses: [], isComplete: true, warnings: [] };
+
+function installSuccessfulParsers(result: MainBudgetAnalysisResult) {
+  parserMocks.parseBudgetSummary.mockReturnValue(summary);
+  parserMocks.parseRevenueStatement.mockReturnValue(revenue);
+  parserMocks.parseExpenditureStatement.mockReturnValue(expenditure);
+  parserMocks.analyzeMainBudget.mockReturnValue(result);
+}
+
+function pdfExtraction(overrides: Record<string, unknown> = {}) {
+  return {
+    document: { kind: "pdf-document-handle" },
+    textPages: [],
+    imagePages: [],
+    metadata: { fileName: "budget.pdf", pageCount: 3 },
+    requiresOcr: false,
+    cleanup: vi.fn().mockResolvedValue(undefined),
+    ...overrides,
+  };
+}
+
+describe("analyzeBudgetFile", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    adapterMocks.ocrPdfPages.mockResolvedValue([]);
+  });
+
+  it.each([
+    ["BUDGET.XLS", xlsMagic, "application/vnd.ms-excel", "xls"],
+    ["BUDGET.XLSX", xlsxMagic, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", "xlsx"],
+  ] as const)("routes %s by case-insensitive extension and matching magic bytes", async (name, bytes, type, format) => {
+    const file = budgetFile(name, bytes, type);
+    const rows: BudgetLogicalRow[] = [{ cells: ["본예산"], sourceSheet: "표지", sourceRow: 1 }];
+    adapterMocks.extractWorkbookRows.mockResolvedValue({ source: { fileName: name, format }, rows });
+    const analyzed = resultFor(format, name);
+    installSuccessfulParsers(analyzed);
+
+    await expect(analyzeBudgetFile(file, { signal: new AbortController().signal, onProgress: vi.fn() }))
+      .resolves.toBe(analyzed);
+
+    expect(adapterMocks.extractWorkbookRows).toHaveBeenCalledWith(file);
+    expect(adapterMocks.extractPdfPages).not.toHaveBeenCalled();
+    expect(parserMocks.parseBudgetSummary).toHaveBeenCalledWith(rows);
+    expect(parserMocks.parseRevenueStatement).toHaveBeenCalledWith(rows);
+    expect(parserMocks.parseExpenditureStatement).toHaveBeenCalledWith(rows);
+    expect(parserMocks.analyzeMainBudget).toHaveBeenCalledWith(expect.objectContaining({
+      source: { fileName: name, format },
+      totalRevenue: summary.totalRevenue,
+      purposeRevenue: revenue.purposeRevenue,
+      beneficiaryRevenue: revenue.beneficiaryRevenue,
+      verificationRevenue: revenue.verificationRevenue,
+      generalBusinessExpenses: { facts: [], isComplete: true },
+    }));
+  });
+
+  it("OCRs only image pages, merges direct and OCR rows in source order, and always cleans a successful PDF", async () => {
+    const file = budgetFile("Budget.PdF", pdfMagic, "application/pdf");
+    const directPage1 = { cells: ["direct-1"], sourcePage: 1, sourceRow: 1 };
+    const directPage3 = { cells: ["direct-3"], sourcePage: 3, sourceRow: 1 };
+    const ocrPage2 = { cells: ["ocr-2"], sourcePage: 2, sourceRow: 1 };
+    const imagePage = { pageNumber: 2, page: { kind: "image-page" } };
+    const extraction = pdfExtraction({
+      textPages: [
+        { pageNumber: 3, page: { kind: "text-page-3" }, items: [], rows: [directPage3] },
+        { pageNumber: 1, page: { kind: "text-page-1" }, items: [], rows: [directPage1] },
+      ],
+      imagePages: [imagePage],
+      requiresOcr: true,
+    });
+    adapterMocks.extractPdfPages.mockResolvedValue(extraction);
+    adapterMocks.ocrPdfPages.mockResolvedValue([ocrPage2]);
+    const analyzed = resultFor("pdf", file.name);
+    installSuccessfulParsers(analyzed);
+    const progress = vi.fn();
+    const signal = new AbortController().signal;
+
+    await expect(analyzeBudgetFile(file, { signal, onProgress: progress })).resolves.toBe(analyzed);
+
+    expect(adapterMocks.extractPdfPages).toHaveBeenCalledWith(file, signal, progress);
+    expect(adapterMocks.ocrPdfPages).toHaveBeenCalledWith([imagePage], signal, progress);
+    expect(parserMocks.parseBudgetSummary).toHaveBeenCalledWith([directPage1, ocrPage2, directPage3]);
+    expect(parserMocks.analyzeMainBudget).toHaveBeenCalledWith(expect.objectContaining({
+      source: { fileName: file.name, format: "pdf", pageCount: 3 },
+    }));
+    expect(extraction.cleanup).toHaveBeenCalledTimes(1);
+  });
+
+  it("does not invoke OCR for a text-only PDF", async () => {
+    const extraction = pdfExtraction({
+      textPages: [{ pageNumber: 1, page: {}, items: [], rows: [{ cells: ["본예산"], sourcePage: 1 }] }],
+    });
+    adapterMocks.extractPdfPages.mockResolvedValue(extraction);
+    installSuccessfulParsers(resultFor("pdf"));
+
+    await analyzeBudgetFile(budgetFile("budget.pdf", pdfMagic), {
+      signal: new AbortController().signal,
+      onProgress: vi.fn(),
+    });
+
+    expect(adapterMocks.ocrPdfPages).not.toHaveBeenCalled();
+    expect(extraction.cleanup).toHaveBeenCalledTimes(1);
+  });
+
+  it.each([
+    ["OCR", () => adapterMocks.ocrPdfPages.mockRejectedValue(new Error("OCR failed"))],
+    ["parser", () => parserMocks.parseBudgetSummary.mockImplementation(() => { throw new Error("parser failed"); })],
+    ["analyzer", () => parserMocks.analyzeMainBudget.mockImplementation(() => { throw new Error("analyzer failed"); })],
+  ])("cleans the PDF when %s fails", async (_label, fail) => {
+    const extraction = pdfExtraction({
+      imagePages: [{ pageNumber: 1, page: {} }],
+      requiresOcr: true,
+    });
+    adapterMocks.extractPdfPages.mockResolvedValue(extraction);
+    installSuccessfulParsers(resultFor("pdf"));
+    fail();
+
+    await expect(analyzeBudgetFile(budgetFile("budget.pdf", pdfMagic), {
+      signal: new AbortController().signal,
+      onProgress: vi.fn(),
+    })).rejects.toThrow(/failed/);
+
+    expect(extraction.cleanup).toHaveBeenCalledTimes(1);
+  });
+
+  it("cleans the PDF and preserves AbortError when OCR is aborted", async () => {
+    const abortError = new DOMException("cancelled", "AbortError");
+    const extraction = pdfExtraction({ imagePages: [{ pageNumber: 1, page: {} }], requiresOcr: true });
+    adapterMocks.extractPdfPages.mockResolvedValue(extraction);
+    adapterMocks.ocrPdfPages.mockRejectedValue(abortError);
+    installSuccessfulParsers(resultFor("pdf"));
+
+    await expect(analyzeBudgetFile(budgetFile("budget.pdf", pdfMagic), {
+      signal: new AbortController().signal,
+      onProgress: vi.fn(),
+    })).rejects.toBe(abortError);
+    expect(extraction.cleanup).toHaveBeenCalledTimes(1);
+  });
+
+  it("cleans and stops before parsing when the parsing progress callback aborts", async () => {
+    const controller = new AbortController();
+    const extraction = pdfExtraction({
+      textPages: [{ pageNumber: 1, page: {}, items: [], rows: [{ cells: ["본예산"], sourcePage: 1 }] }],
+    });
+    adapterMocks.extractPdfPages.mockResolvedValue(extraction);
+    installSuccessfulParsers(resultFor("pdf"));
+
+    await expect(analyzeBudgetFile(budgetFile("budget.pdf", pdfMagic), {
+      signal: controller.signal,
+      onProgress: (progress) => {
+        if (progress.phase === "parsing") controller.abort();
+      },
+    })).rejects.toMatchObject({ name: "AbortError" });
+
+    expect(parserMocks.parseBudgetSummary).not.toHaveBeenCalled();
+    expect(parserMocks.analyzeMainBudget).not.toHaveBeenCalled();
+    expect(extraction.cleanup).toHaveBeenCalledTimes(1);
+  });
+
+  it("normalizes explicit won sections to thousand-won values but does not guess when a section has no unit", async () => {
+    const summaryHeading = { cells: ["세입세출예산총괄"] };
+    const wonUnit = { cells: ["(단위:", "원)"] };
+    const summaryRow = { cells: ["세입예산총액", 1_000_000] };
+    const revenueHeading = { cells: ["세입예산명세서"] };
+    const purposeRow = { cells: ["목적사업비전입금", 200_000] };
+    const expenditureHeading = { cells: ["세출예산명세서"] };
+    const expenseRow = { cells: ["일반업무추진비", 30_000] };
+    const rows = [summaryHeading, wonUnit, summaryRow, revenueHeading, purposeRow, expenditureHeading, expenseRow];
+    adapterMocks.extractWorkbookRows.mockResolvedValue({
+      source: { fileName: "budget.xlsx", format: "xlsx", sheetCount: 1 },
+      rows,
+    });
+    parserMocks.parseBudgetSummary.mockReturnValue({
+      totalRevenue: { label: "세입예산총액", amount: 1_000_000, row: summaryRow }, isComplete: true, warnings: [],
+    });
+    parserMocks.parseRevenueStatement.mockReturnValue({
+      purposeRevenue: { label: "목적사업비전입금", amount: 200_000, row: purposeRow },
+      beneficiaryRevenue: { label: "수익자부담수입", amount: 0, row: purposeRow },
+      verificationRevenue: { facts: [{ label: "이자수입", amount: 1_000, row: purposeRow }], isComplete: true },
+      warnings: [],
+    });
+    parserMocks.parseExpenditureStatement.mockReturnValue({
+      expenses: [{ id: "expense", policy: "", unit: "", business: "", detail: "", costItem: "일반업무추진비", amount: 30_000, row: expenseRow }],
+      isComplete: true,
+      warnings: [],
+    });
+    parserMocks.analyzeMainBudget.mockReturnValue(resultFor("xlsx"));
+
+    await analyzeBudgetFile(budgetFile("budget.xlsx", xlsxMagic), {
+      signal: new AbortController().signal,
+      onProgress: vi.fn(),
+    });
+
+    expect(parserMocks.analyzeMainBudget).toHaveBeenCalledWith(expect.objectContaining({
+      totalRevenue: expect.objectContaining({ amount: 1_000 }),
+      purposeRevenue: expect.objectContaining({ amount: 200_000 }),
+      verificationRevenue: expect.objectContaining({ facts: [expect.objectContaining({ amount: 1_000 })] }),
+      generalBusinessExpenses: expect.objectContaining({ facts: [expect.objectContaining({ amount: 30_000 })] }),
+    }));
+  });
+
+  it.each([
+    ["unsupported extension", budgetFile("budget.csv", [0x31, 0x2c, 0x32]), /지원하지 않는 파일 형식/],
+    ["extension/content mismatch", budgetFile("budget.pdf", xlsxMagic), /확장자와 내용이 일치하지/],
+    ["corrupt workbook", budgetFile("budget.xlsx", [0x31, 0x32, 0x33]), /손상되었거나/],
+  ])("rejects $s clearly before invoking an adapter", async (_label, file, message) => {
+    await expect(analyzeBudgetFile(file, { signal: new AbortController().signal, onProgress: vi.fn() }))
+      .rejects.toThrow(message);
+    expect(adapterMocks.extractWorkbookRows).not.toHaveBeenCalled();
+    expect(adapterMocks.extractPdfPages).not.toHaveBeenCalled();
+  });
+
+  it("rejects multiple files passed across the single-file API boundary", async () => {
+    const files = [budgetFile("one.pdf", pdfMagic), budgetFile("two.pdf", pdfMagic)];
+    await expect(analyzeBudgetFile(files as unknown as File, {
+      signal: new AbortController().signal,
+      onProgress: vi.fn(),
+    })).rejects.toThrow("파일을 하나만 선택");
+  });
+});
