@@ -5,6 +5,9 @@ import { parseBudgetSummary } from "./parseBudgetSummary";
 import { parseExpenditureStatement } from "./parseExpenditureStatement";
 import { parseRevenueStatement } from "./parseRevenueStatement";
 
+const revenueHeader = ["장", "관", "항", "목", "원가통계비목", "예산액"];
+const expenditureHeader = ["정책사업", "단위사업", "세부사업", "세부항목", "원가통계비목", "예산액"];
+
 describe("본예산 공통 구역 파서", () => {
   it("띄어쓴 총괄 제목과 2026회계연도 예산안을 확인한 후 현재 예산액을 읽는다", () => {
     const summary = parseBudgetSummary(logicalBudgetRows);
@@ -73,5 +76,90 @@ describe("본예산 공통 구역 파서", () => {
     expect(parseBudgetSummary(repeatedMergeAnchors).totalRevenue.amount).toBe(1_010_749);
     expect(parseRevenueStatement(repeatedMergeAnchors).beneficiaryRevenue.amount).toBe(207_176);
     expect(parseExpenditureStatement(repeatedMergeAnchors).expenses.map((expense) => expense.amount)).toEqual([10_000, 13_020]);
+  });
+
+  it("머리글만 있는 잘린 구역을 완전한 0원 목록으로 확정하지 않는다", () => {
+    const truncatedRevenue = [
+      { cells: ["세입예산명세서"], sourcePage: 1, confidence: 0.99 },
+      { cells: revenueHeader, sourcePage: 1, confidence: 0.99 },
+    ];
+    const truncatedExpenditure = [
+      { cells: ["세출예산명세서"], sourcePage: 2, confidence: 0.99 },
+      { cells: expenditureHeader, sourcePage: 2, confidence: 0.99 },
+    ];
+
+    const revenue = parseRevenueStatement(truncatedRevenue);
+    expect(revenue.verificationRevenue.isComplete).toBe(false);
+    expect(revenue.verificationRevenue.facts.every((fact) => fact.amount === null)).toBe(true);
+    expect(revenue.warnings).toContainEqual(expect.objectContaining({ code: "REVENUE_SECTION_INCOMPLETE" }));
+    const expenditure = parseExpenditureStatement(truncatedExpenditure);
+    expect(expenditure).toMatchObject({ expenses: [], isComplete: false });
+    expect(expenditure.warnings).toContainEqual(expect.objectContaining({ code: "EXPENDITURE_SECTION_INCOMPLETE" }));
+  });
+
+  it("낮은 신뢰도의 필수 행은 출처와 값을 유지하지만 관련 결과를 미완료로 만든다", () => {
+    const lowSummaryRows = logicalBudgetRows.map((row, index) => index === 3 ? { ...row, confidence: 0.3 } : row);
+    const lowMarkerRows = logicalBudgetRows.map((row, index) => index === 0 ? { ...row, confidence: 0.3 } : row);
+    const lowRevenueRows = logicalBudgetRows.map((row, index) => index === 10 ? { ...row, confidence: 0.3 } : row);
+    const lowExpenseRows = logicalBudgetRows.map((row, index) => index === 20 ? { ...row, confidence: 0.3 } : row);
+
+    const summary = parseBudgetSummary(lowSummaryRows);
+    expect(summary.totalRevenue).toMatchObject({ amount: 1_010_749, row: lowSummaryRows[3] });
+    expect(summary.isComplete).toBe(false);
+    expect(parseBudgetSummary(lowMarkerRows).isComplete).toBe(false);
+    const revenue = parseRevenueStatement(lowRevenueRows);
+    expect(revenue.beneficiaryRevenue).toMatchObject({ amount: 207_176, row: lowRevenueRows[10] });
+    expect(revenue.verificationRevenue.isComplete).toBe(false);
+    expect(revenue.warnings).toContainEqual(expect.objectContaining({ code: "LOW_CONFIDENCE_REVENUE" }));
+    const expenditure = parseExpenditureStatement(lowExpenseRows);
+    expect(expenditure.expenses[0]).toMatchObject({ amount: 10_000, row: lowExpenseRows[20] });
+    expect(expenditure.isComplete).toBe(false);
+    expect(expenditure.warnings).toContainEqual(expect.objectContaining({ code: "LOW_CONFIDENCE_EXPENSE" }));
+  });
+
+  it("세출 합계 뒤의 다른 시트 표를 세출 구역으로 포함하지 않는다", () => {
+    const appendixRows = [
+      ...logicalBudgetRows,
+      { cells: ["부록"], sourceSheet: "부록", sourceRow: 1, confidence: 0.99 },
+      { cells: expenditureHeader, sourceSheet: "부록", sourceRow: 2, confidence: 0.99 },
+      { cells: ["부록정책", "부록단위", "부록사업", "부록항목", "일반업무추진비", 999_999], sourceSheet: "부록", sourceRow: 3, confidence: 0.99 },
+    ];
+
+    expect(parseExpenditureStatement(appendixRows).expenses.map((expense) => expense.amount)).toEqual([10_000, 13_020]);
+  });
+
+  it("계층 머리글이 예산액 머리글 바로 위에 있는 2행 머리글을 인식한다", () => {
+    const rows = [
+      { cells: ["세입예산명세서"], sourcePage: 1, confidence: 0.99 },
+      { cells: ["장", "관", "항", "목", "원가통계비목", ""], sourcePage: 1, confidence: 0.99 },
+      { cells: ["", "", "", "", "", "예산액"], sourcePage: 1, confidence: 0.99 },
+      { cells: ["", "", "", "", "목적사업비전입금", 0], sourcePage: 1, confidence: 0.99 },
+      { cells: ["", "", "", "", "수익자부담수입", 20], sourcePage: 1, confidence: 0.99 },
+      { cells: ["세출예산명세서"], sourcePage: 2, confidence: 0.99 },
+      { cells: ["정책사업", "단위사업", "세부사업", "세부항목", "원가통계비목", ""], sourcePage: 2, confidence: 0.99 },
+      { cells: ["", "", "", "", "", "예산액"], sourcePage: 2, confidence: 0.99 },
+      { cells: ["정책값", "단위값", "사업값", "항목값", "일반업무추진비", 30], sourcePage: 2, confidence: 0.99 },
+      { cells: ["세출합계", "", "", "", "", 30], sourcePage: 2, confidence: 0.99 },
+    ];
+
+    expect(parseRevenueStatement(rows).beneficiaryRevenue.amount).toBe(20);
+    expect(parseExpenditureStatement(rows)).toMatchObject({ isComplete: true, expenses: [{ amount: 30 }] });
+  });
+
+  it("선택적 병합 반복을 유지하되 새 부모가 시작되면 이전 하위 계층을 지운다", () => {
+    const rows = [
+      { cells: ["세출예산명세서"], sourceSheet: "표지", sourceRow: 1 },
+      { cells: expenditureHeader, sourceSheet: "표지", sourceRow: 2 },
+      { cells: ["1.정책A", "1.단위A", "1.사업A", "1.항목A", "", 100], sourceSheet: "표지", sourceRow: 3 },
+      { cells: ["정책A", "단위A", "사업A", "항목A", "1.일반업무추진비", 10], sourceSheet: "표지", sourceRow: 4 },
+      { cells: ["2.정책B", "", "", "", "", 200], sourceSheet: "표지", sourceRow: 5 },
+      { cells: ["정책B", "", "", "", "2.일반업무추진비", 20], sourceSheet: "표지", sourceRow: 6 },
+      { cells: ["세출합계", "", "", "", "", 30], sourceSheet: "표지", sourceRow: 7 },
+    ];
+
+    expect(parseExpenditureStatement(rows).expenses).toEqual([
+      expect.objectContaining({ policy: "정책A", unit: "단위A", business: "사업A", detail: "항목A", amount: 10 }),
+      expect.objectContaining({ policy: "정책B", unit: "", business: "", detail: "", amount: 20 }),
+    ]);
   });
 });

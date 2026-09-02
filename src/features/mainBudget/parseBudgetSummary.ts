@@ -2,6 +2,7 @@ import type { AnalysisWarning, BudgetLogicalRow, RevenueFact } from "./analysisT
 import { normalizeLabel, parseBudgetNumber, stripHierarchyPrefix } from "./normalizeBudgetValue";
 
 export type BudgetSection = "summary" | "revenue" | "expenditure";
+export const MIN_BUDGET_ROW_CONFIDENCE = 0.8;
 
 export type BudgetSummaryParseResult = {
   totalRevenue: RevenueFact;
@@ -16,6 +17,16 @@ export function canonicalBudgetLabel(value: unknown): string {
 
 export function rowText(row: BudgetLogicalRow): string {
   return row.cells.map(canonicalBudgetLabel).join("");
+}
+
+export function isReliableBudgetRow(row: BudgetLogicalRow | undefined): boolean {
+  return row !== undefined && (row.confidence === undefined || row.confidence >= MIN_BUDGET_ROW_CONFIDENCE);
+}
+
+export function isClosingTotal(row: BudgetLogicalRow, section: "revenue" | "expenditure"): boolean {
+  const labels = row.cells.map(canonicalBudgetLabel);
+  return labels.includes(section === "revenue" ? "세입합계" : "세출합계")
+    || labels.includes(section === "revenue" ? "세입예산합계" : "세출예산합계");
 }
 
 export function isSectionHeading(row: BudgetLogicalRow, section: BudgetSection): boolean {
@@ -55,8 +66,8 @@ function warning(code: string, message: string, row?: BudgetLogicalRow): Analysi
   return { code, message, severity: "error", row };
 }
 
-function hasMainBudgetMarker(rows: BudgetLogicalRow[], end: number): boolean {
-  return rows.slice(0, end).some((row) => {
+function mainBudgetMarkerRow(rows: BudgetLogicalRow[], end: number): BudgetLogicalRow | undefined {
+  return rows.slice(0, end).find((row) => {
     const text = rowText(row);
     return text.includes("예산안") || text.includes("본예산");
   });
@@ -66,14 +77,20 @@ export function parseBudgetSummary(rows: BudgetLogicalRow[]): BudgetSummaryParse
   const warnings: AnalysisWarning[] = [];
   const start = findSectionStart(rows, "summary");
   const end = findSectionEnd(rows, start, ["revenue", "expenditure"]);
-  const markerFound = hasMainBudgetMarker(rows, start < 0 ? rows.length : end);
+  const markerRow = mainBudgetMarkerRow(rows, start < 0 ? rows.length : end);
+  const markerFound = markerRow !== undefined;
+  const sectionRow = start < 0 ? undefined : rows[start];
+  let currentHeaderRow: BudgetLogicalRow | undefined;
   let currentColumn = -1;
   let totalRow: BudgetLogicalRow | undefined;
 
   if (start >= 0) {
     for (let index = start + 1; index < end; index += 1) {
       const foundColumn = findCurrentBudgetColumn(rows[index]);
-      if (foundColumn >= 0) currentColumn = foundColumn;
+      if (foundColumn >= 0) {
+        currentColumn = foundColumn;
+        currentHeaderRow = rows[index];
+      }
       if (rows[index].cells.some((cell) => ["세입예산총액", "세입합계"].includes(canonicalBudgetLabel(cell)))) {
         totalRow = rows[index];
         break;
@@ -90,17 +107,27 @@ export function parseBudgetSummary(rows: BudgetLogicalRow[]): BudgetSummaryParse
       const labelColumn = findCurrentBudgetColumn(inlineRow);
       amount = inlineRow.cells.slice(labelColumn + 1).map(parseBudgetNumber).find((value) => value !== null) ?? null;
       currentColumn = labelColumn;
+      currentHeaderRow = inlineRow;
     }
   }
 
   if (start < 0) warnings.push(warning("BUDGET_SUMMARY_SECTION", "세입세출예산총괄 구역을 확인할 수 없습니다."));
   if (!markerFound) warnings.push(warning("MAIN_BUDGET_MARKER", "본예산 또는 예산안 표시를 확인할 수 없습니다."));
+  else if (!isReliableBudgetRow(markerRow)) warnings.push(warning("LOW_CONFIDENCE_MAIN_BUDGET_MARKER", "본예산 또는 예산안 표시의 신뢰도가 낮아 확인이 필요합니다.", markerRow));
   if (currentColumn < 0) warnings.push(warning("BUDGET_SUMMARY_CURRENT_COLUMN", "총괄의 현재 예산액 열을 확인할 수 없습니다."));
   if (amount === null) warnings.push(warning("TOTAL_REVENUE", "세입예산총액을 확인할 수 없습니다.", totalRow));
+  if (totalRow && !isReliableBudgetRow(totalRow)) warnings.push(warning("LOW_CONFIDENCE_TOTAL_REVENUE", "세입예산총액 행의 신뢰도가 낮아 확인이 필요합니다.", totalRow));
 
   return {
     totalRevenue: { label: "세입예산총액", amount, row: totalRow },
-    isComplete: start >= 0 && markerFound && currentColumn >= 0 && amount !== null,
+    isComplete: start >= 0
+      && markerFound
+      && currentColumn >= 0
+      && amount !== null
+      && isReliableBudgetRow(markerRow)
+      && isReliableBudgetRow(sectionRow)
+      && isReliableBudgetRow(currentHeaderRow)
+      && isReliableBudgetRow(totalRow),
     warnings,
   };
 }

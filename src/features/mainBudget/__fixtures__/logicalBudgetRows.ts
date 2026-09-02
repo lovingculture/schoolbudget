@@ -29,4 +29,5 @@ export const logicalBudgetRows: BudgetLogicalRow[] = [
   { cells: ["", "", "", "2.학부모협력", "", 13_020, 10_000], sourcePage: 11, confidence: 0.89 },
   { cells: ["", "", "", "", "2.일반업무추진비", 13_020, 10_000], sourcePage: 11, confidence: 0.88 },
   { cells: ["", "", "", "", "3.목적사업업무추진비", 99_000, 0], sourcePage: 11, confidence: 0.87 },
+  { cells: ["세출합계", "", "", "", "", 1_010_749, 900_000], sourcePage: 11, confidence: 0.86 },
 ];

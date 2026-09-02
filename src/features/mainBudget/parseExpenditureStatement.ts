@@ -4,6 +4,8 @@ import {
   canonicalBudgetLabel,
   findCurrentBudgetColumn,
   findSectionStart,
+  isClosingTotal,
+  isReliableBudgetRow,
   isSectionHeading,
 } from "./parseBudgetSummary";
 
@@ -21,7 +23,10 @@ type HeaderContext = {
   businessColumn: number;
   detailColumn: number;
   costItemColumn: number;
+  isReliable: boolean;
 };
+
+type SectionSpan = { end: number; hasReliableClosure: boolean };
 
 const hierarchyHeaders = {
   policyColumn: ["정책사업", "정책"],
@@ -36,32 +41,75 @@ function isHierarchyHeader(value: unknown): boolean {
   return Object.values(hierarchyHeaders).some((labels) => (labels as readonly string[]).includes(label));
 }
 
-function columnInWindow(rows: BudgetLogicalRow[], start: number, end: number, labels: readonly string[]): number {
-  for (let index = start; index < Math.min(end, start + 3); index += 1) {
+function columnInWindow(
+  rows: BudgetLogicalRow[],
+  sectionStart: number,
+  headerIndex: number,
+  end: number,
+  labels: readonly string[],
+): { column: number; row?: BudgetLogicalRow } {
+  for (let index = Math.max(sectionStart + 1, headerIndex - 2); index < Math.min(end, headerIndex + 3); index += 1) {
     const column = rows[index].cells.findIndex((cell) => labels.includes(canonicalBudgetLabel(cell)));
-    if (column >= 0) return column;
+    if (column >= 0) return { column, row: rows[index] };
   }
-  return -1;
+  return { column: -1 };
 }
 
-function headerContexts(rows: BudgetLogicalRow[], start: number): HeaderContext[] {
-  const contexts: HeaderContext[] = [];
+function expenditureSectionSpan(rows: BudgetLogicalRow[], start: number): SectionSpan {
+  let activeSheet = rows[start].sourceSheet;
   for (let index = start + 1; index < rows.length; index += 1) {
+    if (isClosingTotal(rows[index], "expenditure")) return { end: index + 1, hasReliableClosure: isReliableBudgetRow(rows[index]) };
+    if (isSectionHeading(rows[index], "summary") || isSectionHeading(rows[index], "revenue")) {
+      return { end: index, hasReliableClosure: isReliableBudgetRow(rows[index]) };
+    }
+    if (rows[index].sourceSheet && activeSheet && rows[index].sourceSheet !== activeSheet) {
+      if (isSectionHeading(rows[index], "expenditure")) {
+        activeSheet = rows[index].sourceSheet;
+      } else {
+        return { end: index, hasReliableClosure: true };
+      }
+    } else if (!activeSheet && rows[index].sourceSheet) {
+      activeSheet = rows[index].sourceSheet;
+    }
+  }
+  return { end: rows.length, hasReliableClosure: false };
+}
+
+function headerContexts(rows: BudgetLogicalRow[], start: number, end: number): HeaderContext[] {
+  const contexts: HeaderContext[] = [];
+  for (let index = start + 1; index < end; index += 1) {
     const currentColumn = findCurrentBudgetColumn(rows[index]);
     if (currentColumn < 0) continue;
+    const policy = columnInWindow(rows, start, index, end, hierarchyHeaders.policyColumn);
+    const unit = columnInWindow(rows, start, index, end, hierarchyHeaders.unitColumn);
+    const business = columnInWindow(rows, start, index, end, hierarchyHeaders.businessColumn);
+    const detail = columnInWindow(rows, start, index, end, hierarchyHeaders.detailColumn);
+    const costItem = columnInWindow(rows, start, index, end, hierarchyHeaders.costItemColumn);
     const context = {
       start: index,
       currentColumn,
-      policyColumn: columnInWindow(rows, index, rows.length, hierarchyHeaders.policyColumn),
-      unitColumn: columnInWindow(rows, index, rows.length, hierarchyHeaders.unitColumn),
-      businessColumn: columnInWindow(rows, index, rows.length, hierarchyHeaders.businessColumn),
-      detailColumn: columnInWindow(rows, index, rows.length, hierarchyHeaders.detailColumn),
-      costItemColumn: columnInWindow(rows, index, rows.length, hierarchyHeaders.costItemColumn),
+      policyColumn: policy.column,
+      unitColumn: unit.column,
+      businessColumn: business.column,
+      detailColumn: detail.column,
+      costItemColumn: costItem.column,
+      isReliable: [rows[index], policy.row, unit.row, business.row, detail.row, costItem.row].every(isReliableBudgetRow),
     };
     if ([context.policyColumn, context.unitColumn, context.businessColumn, context.detailColumn, context.costItemColumn]
       .every((column) => column >= 0)) contexts.push(context);
   }
   return contexts;
+}
+
+function hasParsedData(rows: BudgetLogicalRow[], start: number, end: number, contexts: HeaderContext[]): boolean {
+  let contextIndex = -1;
+  for (let index = start + 1; index < end; index += 1) {
+    while (contextIndex + 1 < contexts.length && contexts[contextIndex + 1].start <= index) contextIndex += 1;
+    const context = contexts[contextIndex];
+    if (!context || index === context.start || isSectionHeading(rows[index], "expenditure") || isClosingTotal(rows[index], "expenditure")) continue;
+    if (parseBudgetNumber(rows[index].cells[context.currentColumn]) !== null && !rows[index].cells.some(isHierarchyHeader)) return true;
+  }
+  return false;
 }
 
 function expenseId(row: BudgetLogicalRow, index: number): string {
@@ -72,9 +120,10 @@ function expenseId(row: BudgetLogicalRow, index: number): string {
 export function parseExpenditureStatement(rows: BudgetLogicalRow[]): ExpenditureStatementParseResult {
   const warnings: AnalysisWarning[] = [];
   const start = findSectionStart(rows, "expenditure");
-  const contexts = start < 0 ? [] : headerContexts(rows, start);
+  const span = start < 0 ? { end: -1, hasReliableClosure: false } : expenditureSectionSpan(rows, start);
+  const end = span.end;
+  const contexts = start < 0 ? [] : headerContexts(rows, start, end);
   const hasUsableHeader = contexts.length > 0;
-  const isComplete = start >= 0 && hasUsableHeader;
   const expenses: GeneralBusinessExpense[] = [];
   let contextIndex = -1;
   let policy = "";
@@ -82,20 +131,32 @@ export function parseExpenditureStatement(rows: BudgetLogicalRow[]): Expenditure
   let business = "";
   let detail = "";
 
-  if (isComplete) {
-    for (let index = start + 1; index < rows.length; index += 1) {
+  if (start >= 0 && hasUsableHeader) {
+    for (let index = start + 1; index < end; index += 1) {
       while (contextIndex + 1 < contexts.length && contexts[contextIndex + 1].start <= index) contextIndex += 1;
       const context = contexts[contextIndex];
-      if (!context || index === context.start || isSectionHeading(rows[index], "expenditure")) continue;
+      if (!context || index === context.start || isSectionHeading(rows[index], "expenditure") || isClosingTotal(rows[index], "expenditure")) continue;
       if (rows[index].cells.some(isHierarchyHeader)) continue;
 
       const nextPolicy = canonicalBudgetLabel(rows[index].cells[context.policyColumn]);
       const nextUnit = canonicalBudgetLabel(rows[index].cells[context.unitColumn]);
       const nextBusiness = canonicalBudgetLabel(rows[index].cells[context.businessColumn]);
       const nextDetail = canonicalBudgetLabel(rows[index].cells[context.detailColumn]);
-      if (nextPolicy) policy = nextPolicy;
-      if (nextUnit) unit = nextUnit;
-      if (nextBusiness) business = nextBusiness;
+      if (nextPolicy && nextPolicy !== policy) {
+        policy = nextPolicy;
+        unit = "";
+        business = "";
+        detail = "";
+      }
+      if (nextUnit && nextUnit !== unit) {
+        unit = nextUnit;
+        business = "";
+        detail = "";
+      }
+      if (nextBusiness && nextBusiness !== business) {
+        business = nextBusiness;
+        detail = "";
+      }
       if (nextDetail) detail = nextDetail;
 
       const costItem = canonicalBudgetLabel(rows[index].cells[context.costItemColumn]);
@@ -111,8 +172,20 @@ export function parseExpenditureStatement(rows: BudgetLogicalRow[]): Expenditure
     }
   }
 
+  const isComplete = start >= 0
+    && isReliableBudgetRow(rows[start])
+    && hasUsableHeader
+    && contexts.every((context) => context.isReliable)
+    && hasParsedData(rows, start, end, contexts)
+    && span.hasReliableClosure
+    && expenses.every((expense) => isReliableBudgetRow(expense.row));
+
   if (start < 0) warnings.push({ code: "EXPENDITURE_SECTION", message: "세출예산명세서 구역을 확인할 수 없습니다.", severity: "error" });
   else if (!hasUsableHeader) warnings.push({ code: "EXPENDITURE_CURRENT_COLUMN", message: "세출예산명세서의 계층과 현재 예산액 열을 확인할 수 없습니다.", severity: "error" });
+  else if (!isComplete) warnings.push({ code: "EXPENDITURE_SECTION_INCOMPLETE", message: "세출예산명세서의 데이터와 종료 구조를 완전하게 확인할 수 없습니다.", severity: "error" });
+  for (const expense of expenses) {
+    if (!isReliableBudgetRow(expense.row)) warnings.push({ code: "LOW_CONFIDENCE_EXPENSE", message: "일반업무추진비 행의 신뢰도가 낮아 확인이 필요합니다.", severity: "error", row: expense.row });
+  }
 
   return { expenses, isComplete, warnings };
 }
