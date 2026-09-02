@@ -182,7 +182,7 @@ describe("예산업무 포털", () => {
     expect(helps.at(-1)).toHaveTextContent("학교 운영에 소요되는 일반적인 경비");
   });
 
-  it("본예산 메뉴에서 세출 통합 화면을 연다", async () => {
+  it("본예산 메뉴에서 PDF·Excel 자동 계산 화면을 연다", async () => {
     const user = userEvent.setup();
     render(<Portal displayName="김담당" schoolName="서울한빛초등학교" />);
     await user.click(screen.getByRole("button", { name: "예산 업무" }));
@@ -192,8 +192,8 @@ describe("예산업무 포털", () => {
       screen.getByRole("button", { name: "집행실적으로 추경자료 만들기" }),
     ).toBeVisible();
     await user.click(screen.getByRole("button", { name: "본예산" }));
-    expect(screen.getByRole("heading", { name: "본예산 편성·검토" })).toBeVisible();
-    expect(screen.getByRole("tab", { name: "세출자료 통합·검토" })).toBeVisible();
+    expect(screen.getByRole("heading", { name: "본예산 PDF·Excel 자동 계산" })).toBeVisible();
+    expect(screen.getByText("본예산서를 불러오면 세입 기준금액과 일반업무추진비 편성 비율을 자동으로 계산합니다.")).toBeVisible();
   });
 
   it("예산안건 설명서 메뉴에서 총괄표 불러오기 기능을 연다", async () => {
@@ -210,7 +210,7 @@ describe("예산업무 포털", () => {
 
     const destinations = [
       ["성립전예산", "성립전예산 요구서 작성"],
-      ["본예산", "본예산 편성·검토"],
+      ["본예산", "본예산 PDF·Excel 자동 계산"],
       ["예산안건 설명서", "예산 안건설명서 자동작성"],
       ["결산설명서", "결산 안건설명서 자동작성"],
       ["집행실적으로 추경자료 만들기", "집행실적으로 추경자료 만들기"],
@@ -270,7 +270,7 @@ describe("예산업무 포털", () => {
     const destinations = [
       "예산 자료실로 이동",
       "성립전예산 작성으로 이동",
-      "본예산으로 이동",
+      "본예산 PDF·Excel 자동 계산으로 이동",
       "예산안건 설명서로 이동",
       "결산 설명서로 이동",
       "추경예산자료로 이동",

@@ -48,8 +48,8 @@ const workCards: WorkCard[] = [
     imageAlt: "본예산 편성을 응원하는 서울교육 캐릭터 자라나",
     tone: "blue",
     badge: "예산 편성",
-    title: "본예산",
-    description: "부서별 세출 요구자료를 한 흐름으로 통합하고 오류를 검토하세요.",
+    title: "본예산 PDF·Excel 자동 계산",
+    description: "본예산서를 불러오면 세입 기준금액과 일반업무추진비 편성 비율을 자동으로 계산합니다.",
     actionLabel: "본예산 시작하기",
   },
   {
