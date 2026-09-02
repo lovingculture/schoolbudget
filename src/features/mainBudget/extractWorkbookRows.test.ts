@@ -18,4 +18,21 @@ describe("본예산 엑셀 행 추출", () => {
       { cells: ["학교일반운영", "행정지원", "일반행정", "목적사업업무추진비", 99_000], sourceSheet: "표지", sourceRow: 9 },
     ]);
   });
+
+  it.each([
+    ["본예산.XLS", "xls"],
+    ["본예산.XlSx", "xlsx"],
+  ] as const)("대소문자와 무관하게 %s 확장자를 원본 형식으로 보존한다", async (fileName, format) => {
+    const file = mainBudgetWorkbookFile("xlsx");
+    Object.defineProperty(file, "name", { value: fileName });
+
+    await expect(extractWorkbookRows(file)).resolves.toMatchObject({ source: { fileName, format } });
+  });
+
+  it.each(["본예산.csv", "본예산.xlsm", "본예산"])("지원하지 않는 %s 파일명은 거절한다", async (fileName) => {
+    const file = mainBudgetWorkbookFile("xlsx");
+    Object.defineProperty(file, "name", { value: fileName });
+
+    await expect(extractWorkbookRows(file)).rejects.toThrow("지원하지 않는 파일 형식");
+  });
 });
