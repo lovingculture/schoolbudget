@@ -9,7 +9,7 @@ export type OcrProgress = {
   total: number;
 };
 
-export const OCR_ASSET_LOAD_ERROR_MESSAGE = "OCR assets could not be loaded. An internet connection or network permission is required.";
+export const OCR_ASSET_LOAD_ERROR_MESSAGE = "OCR 파일을 불러오지 못했습니다. 인터넷 연결 또는 네트워크 권한을 확인해 주세요.";
 
 type TesseractModule = typeof import("tesseract.js");
 type TesseractWorker = Awaited<ReturnType<TesseractModule["createWorker"]>>;

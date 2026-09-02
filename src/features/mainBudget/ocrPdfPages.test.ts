@@ -9,11 +9,7 @@ vi.mock("tesseract.js", () => ({
 }));
 
 import type { PdfImagePage } from "./extractPdfPages";
-import {
-  OCR_ASSET_LOAD_ERROR_MESSAGE,
-  ocrPdfPages,
-  type OcrProgress,
-} from "./ocrPdfPages";
+import { ocrPdfPages, type OcrProgress } from "./ocrPdfPages";
 import { isReliableBudgetRow } from "./parseBudgetSummary";
 
 type Logger = (message: {
@@ -379,7 +375,7 @@ describe("ocrPdfPages", () => {
     const pending = ocrPdfPages([imagePage.imagePage], new AbortController().signal, vi.fn());
 
     await expect(pending).rejects.toMatchObject({
-      message: OCR_ASSET_LOAD_ERROR_MESSAGE,
+      message: "OCR 파일을 불러오지 못했습니다. 인터넷 연결 또는 네트워크 권한을 확인해 주세요.",
       cause: assetError,
     });
     expect(imagePage.render).not.toHaveBeenCalled();
