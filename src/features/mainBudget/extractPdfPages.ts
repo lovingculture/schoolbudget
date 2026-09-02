@@ -170,6 +170,7 @@ export async function extractPdfPages(
         imagePages.push({ pageNumber, page });
       }
       onProgress({ phase: "pdf-text", completed: pageNumber, total: document.numPages });
+      throwIfAborted(signal);
     }
 
     return {

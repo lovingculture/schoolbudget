@@ -269,6 +269,22 @@ describe("extractPdfPages", () => {
     expect(task.destroy).toHaveBeenCalledTimes(1);
   });
 
+  it("rejects and auto-destroys when progress aborts on the final page", async () => {
+    const controller = new AbortController();
+    const documentHandle = {
+      numPages: 1,
+      getPage: vi.fn().mockResolvedValue(page([textItem("세출예산명세서", 80, 720, 100)])),
+      getMetadata: vi.fn().mockResolvedValue({ info: {}, metadata: null }),
+    };
+    const task = loadingTask(Promise.resolve(documentHandle));
+    pdfJsMock.getDocument.mockReturnValue(task);
+
+    const extraction = extractPdfPages(pdfFile(), controller.signal, () => controller.abort());
+
+    await expect(extraction).rejects.toMatchObject({ name: "AbortError" });
+    expect(task.destroy).toHaveBeenCalledTimes(1);
+  });
+
   it("rejects promptly and destroys the loading task once when aborted during document loading", async () => {
     const controller = new AbortController();
     const task = loadingTask(new Promise(() => undefined));
