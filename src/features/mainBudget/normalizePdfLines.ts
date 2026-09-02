@@ -25,6 +25,8 @@ type PositionedLine = {
   height: number;
 };
 
+const tableHeaderPattern = /(예산액|원가통계비목|정책사업|단위사업|세부사업|세부항목)/;
+
 function finiteOr(value: number | undefined, fallback: number): number {
   return Number.isFinite(value) ? value as number : fallback;
 }
@@ -57,6 +59,87 @@ function belongsToLine(item: PositionedItem, line: PositionedLine): boolean {
   return Math.abs(item.y - line.baseline) <= tolerance;
 }
 
+function mergeAdjacentItems(items: PositionedItem[]): PositionedItem[] {
+  const merged: PositionedItem[] = [];
+  for (const item of [...items].sort((left, right) => left.x - right.x)) {
+    const previous = merged.at(-1);
+    if (!previous) {
+      merged.push({ ...item });
+      continue;
+    }
+    const gap = item.x - (previous.x + previous.width);
+    const tolerance = Math.max(2, Math.min(previous.height || 2, item.height || 2) * 0.25);
+    if (gap > tolerance) {
+      merged.push({ ...item });
+      continue;
+    }
+    const right = Math.max(previous.x + previous.width, item.x + item.width);
+    previous.str += item.str;
+    previous.width = right - previous.x;
+    previous.height = Math.max(previous.height, item.height);
+    previous.confidence = Math.min(previous.confidence, item.confidence);
+  }
+  return merged;
+}
+
+function gridForLines(lines: PositionedLine[]): number[] {
+  const headerItems = lines
+    .filter((line) => tableHeaderPattern.test(line.items.map((item) => item.str).join("")))
+    .flatMap((line) => line.items)
+    .sort((left, right) => left.x - right.x);
+  if (headerItems.length > 0) {
+    const clusterXs = (values: number[]) => {
+      const clusters: Array<{ x: number; count: number }> = [];
+      for (const x of [...values].sort((left, right) => left - right)) {
+        const cluster = clusters.at(-1);
+        if (!cluster || Math.abs(x - cluster.x) > 8) {
+          clusters.push({ x, count: 1 });
+        } else {
+          cluster.x = ((cluster.x * cluster.count) + x) / (cluster.count + 1);
+          cluster.count += 1;
+        }
+      }
+      return clusters.map(({ x }) => x);
+    };
+    let grid = clusterXs(headerItems.map((item) => item.x));
+    const connectedItems = lines
+      .filter((line) => line.items.some((item) => grid.some((x) => Math.abs(item.x - x) <= 18)))
+      .flatMap((line) => line.items);
+    grid = clusterXs([...grid, ...connectedItems.map((item) => item.x)]);
+    return grid;
+  }
+  const reference = [...lines].sort((left, right) => right.items.length - left.items.length)[0];
+  return reference?.items.map((item) => item.x) ?? [];
+}
+
+function alignToGrid(line: PositionedLine, grid: number[]): PositionedItem[] {
+  if (grid.length <= 1 || line.items.length > grid.length) return line.items;
+  const assignments = line.items.map((item) => {
+    let column = -1;
+    let distance = Number.POSITIVE_INFINITY;
+    for (let index = 0; index < grid.length; index += 1) {
+      const candidateDistance = Math.abs(item.x - grid[index]);
+      if (candidateDistance < distance) {
+        column = index;
+        distance = candidateDistance;
+      }
+    }
+    return { column, distance, item };
+  });
+  const tolerance = Math.max(8, Math.min(18, (line.height || 8) * 1.5));
+  if (assignments.some(({ distance }) => distance > tolerance)
+    || new Set(assignments.map(({ column }) => column)).size !== assignments.length) return line.items;
+  const byColumn = new Map(assignments.map(({ column, item }) => [column, item]));
+  return grid.map((x, column) => byColumn.get(column) ?? {
+    str: "",
+    x,
+    y: line.baseline,
+    width: 0,
+    height: 0,
+    confidence: 1,
+  });
+}
+
 export function normalizePdfLines(items: readonly PdfLineItem[], pageNumber: number): BudgetLogicalRow[] {
   const positioned = items
     .map(positionItem)
@@ -76,16 +159,19 @@ export function normalizePdfLines(items: readonly PdfLineItem[], pageNumber: num
     line.items.push(item);
   }
 
+  for (const line of lines) line.items = mergeAdjacentItems(line.items);
+  const grid = gridForLines(lines);
+
   return lines
     .sort((left, right) => right.baseline - left.baseline)
     .map((line, index) => {
-      const ordered = [...line.items].sort((left, right) => left.x - right.x);
+      const ordered = alignToGrid(line, grid);
       return {
         cells: ordered.map((item) => item.str),
         sourcePage: pageNumber,
         sourceRow: index + 1,
         coordinates: ordered.map(({ x, y, width, height }) => ({ x, y, width, height })),
-        confidence: Math.min(...ordered.map((item) => item.confidence)),
+        confidence: Math.min(...ordered.filter((item) => item.str).map((item) => item.confidence)),
       };
     });
 }

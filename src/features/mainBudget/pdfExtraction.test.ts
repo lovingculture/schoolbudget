@@ -12,6 +12,8 @@ vi.mock("pdfjs-dist", () => ({
 
 import { extractPdfPages } from "./extractPdfPages";
 import { normalizePdfLines, type PdfLineItem } from "./normalizePdfLines";
+import { parseBudgetSummary } from "./parseBudgetSummary";
+import { parseRevenueStatement } from "./parseRevenueStatement";
 
 function textItem(
   str: string,
@@ -44,6 +46,25 @@ function pdfFile(bytes = [37, 80, 68, 70]): File {
   } as unknown as File;
 }
 
+function loadingTask(documentPromise: Promise<unknown>) {
+  return {
+    promise: documentPromise,
+    destroy: vi.fn().mockResolvedValue(undefined),
+  };
+}
+
+async function settleWithin<T>(promise: Promise<T>, timeoutMs = 50) {
+  return Promise.race([
+    promise.then(
+      (value) => ({ status: "resolved" as const, value }),
+      (error: unknown) => ({ status: "rejected" as const, error }),
+    ),
+    new Promise<{ status: "timeout" }>((resolve) => {
+      setTimeout(() => resolve({ status: "timeout" }), timeoutMs);
+    }),
+  ]);
+}
+
 describe("normalizePdfLines", () => {
   it("groups nearby baselines, orders cells by x, and preserves coordinates and confidence", () => {
     const rows = normalizePdfLines([
@@ -73,6 +94,66 @@ describe("normalizePdfLines", () => {
       },
     ]);
   });
+
+  it("aligns omitted PDF cells to the header grid so shared parsers keep column indices", () => {
+    const rows = normalizePdfLines([
+      textItem("세입예산명세서", 40, 800, 100),
+      textItem("목", 40, 760, 20),
+      textItem("원가통계비목", 140, 760, 90),
+      textItem("예산액", 300, 760, 45),
+      textItem("전년도예산액", 400, 760, 85),
+      textItem("목적사업비전입금", 140, 720, 120),
+      textItem("1,000", 300, 720, 45),
+      textItem("900", 400, 720, 30),
+      textItem("세입합계", 140, 680, 60),
+      textItem("1,000", 300, 680, 45),
+    ], 3);
+
+    expect(rows[2].cells).toEqual(["", "목적사업비전입금", "1,000", "900"]);
+    expect(rows[2].coordinates).toEqual([
+      { x: 40, y: 720, width: 0, height: 0 },
+      { x: 140, y: 720, width: 120, height: 10 },
+      { x: 300, y: 720, width: 45, height: 10 },
+      { x: 400, y: 720, width: 30, height: 10 },
+    ]);
+    expect(parseRevenueStatement(rows).purposeRevenue.amount).toBe(1000);
+  });
+
+  it("builds one column grid from a PDF header split across nearby rows", () => {
+    const rows = normalizePdfLines([
+      textItem("세입예산명세서", 40, 800, 100),
+      textItem("목", 40, 760, 20),
+      textItem("원가통계비목", 140, 760, 90),
+      textItem("예산액", 300, 748, 45),
+      textItem("전년도예산액", 400, 748, 85),
+      textItem("목적사업비전입금", 140, 710, 120),
+      textItem("1,000", 300, 710, 45),
+      textItem("900", 400, 710, 30),
+      textItem("세입합계", 140, 680, 60),
+      textItem("1,000", 300, 680, 45),
+    ], 3);
+
+    expect(rows[1].cells).toEqual(["목", "원가통계비목", "", ""]);
+    expect(rows[2].cells).toEqual(["", "", "예산액", "전년도예산액"]);
+    expect(rows[3].cells).toEqual(["", "목적사업비전입금", "1,000", "900"]);
+    expect(parseRevenueStatement(rows).purposeRevenue.amount).toBe(1000);
+  });
+
+  it("extends the header grid with a label column connected by an amount coordinate", () => {
+    const rows = normalizePdfLines([
+      textItem("본예산", 40, 820, 50),
+      textItem("세입세출예산총괄", 40, 800, 120),
+      textItem("예산액", 300, 760, 45),
+      textItem("전년도예산액", 400, 760, 85),
+      textItem("세입예산총액", 40, 720, 90),
+      textItem("1,000", 300, 720, 45),
+      textItem("900", 400, 720, 30),
+    ], 2);
+
+    expect(rows[2].cells).toEqual(["", "예산액", "전년도예산액"]);
+    expect(rows[3].cells).toEqual(["세입예산총액", "1,000", "900"]);
+    expect(parseBudgetSummary(rows).totalRevenue.amount).toBe(1000);
+  });
 });
 
 describe("extractPdfPages", () => {
@@ -101,7 +182,7 @@ describe("extractPdfPages", () => {
         metadata: null,
       }),
     };
-    pdfJsMock.getDocument.mockReturnValue({ promise: Promise.resolve(documentHandle) });
+    pdfJsMock.getDocument.mockReturnValue(loadingTask(Promise.resolve(documentHandle)));
     const progress: unknown[] = [];
 
     const result = await extractPdfPages(pdfFile(), new AbortController().signal, (update) => progress.push(update));
@@ -131,22 +212,40 @@ describe("extractPdfPages", () => {
     ]);
   });
 
-  it("retains a budget heading split across individual PDF text items", async () => {
+  it("retains a coordinate-shuffled budget heading split across individual PDF text items", async () => {
     const splitHeadingPage = page("세입예산명세서".split("").map((character, index) => (
       textItem(character, 100 + (index * 12), 780, 10)
-    )));
+    )).reverse());
     const documentHandle = {
       numPages: 1,
       getPage: vi.fn().mockResolvedValue(splitHeadingPage),
       getMetadata: vi.fn().mockResolvedValue({ info: {}, metadata: null }),
     };
-    pdfJsMock.getDocument.mockReturnValue({ promise: Promise.resolve(documentHandle) });
+    pdfJsMock.getDocument.mockReturnValue(loadingTask(Promise.resolve(documentHandle)));
 
     const result = await extractPdfPages(pdfFile(), new AbortController().signal, () => undefined);
 
     expect(result.textPages).toHaveLength(1);
     expect(result.imagePages).toHaveLength(0);
     expect(result.requiresOcr).toBe(false);
+  });
+
+  it("retains a sparse continuation row containing a Korean label and budget-formatted amount", async () => {
+    const sparsePage = page([
+      textItem("교육활동지원", 80, 720, 90),
+      textItem("1,234,000", 320, 720, 70),
+    ]);
+    const documentHandle = {
+      numPages: 1,
+      getPage: vi.fn().mockResolvedValue(sparsePage),
+      getMetadata: vi.fn().mockResolvedValue({ info: {}, metadata: null }),
+    };
+    pdfJsMock.getDocument.mockReturnValue(loadingTask(Promise.resolve(documentHandle)));
+
+    const result = await extractPdfPages(pdfFile(), new AbortController().signal, () => undefined);
+
+    expect(result.textPages).toHaveLength(1);
+    expect(result.imagePages).toHaveLength(0);
   });
 
   it("stops before reading the next page when the signal is aborted", async () => {
@@ -160,11 +259,76 @@ describe("extractPdfPages", () => {
       }),
       getMetadata: vi.fn().mockResolvedValue({ info: {}, metadata: null }),
     };
-    pdfJsMock.getDocument.mockReturnValue({ promise: Promise.resolve(documentHandle) });
+    const task = loadingTask(Promise.resolve(documentHandle));
+    pdfJsMock.getDocument.mockReturnValue(task);
 
     const extraction = extractPdfPages(pdfFile(), controller.signal, () => controller.abort());
 
     await expect(extraction).rejects.toMatchObject({ name: "AbortError" });
     expect(pageReads).toBe(1);
+    expect(task.destroy).toHaveBeenCalledTimes(1);
+  });
+
+  it("rejects promptly and destroys the loading task once when aborted during document loading", async () => {
+    const controller = new AbortController();
+    const task = loadingTask(new Promise(() => undefined));
+    pdfJsMock.getDocument.mockReturnValue(task);
+
+    const extraction = extractPdfPages(pdfFile(), controller.signal, () => undefined);
+    await vi.waitFor(() => expect(pdfJsMock.getDocument).toHaveBeenCalledTimes(1));
+    controller.abort();
+
+    const outcome = await settleWithin(extraction);
+    expect(outcome).toMatchObject({ status: "rejected", error: { name: "AbortError" } });
+    expect(task.destroy).toHaveBeenCalledTimes(1);
+  });
+
+  it("rejects promptly and destroys the loading task once when aborted during page extraction", async () => {
+    const controller = new AbortController();
+    const textContentPromise = new Promise(() => undefined);
+    const pendingPage = { getTextContent: vi.fn(() => textContentPromise) };
+    const documentHandle = {
+      numPages: 1,
+      getPage: vi.fn().mockResolvedValue(pendingPage),
+      getMetadata: vi.fn().mockResolvedValue({ info: {}, metadata: null }),
+    };
+    const task = loadingTask(Promise.resolve(documentHandle));
+    pdfJsMock.getDocument.mockReturnValue(task);
+    const extraction = extractPdfPages(pdfFile(), controller.signal, () => undefined);
+    await vi.waitFor(() => expect(pendingPage.getTextContent).toHaveBeenCalledTimes(1));
+
+    controller.abort();
+
+    const outcome = await settleWithin(extraction);
+    expect(outcome).toMatchObject({ status: "rejected", error: { name: "AbortError" } });
+    expect(task.destroy).toHaveBeenCalledTimes(1);
+  });
+
+  it("destroys the loading task once when PDF.js rejects a corrupt document", async () => {
+    const corruptError = new Error("Invalid PDF structure");
+    const task = loadingTask(Promise.reject(corruptError));
+    pdfJsMock.getDocument.mockReturnValue(task);
+
+    await expect(extractPdfPages(pdfFile(), new AbortController().signal, () => undefined))
+      .rejects.toBe(corruptError);
+    expect(task.destroy).toHaveBeenCalledTimes(1);
+  });
+
+  it("transfers exactly-once cleanup ownership to a successful result", async () => {
+    const documentHandle = {
+      numPages: 1,
+      getPage: vi.fn().mockResolvedValue(page([textItem("세출예산명세서", 80, 720, 100)])),
+      getMetadata: vi.fn().mockResolvedValue({ info: {}, metadata: null }),
+    };
+    const task = loadingTask(Promise.resolve(documentHandle));
+    pdfJsMock.getDocument.mockReturnValue(task);
+
+    const result = await extractPdfPages(pdfFile(), new AbortController().signal, () => undefined);
+    expect(task.destroy).not.toHaveBeenCalled();
+
+    await result.cleanup();
+    await result.cleanup();
+
+    expect(task.destroy).toHaveBeenCalledTimes(1);
   });
 });
