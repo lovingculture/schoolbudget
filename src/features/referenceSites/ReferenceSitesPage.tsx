@@ -35,6 +35,13 @@ export const REFERENCE_SITES: ReferenceSite[] = [
     url: "https://www.sen.go.kr/user/bbs/nowlaw.do",
   },
   {
+    id: "seoul-education-portal-ssem-linked-resources",
+    title: "서울교육포털(SSEM)",
+    category: "교육청",
+    description: "서울시교육청 연구정보원에서 만든 사이트로, 서울시교육청 홈페이지와 연동되어 자동으로 업데이트되는 연계자료실을 포함합니다.",
+    url: "https://www.ssem.or.kr/api/intergrated/tutHpDta/metaSearch/apiBbs/apiBbsList.do?bbsSn=1216",
+  },
+  {
     id: "sen-school",
     title: "센스쿨",
     category: "업무지원",

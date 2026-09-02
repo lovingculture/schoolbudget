@@ -65,6 +65,17 @@ describe("참고사이트 게시판", () => {
     expect(within(card).getByText("미리캔버스, 센지피티, 캔바 등에 로그인하여 교육 활동에 활용할 수 있는 사이트입니다.")).toBeVisible();
   });
 
+  it("서울교육포털 SSEM 연계자료실을 교육청 링크로 제공한다", () => {
+    render(<ReferenceSitesPage />);
+    const link = screen.getByRole("link", { name: "서울교육포털(SSEM) 바로가기" });
+    const card = link.closest("article")!;
+
+    expect(link).toHaveAttribute("href", "https://www.ssem.or.kr/api/intergrated/tutHpDta/metaSearch/apiBbs/apiBbsList.do?bbsSn=1216");
+    expect(within(card).getByText("교육청")).toBeVisible();
+    expect(within(card).getByText("사이트 바로가기")).toBeVisible();
+    expect(within(card).getByText("서울시교육청 연구정보원에서 만든 사이트로, 서울시교육청 홈페이지와 연동되어 자동으로 업데이트되는 연계자료실을 포함합니다.")).toBeVisible();
+  });
+
   it("성립전·추경 교육과 예산관리 1~3장 영상을 기본 링크로 제공한다", () => {
     render(<ReferenceSitesPage />);
     const videos = [
