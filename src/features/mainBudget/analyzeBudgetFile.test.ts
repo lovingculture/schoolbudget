@@ -403,6 +403,20 @@ describe("analyzeBudgetFile", () => {
     expect(adapterMocks.extractPdfPages).not.toHaveBeenCalled();
   });
 
+  it("rejects an unsupported extension before starting any byte read", async () => {
+    const arrayBuffer = vi.fn().mockRejectedValue(new Error("reader must not run"));
+    const file = { name: "budget.zip", type: "application/zip", arrayBuffer } as unknown as File;
+
+    await expect(analyzeBudgetFile(file, {
+      signal: new AbortController().signal,
+      onProgress: vi.fn(),
+    })).rejects.toThrow("지원하지 않는 파일 형식");
+
+    expect(arrayBuffer).not.toHaveBeenCalled();
+    expect(adapterMocks.extractPdfPages).not.toHaveBeenCalled();
+    expect(adapterMocks.extractWorkbookRows).not.toHaveBeenCalled();
+  });
+
   it("rejects multiple files passed across the single-file API boundary", async () => {
     const files = [budgetFile("one.pdf", pdfMagic), budgetFile("two.pdf", pdfMagic)];
     await expect(analyzeBudgetFile(files as unknown as File, {

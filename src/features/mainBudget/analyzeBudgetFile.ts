@@ -152,17 +152,20 @@ async function readFileBytes(file: File, signal: AbortSignal): Promise<Uint8Arra
   return new Uint8Array(buffer);
 }
 
-function verifiedFormat(file: File, bytes: Uint8Array): BudgetFileFormat {
-  const extension = extensionFormat(file.name);
-  if (!extension) {
+function requiredFormat(file: File): BudgetFileFormat {
+  const format = extensionFormat(file.name);
+  if (!format) {
     throw new Error(`${file.name}: 지원하지 않는 파일 형식입니다. PDF, XLS, XLSX 파일만 선택해 주세요.`);
   }
+  return format;
+}
+
+function verifyContent(file: File, format: BudgetFileFormat, bytes: Uint8Array): void {
   const content = detectedFormat(bytes);
-  if (!content) throw new Error(`${file.name}: 손상되었거나 지원하지 않는 ${extension.toUpperCase()} 파일입니다.`);
-  if (content !== extension) {
+  if (!content) throw new Error(`${file.name}: 손상되었거나 지원하지 않는 ${format.toUpperCase()} 파일입니다.`);
+  if (content !== format) {
     throw new Error(`${file.name}: 파일 확장자와 내용이 일치하지 않습니다. 올바른 ${content.toUpperCase()} 파일을 선택해 주세요.`);
   }
-  return extension;
 }
 
 function xmlAttribute(element: string, name: string): string | null {
@@ -326,9 +329,10 @@ async function analyzePdf(file: File, options: AnalyzeBudgetFileOptions): Promis
 export async function analyzeBudgetFile(file: File, options: AnalyzeBudgetFileOptions): Promise<MainBudgetAnalysisResult> {
   if (!isFileLike(file)) throw new Error("분석할 파일을 하나만 선택해 주세요.");
   throwIfAborted(options.signal);
+  const format = requiredFormat(file);
   options.onProgress({ phase: "reading", completed: 0, total: 1 });
   const bytes = await readFileBytes(file, options.signal);
-  const format = verifiedFormat(file, bytes);
+  verifyContent(file, format, bytes);
   if (format === "xlsx") await validateXlsxPackage(file, bytes, options.signal);
   if (format === "pdf") return analyzePdf(file, options);
 
