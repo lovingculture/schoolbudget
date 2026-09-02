@@ -5,6 +5,7 @@ import {
   findCurrentBudgetColumn,
   findSectionStart,
   isClosingTotal,
+  isNonBlankBudgetRow,
   isReliableBudgetRow,
   isSectionHeading,
 } from "./parseBudgetSummary";
@@ -58,18 +59,13 @@ function columnInWindow(
 function expenditureSectionSpan(rows: BudgetLogicalRow[], start: number): SectionSpan {
   let activeSheet = rows[start].sourceSheet;
   for (let index = start + 1; index < rows.length; index += 1) {
+    if (rows[index].sourceSheet && activeSheet && rows[index].sourceSheet !== activeSheet) {
+      return { end: index, hasReliableClosure: true };
+    }
+    if (!activeSheet && rows[index].sourceSheet) activeSheet = rows[index].sourceSheet;
     if (isClosingTotal(rows[index], "expenditure")) return { end: index + 1, hasReliableClosure: isReliableBudgetRow(rows[index]) };
     if (isSectionHeading(rows[index], "summary") || isSectionHeading(rows[index], "revenue")) {
       return { end: index, hasReliableClosure: isReliableBudgetRow(rows[index]) };
-    }
-    if (rows[index].sourceSheet && activeSheet && rows[index].sourceSheet !== activeSheet) {
-      if (isSectionHeading(rows[index], "expenditure")) {
-        activeSheet = rows[index].sourceSheet;
-      } else {
-        return { end: index, hasReliableClosure: true };
-      }
-    } else if (!activeSheet && rows[index].sourceSheet) {
-      activeSheet = rows[index].sourceSheet;
     }
   }
   return { end: rows.length, hasReliableClosure: false };
@@ -124,6 +120,8 @@ export function parseExpenditureStatement(rows: BudgetLogicalRow[]): Expenditure
   const end = span.end;
   const contexts = start < 0 ? [] : headerContexts(rows, start, end);
   const hasUsableHeader = contexts.length > 0;
+  const lowConfidenceRows = start < 0 ? [] : rows.slice(start + 1, end)
+    .filter((row) => isNonBlankBudgetRow(row) && !isReliableBudgetRow(row));
   const expenses: GeneralBusinessExpense[] = [];
   let contextIndex = -1;
   let policy = "";
@@ -178,6 +176,7 @@ export function parseExpenditureStatement(rows: BudgetLogicalRow[]): Expenditure
     && contexts.every((context) => context.isReliable)
     && hasParsedData(rows, start, end, contexts)
     && span.hasReliableClosure
+    && lowConfidenceRows.length === 0
     && expenses.every((expense) => isReliableBudgetRow(expense.row));
 
   if (start < 0) warnings.push({ code: "EXPENDITURE_SECTION", message: "세출예산명세서 구역을 확인할 수 없습니다.", severity: "error" });
@@ -185,6 +184,9 @@ export function parseExpenditureStatement(rows: BudgetLogicalRow[]): Expenditure
   else if (!isComplete) warnings.push({ code: "EXPENDITURE_SECTION_INCOMPLETE", message: "세출예산명세서의 데이터와 종료 구조를 완전하게 확인할 수 없습니다.", severity: "error" });
   for (const expense of expenses) {
     if (!isReliableBudgetRow(expense.row)) warnings.push({ code: "LOW_CONFIDENCE_EXPENSE", message: "일반업무추진비 행의 신뢰도가 낮아 확인이 필요합니다.", severity: "error", row: expense.row });
+  }
+  for (const row of lowConfidenceRows) {
+    warnings.push({ code: "LOW_CONFIDENCE_EXPENDITURE_ROW", message: "세출예산명세서 본문에 신뢰도가 낮은 행이 있어 확인이 필요합니다.", severity: "error", row });
   }
 
   return { expenses, isComplete, warnings };

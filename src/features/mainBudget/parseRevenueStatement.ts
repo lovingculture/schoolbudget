@@ -5,6 +5,7 @@ import {
   findCurrentBudgetColumn,
   findSectionStart,
   isClosingTotal,
+  isNonBlankBudgetRow,
   isReliableBudgetRow,
   isSectionHeading,
 } from "./parseBudgetSummary";
@@ -28,7 +29,12 @@ function warning(code: string, message: string, row?: BudgetLogicalRow): Analysi
 }
 
 function revenueSectionSpan(rows: BudgetLogicalRow[], start: number): SectionSpan {
+  let activeSheet = rows[start].sourceSheet;
   for (let index = start + 1; index < rows.length; index += 1) {
+    if (rows[index].sourceSheet && activeSheet && rows[index].sourceSheet !== activeSheet) {
+      return { end: index, hasReliableClosure: true };
+    }
+    if (!activeSheet && rows[index].sourceSheet) activeSheet = rows[index].sourceSheet;
     if (isClosingTotal(rows[index], "revenue")) return { end: index + 1, hasReliableClosure: isReliableBudgetRow(rows[index]) };
     if (isSectionHeading(rows[index], "expenditure") || isSectionHeading(rows[index], "summary")) {
       return { end: index, hasReliableClosure: isReliableBudgetRow(rows[index]) };
@@ -104,6 +110,8 @@ export function parseRevenueStatement(rows: BudgetLogicalRow[]): RevenueStatemen
   const contexts = start < 0 ? [] : headerContexts(rows, start, end);
   const hasUsableHeader = contexts.length > 0;
   const facts = start >= 0 && hasUsableHeader ? targetFacts(rows, start, end, contexts) : new Map<string, RevenueFact>();
+  const lowConfidenceRows = start < 0 ? [] : rows.slice(start + 1, end)
+    .filter((row) => isNonBlankBudgetRow(row) && !isReliableBudgetRow(row));
 
   const requiredFact = (label: string): RevenueFact => facts.get(label) ?? { label, amount: null };
   const purposeRevenue = requiredFact("목적사업비전입금");
@@ -114,7 +122,8 @@ export function parseRevenueStatement(rows: BudgetLogicalRow[]): RevenueStatemen
     && hasUsableHeader
     && contexts.every((context) => context.isReliable)
     && hasParsedData(rows, start, end, contexts)
-    && span.hasReliableClosure;
+    && span.hasReliableClosure
+    && lowConfidenceRows.length === 0;
   const isComplete = hasCompleteStructure
     && purposeRevenue.amount !== null
     && beneficiaryRevenue.amount !== null
@@ -131,6 +140,9 @@ export function parseRevenueStatement(rows: BudgetLogicalRow[]): RevenueStatemen
   if (hasCompleteStructure && beneficiaryRevenue.amount === null) warnings.push(warning("BENEFICIARY_REVENUE", "수익자부담수입을 확인할 수 없습니다."));
   for (const fact of facts.values()) {
     if (!isReliableBudgetRow(fact.row)) warnings.push(warning("LOW_CONFIDENCE_REVENUE", `${fact.label} 행의 신뢰도가 낮아 확인이 필요합니다.`, fact.row));
+  }
+  for (const row of lowConfidenceRows) {
+    warnings.push(warning("LOW_CONFIDENCE_REVENUE_ROW", "세입예산명세서 본문에 신뢰도가 낮은 행이 있어 확인이 필요합니다.", row));
   }
 
   return { purposeRevenue, beneficiaryRevenue, verificationRevenue, warnings };

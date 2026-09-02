@@ -23,6 +23,10 @@ export function isReliableBudgetRow(row: BudgetLogicalRow | undefined): boolean 
   return row !== undefined && (row.confidence === undefined || row.confidence >= MIN_BUDGET_ROW_CONFIDENCE);
 }
 
+export function isNonBlankBudgetRow(row: BudgetLogicalRow): boolean {
+  return row.cells.some((cell) => canonicalBudgetLabel(cell) !== "" || parseBudgetNumber(cell) !== null);
+}
+
 export function isClosingTotal(row: BudgetLogicalRow, section: "revenue" | "expenditure"): boolean {
   const labels = row.cells.map(canonicalBudgetLabel);
   return labels.includes(section === "revenue" ? "세입합계" : "세출합계")
@@ -116,6 +120,8 @@ export function parseBudgetSummary(rows: BudgetLogicalRow[]): BudgetSummaryParse
   else if (!isReliableBudgetRow(markerRow)) warnings.push(warning("LOW_CONFIDENCE_MAIN_BUDGET_MARKER", "본예산 또는 예산안 표시의 신뢰도가 낮아 확인이 필요합니다.", markerRow));
   if (currentColumn < 0) warnings.push(warning("BUDGET_SUMMARY_CURRENT_COLUMN", "총괄의 현재 예산액 열을 확인할 수 없습니다."));
   if (amount === null) warnings.push(warning("TOTAL_REVENUE", "세입예산총액을 확인할 수 없습니다.", totalRow));
+  if (sectionRow && !isReliableBudgetRow(sectionRow)) warnings.push(warning("LOW_CONFIDENCE_BUDGET_SUMMARY_HEADING", "세입세출예산총괄 제목의 신뢰도가 낮아 확인이 필요합니다.", sectionRow));
+  if (currentHeaderRow && !isReliableBudgetRow(currentHeaderRow)) warnings.push(warning("LOW_CONFIDENCE_BUDGET_SUMMARY_HEADER", "총괄 예산액 머리글의 신뢰도가 낮아 확인이 필요합니다.", currentHeaderRow));
   if (totalRow && !isReliableBudgetRow(totalRow)) warnings.push(warning("LOW_CONFIDENCE_TOTAL_REVENUE", "세입예산총액 행의 신뢰도가 낮아 확인이 필요합니다.", totalRow));
 
   return {
