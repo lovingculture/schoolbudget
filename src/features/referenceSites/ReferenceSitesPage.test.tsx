@@ -62,7 +62,7 @@ describe("참고사이트 게시판", () => {
     expect(link).toHaveAttribute("href", "https://senedu.kr/");
     expect(within(card).getByText("업무지원")).toBeVisible();
     expect(within(card).getByText("사이트 바로가기")).toBeVisible();
-    expect(within(card).getByText("미리캔버스, 센지피티, 캔바 등에 로그인하여 교육 활동에 활용할 수 있는 사이트입니다.")).toBeVisible();
+    expect(within(card).getByText("AI 맞춤형 교수·학습 플랫폼으로, 서울시교육청 교직원은 로그인하여 센지피티, 미리캔버스, 캔바 등 교육활동에 필요한 사이트를 이용할 수 있습니다.")).toBeVisible();
   });
 
   it("서울교육포털 SSEM 연계자료실을 교육청 링크로 제공한다", () => {
