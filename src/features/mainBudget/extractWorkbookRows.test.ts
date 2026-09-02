@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import { mainBudgetWorkbookFile } from "./__fixtures__/mainBudgetWorkbook";
 import { extractWorkbookRows } from "./extractWorkbookRows";
 
@@ -34,5 +34,42 @@ describe("본예산 엑셀 행 추출", () => {
     Object.defineProperty(file, "name", { value: fileName });
 
     await expect(extractWorkbookRows(file)).rejects.toThrow("지원하지 않는 파일 형식");
+  });
+
+  it("parses caller-provided bytes without reading the File again", async () => {
+    const source = mainBudgetWorkbookFile("xlsx");
+    const bytes = new Uint8Array(await source.arrayBuffer());
+    const arrayBuffer = vi.fn().mockRejectedValue(new Error("duplicate read"));
+    const file = { name: "본예산.xlsx", arrayBuffer } as unknown as File;
+
+    const result = await extractWorkbookRows(file, {
+      bytes,
+      signal: new AbortController().signal,
+    });
+
+    expect(result.source).toEqual({ fileName: "본예산.xlsx", format: "xlsx", sheetCount: 1 });
+    expect(result.rows).toHaveLength(8);
+    expect(arrayBuffer).not.toHaveBeenCalled();
+  });
+
+  it("does not read or synchronously parse when the supplied signal is already aborted", async () => {
+    const source = mainBudgetWorkbookFile("xlsx");
+    const bytes = new Uint8Array(await source.arrayBuffer());
+    const arrayBuffer = vi.fn();
+    const file = { name: "본예산.xlsx", arrayBuffer } as unknown as File;
+    const controller = new AbortController();
+    controller.abort();
+
+    await expect(extractWorkbookRows(file, { bytes, signal: controller.signal }))
+      .rejects.toMatchObject({ name: "AbortError" });
+    expect(arrayBuffer).not.toHaveBeenCalled();
+  });
+
+  it("reports a user-friendly error when SheetJS rejects corrupt workbook bytes", async () => {
+    const file = { name: "손상.xlsx", arrayBuffer: vi.fn() } as unknown as File;
+    const corruptZip = Uint8Array.from([0x50, 0x4b, 0x03, 0x04, 0xff]);
+
+    await expect(extractWorkbookRows(file, { bytes: corruptZip, signal: new AbortController().signal }))
+      .rejects.toThrow("손상되었거나 지원하지 않는 엑셀 파일");
   });
 });

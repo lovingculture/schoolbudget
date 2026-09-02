@@ -58,9 +58,75 @@ function fileFormat(fileName: string): BudgetSource["format"] {
   throw new Error(`${fileName}: 지원하지 않는 파일 형식입니다. .xls 또는 .xlsx 파일만 지원합니다.`);
 }
 
-export async function extractWorkbookRows(file: File): Promise<{ source: BudgetSource; rows: BudgetLogicalRow[] }> {
+function abortError(): DOMException {
+  return new DOMException("엑셀 파일 분석이 취소되었습니다.", "AbortError");
+}
+
+function throwIfAborted(signal: AbortSignal | undefined): void {
+  if (signal?.aborted) throw abortError();
+}
+
+function awaitWithAbort<T>(promise: Promise<T>, signal: AbortSignal | undefined): Promise<T> {
+  if (!signal) return promise;
+  throwIfAborted(signal);
+  return new Promise<T>((resolve, reject) => {
+    let settled = false;
+    const cleanup = () => signal.removeEventListener("abort", handleAbort);
+    const handleAbort = () => {
+      if (settled) return;
+      settled = true;
+      cleanup();
+      reject(abortError());
+    };
+    signal.addEventListener("abort", handleAbort, { once: true });
+    if (signal.aborted) {
+      handleAbort();
+      return;
+    }
+    promise.then(
+      (value) => {
+        if (settled) return;
+        settled = true;
+        cleanup();
+        resolve(value);
+      },
+      (error: unknown) => {
+        if (settled) return;
+        settled = true;
+        cleanup();
+        reject(error);
+      },
+    );
+  });
+}
+
+export type ExtractWorkbookRowsOptions = {
+  bytes?: Uint8Array | ArrayBuffer;
+  signal?: AbortSignal;
+};
+
+export async function extractWorkbookRows(
+  file: File,
+  options: ExtractWorkbookRowsOptions = {},
+): Promise<{ source: BudgetSource; rows: BudgetLogicalRow[] }> {
   const format = fileFormat(file.name);
-  const workbook = XLSX.read(await file.arrayBuffer(), { type: "array" });
+  throwIfAborted(options.signal);
+  let bytes: Uint8Array | ArrayBuffer;
+  try {
+    bytes = options.bytes ?? await awaitWithAbort(file.arrayBuffer(), options.signal);
+  } catch (error) {
+    if (error instanceof DOMException && error.name === "AbortError") throw error;
+    throw new Error(`${file.name}: 엑셀 파일을 읽지 못했습니다.`, { cause: error });
+  }
+  throwIfAborted(options.signal);
+  let workbook: XLSX.WorkBook;
+  try {
+    // SheetJS parsing is synchronous and cannot be preempted once started.
+    workbook = XLSX.read(bytes, { type: "array" });
+  } catch (error) {
+    throw new Error(`${file.name}: 손상되었거나 지원하지 않는 엑셀 파일입니다.`, { cause: error });
+  }
+  throwIfAborted(options.signal);
   const rows = workbook.SheetNames.flatMap((sheetName) => rowsFromSheet(workbook.Sheets[sheetName], sheetName));
 
   return {

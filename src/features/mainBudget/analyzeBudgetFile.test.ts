@@ -1,3 +1,4 @@
+import JSZip from "jszip";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { BudgetLogicalRow, MainBudgetAnalysisResult } from "./analysisTypes";
 
@@ -30,6 +31,64 @@ const xlsxMagic = [0x50, 0x4b, 0x03, 0x04, 0x14, 0x00, 0x00, 0x00];
 
 function budgetFile(name: string, bytes: number[], type = "") {
   return new File([new Uint8Array(bytes)], name, { type });
+}
+
+function byteBackedFile(name: string, bytes: Uint8Array, type = "") {
+  const file = new File([bytes], name, { type });
+  const start = bytes.byteOffset;
+  const end = start + bytes.byteLength;
+  const arrayBuffer = vi.fn(async () => bytes.buffer.slice(start, end) as ArrayBuffer);
+  Object.defineProperty(file, "arrayBuffer", { value: arrayBuffer });
+  return { file, arrayBuffer };
+}
+
+async function xlsxPackage(contentType = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml") {
+  const zip = new JSZip();
+  zip.file("[Content_Types].xml", `<?xml version="1.0" encoding="UTF-8"?>
+    <Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types">
+      <Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/>
+      <Default Extension="xml" ContentType="application/xml"/>
+      <Override ContentType="${contentType}" PartName="/xl/workbook.xml"/>
+      <Override PartName="/xl/worksheets/sheet1.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/>
+    </Types>`);
+  zip.file("xl/workbook.xml", `<?xml version="1.0" encoding="UTF-8"?>
+    <workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"
+      xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships">
+      <sheets><sheet name="Sheet1" sheetId="1" r:id="rId1"/></sheets>
+    </workbook>`);
+  zip.file("_rels/.rels", `<?xml version="1.0" encoding="UTF-8"?>
+    <Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">
+      <Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="xl/workbook.xml"/>
+    </Relationships>`);
+  zip.file("xl/_rels/workbook.xml.rels", `<?xml version="1.0" encoding="UTF-8"?>
+    <Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">
+      <Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet1.xml"/>
+    </Relationships>`);
+  zip.file("xl/worksheets/sheet1.xml", `<?xml version="1.0" encoding="UTF-8"?>
+    <worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"><sheetData/></worksheet>`);
+  return zip.generateAsync({ type: "uint8array" });
+}
+
+function deferred<T>() {
+  let resolve!: (value: T | PromiseLike<T>) => void;
+  let reject!: (reason?: unknown) => void;
+  const promise = new Promise<T>((onResolve, onReject) => {
+    resolve = onResolve;
+    reject = onReject;
+  });
+  return { promise, resolve, reject };
+}
+
+async function settleWithin<T>(promise: Promise<T>, timeoutMs = 100) {
+  return Promise.race([
+    promise.then(
+      (value) => ({ status: "resolved" as const, value }),
+      (error: unknown) => ({ status: "rejected" as const, error }),
+    ),
+    new Promise<{ status: "timeout" }>((resolve) => {
+      setTimeout(() => resolve({ status: "timeout" }), timeoutMs);
+    }),
+  ]);
 }
 
 function resultFor(format: "pdf" | "xls" | "xlsx", fileName = `budget.${format}`): MainBudgetAnalysisResult {
@@ -84,10 +143,11 @@ describe("analyzeBudgetFile", () => {
     adapterMocks.ocrPdfPages.mockResolvedValue([]);
   });
 
-  it.each([
-    ["BUDGET.XLS", xlsMagic, "application/vnd.ms-excel", "xls"],
-    ["BUDGET.XLSX", xlsxMagic, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", "xlsx"],
-  ] as const)("routes %s by case-insensitive extension and matching magic bytes", async (name, bytes, type, format) => {
+  it("routes XLS by case-insensitive extension and matching OLE magic bytes", async () => {
+    const name = "BUDGET.XLS";
+    const bytes = xlsMagic;
+    const type = "application/vnd.ms-excel";
+    const format = "xls" as const;
     const file = budgetFile(name, bytes, type);
     const rows: BudgetLogicalRow[] = [{ cells: ["본예산"], sourceSheet: "표지", sourceRow: 1 }];
     adapterMocks.extractWorkbookRows.mockResolvedValue({ source: { fileName: name, format }, rows });
@@ -97,7 +157,10 @@ describe("analyzeBudgetFile", () => {
     await expect(analyzeBudgetFile(file, { signal: new AbortController().signal, onProgress: vi.fn() }))
       .resolves.toBe(analyzed);
 
-    expect(adapterMocks.extractWorkbookRows).toHaveBeenCalledWith(file);
+    expect(adapterMocks.extractWorkbookRows).toHaveBeenCalledWith(file, {
+      bytes: expect.any(Uint8Array),
+      signal: expect.any(AbortSignal),
+    });
     expect(adapterMocks.extractPdfPages).not.toHaveBeenCalled();
     expect(parserMocks.parseBudgetSummary).toHaveBeenCalledWith(rows);
     expect(parserMocks.parseRevenueStatement).toHaveBeenCalledWith(rows);
@@ -110,6 +173,78 @@ describe("analyzeBudgetFile", () => {
       verificationRevenue: revenue.verificationRevenue,
       generalBusinessExpenses: { facts: [], isComplete: true },
     }));
+  });
+
+  it("routes a real minimal XLSX package and reuses its single byte read for workbook parsing", async () => {
+    const name = "BUDGET.XLSX";
+    const { file, arrayBuffer } = byteBackedFile(
+      name,
+      await xlsxPackage(),
+      "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+    );
+    const rows: BudgetLogicalRow[] = [{ cells: ["본예산"], sourceSheet: "표지", sourceRow: 1 }];
+    adapterMocks.extractWorkbookRows.mockResolvedValue({ source: { fileName: name, format: "xlsx" }, rows });
+    const analyzed = resultFor("xlsx", name);
+    installSuccessfulParsers(analyzed);
+    const signal = new AbortController().signal;
+
+    await expect(analyzeBudgetFile(file, { signal, onProgress: vi.fn() })).resolves.toBe(analyzed);
+
+    expect(arrayBuffer).toHaveBeenCalledTimes(1);
+    expect(adapterMocks.extractWorkbookRows).toHaveBeenCalledWith(file, {
+      bytes: expect.any(Uint8Array),
+      signal,
+    });
+  });
+
+  it("rejects a renamed arbitrary ZIP before the workbook adapter", async () => {
+    const zip = new JSZip();
+    zip.file("notes.txt", "not an Excel workbook");
+    const { file } = byteBackedFile("renamed.xlsx", await zip.generateAsync({ type: "uint8array" }));
+
+    await expect(analyzeBudgetFile(file, {
+      signal: new AbortController().signal,
+      onProgress: vi.fn(),
+    })).rejects.toThrow(/Excel OOXML/);
+
+    expect(adapterMocks.extractWorkbookRows).not.toHaveBeenCalled();
+  });
+
+  it("rejects OOXML-shaped ZIP content whose workbook content type is not a spreadsheet", async () => {
+    const { file } = byteBackedFile(
+      "document.xlsx",
+      await xlsxPackage("application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml"),
+    );
+
+    await expect(analyzeBudgetFile(file, {
+      signal: new AbortController().signal,
+      onProgress: vi.fn(),
+    })).rejects.toThrow(/Excel OOXML/);
+    expect(adapterMocks.extractWorkbookRows).not.toHaveBeenCalled();
+  });
+
+  it.each(["pdf", "xlsx"] as const)("rejects promptly when %s signature bytes are still being read", async (format) => {
+    const read = deferred<ArrayBuffer>();
+    const controller = new AbortController();
+    const arrayBuffer = vi.fn(() => read.promise);
+    const file = {
+      name: `budget.${format}`,
+      type: format === "pdf" ? "application/pdf" : "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+      arrayBuffer,
+    } as unknown as File;
+
+    const pending = analyzeBudgetFile(file, { signal: controller.signal, onProgress: vi.fn() });
+    await vi.waitFor(() => expect(arrayBuffer).toHaveBeenCalledTimes(1));
+    controller.abort();
+
+    expect(await settleWithin(pending)).toMatchObject({
+      status: "rejected",
+      error: { name: "AbortError" },
+    });
+    expect(adapterMocks.extractPdfPages).not.toHaveBeenCalled();
+    expect(adapterMocks.extractWorkbookRows).not.toHaveBeenCalled();
+
+    read.resolve(Uint8Array.from(format === "pdf" ? pdfMagic : xlsxMagic).buffer);
   });
 
   it("OCRs only image pages, merges direct and OCR rows in source order, and always cleans a successful PDF", async () => {
@@ -244,7 +379,7 @@ describe("analyzeBudgetFile", () => {
     });
     parserMocks.analyzeMainBudget.mockReturnValue(resultFor("xlsx"));
 
-    await analyzeBudgetFile(budgetFile("budget.xlsx", xlsxMagic), {
+    await analyzeBudgetFile(budgetFile("budget.xls", xlsMagic), {
       signal: new AbortController().signal,
       onProgress: vi.fn(),
     });

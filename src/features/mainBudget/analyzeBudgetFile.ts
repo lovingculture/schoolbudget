@@ -1,3 +1,4 @@
+import JSZip from "jszip";
 import { analyzeMainBudget } from "./analyzeMainBudget";
 import type {
   BudgetFileFormat,
@@ -53,7 +54,8 @@ function isFileLike(value: unknown): value is File {
   return typeof value === "object"
     && value !== null
     && typeof (value as { name?: unknown }).name === "string"
-    && typeof (value as { slice?: unknown }).slice === "function";
+    && (typeof (value as { arrayBuffer?: unknown }).arrayBuffer === "function"
+      || typeof (value as { slice?: unknown }).slice === "function");
 }
 
 function extensionFormat(fileName: string): BudgetFileFormat | null {
@@ -74,35 +76,116 @@ function detectedFormat(bytes: Uint8Array): BudgetFileFormat | null {
   return null;
 }
 
-function blobArrayBuffer(blob: Blob): Promise<ArrayBuffer> {
-  if (typeof (blob as Blob & { arrayBuffer?: unknown }).arrayBuffer === "function") {
-    return (blob as Blob & { arrayBuffer: () => Promise<ArrayBuffer> }).arrayBuffer();
-  }
-  return new Promise<ArrayBuffer>((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onerror = () => reject(reader.error ?? new Error("파일을 읽지 못했습니다."));
-    reader.onload = () => {
-      if (reader.result instanceof ArrayBuffer) resolve(reader.result);
-      else reject(new Error("파일을 바이너리로 읽지 못했습니다."));
+function awaitWithAbort<T>(promise: Promise<T>, signal: AbortSignal, onAbort?: () => void): Promise<T> {
+  throwIfAborted(signal);
+  return new Promise<T>((resolve, reject) => {
+    let settled = false;
+    const finish = (callback: (value: T) => void, value: T) => {
+      if (settled) return;
+      settled = true;
+      signal.removeEventListener("abort", handleAbort);
+      callback(value);
     };
-    reader.readAsArrayBuffer(blob);
+    const fail = (error: unknown) => {
+      if (settled) return;
+      settled = true;
+      signal.removeEventListener("abort", handleAbort);
+      reject(error);
+    };
+    const handleAbort = () => {
+      try {
+        onAbort?.();
+      } finally {
+        fail(abortError());
+      }
+    };
+    signal.addEventListener("abort", handleAbort, { once: true });
+    if (signal.aborted) {
+      handleAbort();
+      return;
+    }
+    promise.then((value) => finish(resolve, value), fail);
   });
 }
 
-async function verifiedFormat(file: File, signal: AbortSignal): Promise<BudgetFileFormat> {
+async function readFileBytes(file: File, signal: AbortSignal): Promise<Uint8Array> {
+  throwIfAborted(signal);
+  if (typeof (file as File & { arrayBuffer?: unknown }).arrayBuffer === "function") {
+    const buffer = await awaitWithAbort(file.arrayBuffer(), signal);
+    throwIfAborted(signal);
+    return new Uint8Array(buffer);
+  }
+  const buffer = await new Promise<ArrayBuffer>((resolve, reject) => {
+    const reader = new FileReader();
+    let settled = false;
+    const cleanup = () => signal.removeEventListener("abort", handleAbort);
+    const fail = (error: unknown) => {
+      if (settled) return;
+      settled = true;
+      cleanup();
+      reject(error);
+    };
+    const handleAbort = () => {
+      try {
+        reader.abort();
+      } finally {
+        fail(abortError());
+      }
+    };
+    reader.onerror = () => fail(reader.error ?? new Error("파일을 읽지 못했습니다."));
+    reader.onabort = () => fail(abortError());
+    reader.onload = () => {
+      if (settled) return;
+      if (!(reader.result instanceof ArrayBuffer)) {
+        fail(new Error("파일을 바이너리로 읽지 못했습니다."));
+        return;
+      }
+      settled = true;
+      cleanup();
+      resolve(reader.result);
+    };
+    signal.addEventListener("abort", handleAbort, { once: true });
+    if (signal.aborted) handleAbort();
+    else reader.readAsArrayBuffer(file);
+  });
+  throwIfAborted(signal);
+  return new Uint8Array(buffer);
+}
+
+function verifiedFormat(file: File, bytes: Uint8Array): BudgetFileFormat {
   const extension = extensionFormat(file.name);
   if (!extension) {
     throw new Error(`${file.name}: 지원하지 않는 파일 형식입니다. PDF, XLS, XLSX 파일만 선택해 주세요.`);
   }
-  throwIfAborted(signal);
-  const bytes = new Uint8Array(await blobArrayBuffer(file.slice(0, 8)));
-  throwIfAborted(signal);
   const content = detectedFormat(bytes);
   if (!content) throw new Error(`${file.name}: 손상되었거나 지원하지 않는 ${extension.toUpperCase()} 파일입니다.`);
   if (content !== extension) {
     throw new Error(`${file.name}: 파일 확장자와 내용이 일치하지 않습니다. 올바른 ${content.toUpperCase()} 파일을 선택해 주세요.`);
   }
   return extension;
+}
+
+function xmlAttribute(element: string, name: string): string | null {
+  const match = new RegExp(`\\b${name}\\s*=\\s*(["'])(.*?)\\1`).exec(element);
+  return match?.[2] ?? null;
+}
+
+async function validateXlsxPackage(file: File, bytes: Uint8Array, signal: AbortSignal): Promise<void> {
+  try {
+    const zip = await awaitWithAbort(JSZip.loadAsync(bytes), signal);
+    const contentTypesEntry = zip.file("[Content_Types].xml");
+    const workbookEntry = zip.file("xl/workbook.xml");
+    if (!contentTypesEntry || !workbookEntry) throw new Error("required OOXML spreadsheet parts are missing");
+    const contentTypes = await awaitWithAbort(contentTypesEntry.async("string"), signal);
+    const isSpreadsheetWorkbook = (contentTypes.match(/<Override\b[^>]*>/g) ?? []).some((override) => (
+      xmlAttribute(override, "PartName") === "/xl/workbook.xml"
+      && xmlAttribute(override, "ContentType") === "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"
+    ));
+    if (!isSpreadsheetWorkbook) throw new Error("workbook content type is not an XLSX spreadsheet");
+  } catch (error) {
+    if (isAbortError(error)) throw error;
+    throw new Error(`${file.name}: 손상되었거나 유효한 Excel OOXML 패키지가 아닙니다.`, { cause: error });
+  }
 }
 
 function rowText(row: BudgetLogicalRow): string {
@@ -244,12 +327,14 @@ export async function analyzeBudgetFile(file: File, options: AnalyzeBudgetFileOp
   if (!isFileLike(file)) throw new Error("분석할 파일을 하나만 선택해 주세요.");
   throwIfAborted(options.signal);
   options.onProgress({ phase: "reading", completed: 0, total: 1 });
-  const format = await verifiedFormat(file, options.signal);
+  const bytes = await readFileBytes(file, options.signal);
+  const format = verifiedFormat(file, bytes);
+  if (format === "xlsx") await validateXlsxPackage(file, bytes, options.signal);
   if (format === "pdf") return analyzePdf(file, options);
 
   let extracted;
   try {
-    extracted = await extractWorkbookRows(file);
+    extracted = await extractWorkbookRows(file, { bytes, signal: options.signal });
   } catch (error) {
     if (isAbortError(error)) throw error;
     throw corruptFileError(file, format, error);
