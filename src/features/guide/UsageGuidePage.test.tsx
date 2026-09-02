@@ -18,7 +18,7 @@ describe("학교예산 한눈에 이용 안내", () => {
     await user.click(screen.getByText("본예산 파일은 어떻게 분석하나요?"));
     expect(screen.getByText(/K-에듀파인 본예산 PDF 또는 Excel 파일/)).toBeVisible();
     expect(screen.getByText(/PDF, \.xls, \.xlsx 파일을 선택할 수 있으며/)).toBeVisible();
-    expect(screen.getByText(/OCR 처리에는 인터넷 또는 네트워크 권한이 필요할 수 있습니다/)).toBeVisible();
+    expect(screen.getByText("이미지형 PDF의 OCR은 최초 이용 시 인터넷 연결 또는 네트워크 권한이 필요할 수 있습니다.")).toBeVisible();
     expect(screen.getByText(/분석 결과는 현재 브라우저에만 복원됩니다/)).toBeVisible();
     expect(screen.getByText(/각 열 제목의 필터 버튼/)).toBeVisible();
     expect(screen.getByText(/브라우저를 닫았다가 다음 날 다시 접속해도/)).toBeVisible();

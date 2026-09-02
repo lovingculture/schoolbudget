@@ -165,7 +165,7 @@ export function UsageGuidePage({ onNavigate }: UsageGuidePageProps) {
         </details>
         <details>
           <summary>본예산 파일은 어떻게 분석하나요?</summary>
-          <p>K-에듀파인 본예산 PDF 또는 Excel 파일을 선택하면 세입 기준금액과 일반업무추진비 편성 비율을 확인할 수 있습니다. PDF, .xls, .xlsx 파일을 선택할 수 있으며 파일은 이 브라우저에서만 처리합니다. PDF OCR 처리에는 인터넷 또는 네트워크 권한이 필요할 수 있습니다. 분석 결과는 현재 브라우저에만 복원됩니다.</p>
+          <p>K-에듀파인 본예산 PDF 또는 Excel 파일을 선택하면 세입 기준금액과 일반업무추진비 편성 비율을 확인할 수 있습니다. PDF, .xls, .xlsx 파일을 선택할 수 있으며 파일은 이 브라우저에서만 처리합니다. <span>이미지형 PDF의 OCR은 최초 이용 시 인터넷 연결 또는 네트워크 권한이 필요할 수 있습니다.</span> 분석 결과는 현재 브라우저에만 복원됩니다.</p>
         </details>
       </section>
     </div>

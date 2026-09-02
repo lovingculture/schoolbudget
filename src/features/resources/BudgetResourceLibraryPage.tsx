@@ -40,7 +40,7 @@ function StaticResourceCards() {
         </span>
         <div className="guideline-document-info">
           <h2>부서별 본예산 세출 요구자료 양식</h2>
-          <p>부서별 세출자료 수합용 · 매크로 없음 · XLS·XLSX 호환</p>
+          <p>부서별 본예산 세출 요구자료 작성용 양식 · 매크로 없음 · XLS·XLSX 호환</p>
         </div>
         <div className="guideline-document-actions">
           <button type="button" onClick={() => downloadExpenditureTemplate("xls")}>
