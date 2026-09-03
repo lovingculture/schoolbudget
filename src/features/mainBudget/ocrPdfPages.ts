@@ -88,6 +88,7 @@ function wordsFromResult(
             width: Math.max(0, x1 - x0) / ANALYSIS_SCALE,
             height: Math.max(0, y1 - y0) / ANALYSIS_SCALE,
             confidence: word.confidence,
+            preserveBoundary: true,
           });
         }
       }

@@ -10,6 +10,7 @@ import {
   isNonBlankBudgetRow,
   isReliableBudgetRow,
   isSectionHeading,
+  reviewableOcrTableEvidence,
 } from "./parseBudgetSummary";
 
 export type ExpenditureStatementParseResult = {
@@ -136,6 +137,7 @@ export function parseExpenditureStatement(rows: BudgetLogicalRow[]): Expenditure
   const span = start < 0 ? { end: -1, hasReliableClosure: false } : expenditureSectionSpan(rows, start);
   const end = span.end;
   const contexts = start < 0 ? [] : headerContexts(rows, start, end);
+  const ocrEvidence = start < 0 ? null : reviewableOcrTableEvidence(rows, start, end);
   const hasUsableHeader = contexts.length > 0;
   const lowConfidenceRows = start < 0 ? [] : rows.slice(start + 1, end)
     .filter((row) => isNonBlankBudgetRow(row) && !isReliableBudgetRow(row));
@@ -192,12 +194,16 @@ export function parseExpenditureStatement(rows: BudgetLogicalRow[]): Expenditure
     }
   }
 
-  const hasValidStructure = start >= 0
+  const repeatedOcrHeading = start >= 0 && rows.slice(start + 1, end)
+    .some((row) => row.sourcePage !== rows[start].sourcePage
+      && isSectionHeading(row, "expenditure")
+      && isReliableBudgetRow(row));
+  const hasValidStructure = (start >= 0
     && isReliableBudgetRow(rows[start])
     && hasUsableHeader
     && contexts.every((context) => context.isReliable)
     && hasParsedData(rows, start, end, contexts)
-    && span.hasReliableClosure;
+    && span.hasReliableClosure) || (ocrEvidence !== null && (span.hasReliableClosure || repeatedOcrHeading));
   const isComplete = hasValidStructure
     && lowConfidenceRows.length === 0
     && nearMissRows.length === 0
@@ -206,6 +212,7 @@ export function parseExpenditureStatement(rows: BudgetLogicalRow[]): Expenditure
   if (start < 0) warnings.push({ code: "EXPENDITURE_SECTION", message: "세출예산명세서 구역을 확인할 수 없습니다.", severity: "error" });
   else if (!hasUsableHeader) warnings.push({ code: "EXPENDITURE_CURRENT_COLUMN", message: "세출예산명세서의 계층과 현재 예산액 열을 확인할 수 없습니다.", severity: "error" });
   else if (!hasValidStructure) warnings.push({ code: "EXPENDITURE_SECTION_INCOMPLETE", message: "세출예산명세서의 데이터와 종료 구조를 완전하게 확인할 수 없습니다.", severity: "error" });
+  if (ocrEvidence) warnings.push({ code: "OCR_REVIEW_EXPENDITURE", message: "OCR에서 세출 표 구조는 확인했지만 세부 머리글과 금액은 원본 확인이 필요합니다.", severity: "error", row: ocrEvidence.header });
   for (const expense of expenses) {
     if (!isReliableBudgetRow(expense.row)) warnings.push({ code: "LOW_CONFIDENCE_EXPENSE", message: "일반업무추진비 행의 신뢰도가 낮아 확인이 필요합니다.", severity: "error", row: expense.row });
   }

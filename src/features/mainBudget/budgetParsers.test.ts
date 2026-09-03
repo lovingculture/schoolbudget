@@ -112,6 +112,75 @@ describe("본예산 공통 구역 파서", () => {
     });
   });
 
+  it("OCR로 분리된 예산총칙 법령 문구도 본예산 표지를 무효화하지 않는다", () => {
+    const rows = [
+      ...logicalBudgetRows.slice(0, 1),
+      { cells: ["불가피한 사유로 추가경정예산을 편성하지 못할 경우 학교운영위원회의 심의를 받은 것으로 간주 처리한다."], sourcePage: 3, sourceRow: 23, confidence: 0.85 },
+      ...logicalBudgetRows.slice(1),
+    ];
+
+    expect(parseBudgetSummary(rows)).toMatchObject({
+      identity: { schoolName: "가람초등학교", accountingYear: 2026, budgetType: "본예산" },
+    });
+  });
+
+  it("OCR 표의 세부 머리글이 유실돼도 출처 있는 확인 경고와 함께 세 구역 구조를 보존한다", () => {
+    const rows = [
+      { cells: ["가람초등학교", "2026학년도 본예산"], sourcePage: 1, sourceRow: 1, confidence: 0.92 },
+      { cells: ["세입세출예산서"], sourcePage: 3, sourceRow: 1, confidence: 0.91 },
+      { cells: ["예산총칙"], sourcePage: 3, sourceRow: 2, confidence: 0.94 },
+      { cells: ["2026년도 가람초등학교회계 세입세출예산총액은", "1,020,223,000원"], sourcePage: 3, sourceRow: 3, confidence: 0.72 },
+      { cells: ["세입예산명세서"], sourcePage: 5, sourceRow: 1, confidence: 0.9 },
+      { cells: ["구분"], sourcePage: 5, sourceRow: 2, confidence: 0.93 },
+      { cells: ["예산액", "산출기초", "비고"], sourcePage: 6, sourceRow: 3, confidence: 0.29 },
+      { cells: ["학교운영비전입금", "650,605"], sourcePage: 6, sourceRow: 4, confidence: 0.42 },
+      { cells: ["세출예산명세서"], sourcePage: 8, sourceRow: 1, confidence: 0.91 },
+      { cells: ["구분"], sourcePage: 8, sourceRow: 2, confidence: 0.88 },
+      { cells: ["예산액", "산출기초"], sourcePage: 10, sourceRow: 3, confidence: 0.51 },
+      { cells: ["일반업무추진비", "1,050,000"], sourcePage: 10, sourceRow: 4, confidence: 0.34 },
+      { cells: ["세출예산명세서"], sourcePage: 11, sourceRow: 1, confidence: 0.89 },
+      { cells: ["일반업무추진비", "60,000"], sourcePage: 11, sourceRow: 2, confidence: 0.27 },
+    ];
+
+    const summary = parseBudgetSummary(rows);
+    const revenue = parseRevenueStatement(rows);
+    const expenditure = parseExpenditureStatement(rows);
+
+    expect(summary.hasValidStructure).toBe(true);
+    expect(revenue.hasValidStructure).toBe(true);
+    expect(expenditure.hasValidStructure).toBe(true);
+    expect(summary.totalRevenue.amount).toBeNull();
+    expect(revenue.beneficiaryRevenue.amount).toBeNull();
+    expect(expenditure.isComplete).toBe(false);
+    for (const warning of [...summary.warnings, ...revenue.warnings, ...expenditure.warnings]
+      .filter(({ code }) => code.includes("OCR_REVIEW"))) {
+      expect(warning.row).toMatchObject({ sourcePage: expect.any(Number), sourceRow: expect.any(Number) });
+    }
+    expect(summary.warnings.find(({ code }) => code === "TOTAL_REVENUE")?.row)
+      .toMatchObject({ sourcePage: 3, sourceRow: 3 });
+    expect(revenue.warnings.find(({ code }) => code === "PURPOSE_REVENUE")?.row)
+      .toMatchObject({ sourcePage: 6, sourceRow: 4 });
+    expect(revenue.warnings.find(({ code }) => code === "BENEFICIARY_REVENUE")?.row)
+      .toMatchObject({ sourcePage: 6, sourceRow: 4 });
+  });
+
+  it("OCR이 예산액 머리글까지 놓친 경우 본예산·단위·구분·본문·구역 경계를 함께 확인해야만 검토 구조로 인정한다", () => {
+    const rows = [
+      { cells: ["세입예산명세서"], sourcePage: 5, sourceRow: 1, confidence: 0.92 },
+      { cells: ["예산", "본예산", "단위", "천원"], sourcePage: 5, sourceRow: 2, confidence: 0.31 },
+      { cells: ["구분"], sourcePage: 5, sourceRow: 3, confidence: 0.8 },
+      { cells: ["학교운영비전입금", "13,354"], sourcePage: 5, sourceRow: 4, confidence: 0.42 },
+      { cells: ["세출예산명세서"], sourcePage: 6, sourceRow: 1, confidence: 0.86 },
+      { cells: ["예산", "본예산", "단위", "천원"], sourcePage: 6, sourceRow: 2, confidence: 0.33 },
+      { cells: ["구분"], sourcePage: 6, sourceRow: 3, confidence: 0.78 },
+      { cells: ["교직원복지", "15,620"], sourcePage: 6, sourceRow: 4, confidence: 0.52 },
+      { cells: ["세출예산명세서"], sourcePage: 7, sourceRow: 1, confidence: 0.91 },
+    ];
+
+    expect(parseRevenueStatement(rows)).toMatchObject({ hasValidStructure: true });
+    expect(parseExpenditureStatement(rows)).toMatchObject({ hasValidStructure: true, isComplete: false });
+  });
+
   it("번호 접두어를 제거하고 상위·하위 수익자부담수입을 중복 집계하지 않는다", () => {
     const revenue = parseRevenueStatement(logicalBudgetRows);
 

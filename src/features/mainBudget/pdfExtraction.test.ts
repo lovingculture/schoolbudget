@@ -76,6 +76,18 @@ async function settleWithin<T>(promise: Promise<T>, timeoutMs = 50) {
 }
 
 describe("normalizePdfLines", () => {
+  it("preserves adjacent OCR word boundaries so table headers remain addressable columns", () => {
+    const rows = normalizePdfLines([
+      { ...textItem("목", 40, 760, 20), preserveBoundary: true },
+      { ...textItem("원가통계비목", 60, 760, 90), preserveBoundary: true },
+      { ...textItem("예산액", 150, 760, 45), preserveBoundary: true },
+      { ...textItem("산출기초", 195, 760, 60), preserveBoundary: true },
+      { ...textItem("비고", 255, 760, 25), preserveBoundary: true },
+    ], 5);
+
+    expect(rows[0].cells).toEqual(["목", "원가통계비목", "예산액", "산출기초", "비고"]);
+  });
+
   it("groups nearby baselines, orders cells by x, and preserves coordinates and confidence", () => {
     const rows = normalizePdfLines([
       textItem("1,000", 160, 500.4, 32, 10, 0.91),

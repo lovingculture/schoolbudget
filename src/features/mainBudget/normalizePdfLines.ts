@@ -8,6 +8,7 @@ export type PdfLineItem = {
   width?: number;
   height?: number;
   confidence?: number;
+  preserveBoundary?: boolean;
 };
 
 type PositionedItem = {
@@ -17,6 +18,7 @@ type PositionedItem = {
   width: number;
   height: number;
   confidence: number;
+  preserveBoundary: boolean;
 };
 
 type PositionedLine = {
@@ -51,6 +53,7 @@ function positionItem(item: PdfLineItem): PositionedItem | null {
     width: Math.max(0, finiteOr(item.width, 0)),
     height: Math.max(0, finiteOr(item.height, transformHeight)),
     confidence: normalizedConfidence(item.confidence),
+    preserveBoundary: item.preserveBoundary === true,
   };
 }
 
@@ -69,7 +72,7 @@ function mergeAdjacentItems(items: PositionedItem[]): PositionedItem[] {
     }
     const gap = item.x - (previous.x + previous.width);
     const tolerance = Math.max(2, Math.min(previous.height || 2, item.height || 2) * 0.25);
-    if (gap > tolerance) {
+    if (previous.preserveBoundary || item.preserveBoundary || gap > tolerance) {
       merged.push({ ...item });
       continue;
     }
@@ -78,6 +81,7 @@ function mergeAdjacentItems(items: PositionedItem[]): PositionedItem[] {
     previous.width = right - previous.x;
     previous.height = Math.max(previous.height, item.height);
     previous.confidence = Math.min(previous.confidence, item.confidence);
+    previous.preserveBoundary = false;
   }
   return merged;
 }
@@ -137,6 +141,7 @@ function alignToGrid(line: PositionedLine, grid: number[]): PositionedItem[] {
     width: 0,
     height: 0,
     confidence: 1,
+    preserveBoundary: false,
   });
 }
 

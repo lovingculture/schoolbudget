@@ -10,6 +10,7 @@ import {
   isNonBlankBudgetRow,
   isReliableBudgetRow,
   isSectionHeading,
+  reviewableOcrTableEvidence,
 } from "./parseBudgetSummary";
 
 const verificationLabels = ["학교운영비전입금", "사용료", "수수료", "자산매각대", "지난년도수입", "이자수입", "기타행정활동수입", "순세계잉여금"] as const;
@@ -143,23 +144,24 @@ export function parseRevenueStatement(rows: BudgetLogicalRow[]): RevenueStatemen
   const span = start < 0 ? { end: -1, hasReliableClosure: false } : revenueSectionSpan(rows, start);
   const end = span.end;
   const contexts = start < 0 ? [] : headerContexts(rows, start, end);
+  const ocrEvidence = start < 0 ? null : reviewableOcrTableEvidence(rows, start, end);
   const hasUsableHeader = contexts.length > 0;
   const facts = start >= 0 && hasUsableHeader ? targetFacts(rows, start, end, contexts) : new Map<string, RevenueFact>();
   const lowConfidenceRows = start < 0 ? [] : rows.slice(start + 1, end)
     .filter((row) => isNonBlankBudgetRow(row) && !isReliableBudgetRow(row));
   const nearMissRows = start < 0 || !hasUsableHeader ? [] : nearTargetRows(rows, start, end, contexts);
 
-  const hasValidStructure = start >= 0
+  const hasValidStructure = (start >= 0
     && isReliableBudgetRow(rows[start])
     && hasUsableHeader
     && contexts.every((context) => context.isReliable)
     && hasParsedData(rows, start, end, contexts)
-    && span.hasReliableClosure;
+    && span.hasReliableClosure) || (ocrEvidence !== null && span.hasReliableClosure);
   const canInferAbsence = hasValidStructure && lowConfidenceRows.length === 0 && nearMissRows.length === 0;
   const absenceRow = start < 0 ? undefined : rows[start];
   const requiredFact = (label: string): RevenueFact => facts.get(label) ?? (canInferAbsence
     ? { label, amount: 0, row: absenceRow, inferredAbsent: true }
-    : { label, amount: null });
+    : { label, amount: null, row: ocrEvidence?.body });
   const purposeRevenue = requiredFact("목적사업비전입금");
   const beneficiaryRevenue = requiredFact("수익자부담수입");
   const factRowsReliable = [...facts.values()].every((fact) => isReliableBudgetRow(fact.row));
@@ -175,8 +177,9 @@ export function parseRevenueStatement(rows: BudgetLogicalRow[]): RevenueStatemen
   if (start < 0) warnings.push(warning("REVENUE_SECTION", "세입예산명세서 구역을 확인할 수 없습니다."));
   else if (!hasUsableHeader) warnings.push(warning("REVENUE_CURRENT_COLUMN", "세입예산명세서의 현재 예산액과 원가통계비목 열을 확인할 수 없습니다."));
   else if (!hasValidStructure) warnings.push(warning("REVENUE_SECTION_INCOMPLETE", "세입예산명세서의 데이터와 종료 구조를 완전하게 확인할 수 없습니다."));
-  if (hasValidStructure && purposeRevenue.amount === null) warnings.push(warning("PURPOSE_REVENUE", "목적사업비전입금을 확인할 수 없습니다."));
-  if (hasValidStructure && beneficiaryRevenue.amount === null) warnings.push(warning("BENEFICIARY_REVENUE", "수익자부담수입을 확인할 수 없습니다."));
+  if (ocrEvidence) warnings.push(warning("OCR_REVIEW_REVENUE", "OCR에서 세입 표 구조는 확인했지만 세부 머리글과 금액은 원본 확인이 필요합니다.", ocrEvidence.header));
+  if (hasValidStructure && purposeRevenue.amount === null) warnings.push(warning("PURPOSE_REVENUE", "목적사업비전입금을 확인할 수 없습니다.", purposeRevenue.row));
+  if (hasValidStructure && beneficiaryRevenue.amount === null) warnings.push(warning("BENEFICIARY_REVENUE", "수익자부담수입을 확인할 수 없습니다.", beneficiaryRevenue.row));
   for (const fact of facts.values()) {
     if (!isReliableBudgetRow(fact.row)) warnings.push(warning("LOW_CONFIDENCE_REVENUE", `${fact.label} 행의 신뢰도가 낮아 확인이 필요합니다.`, fact.row));
   }
