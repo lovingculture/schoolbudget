@@ -78,6 +78,7 @@ describe("본예산 PDF·Excel 자동 계산 화면", () => {
     expect(screen.queryByText(/23,020/)).not.toBeInTheDocument();
     expect(screen.queryByRole("tab")).not.toBeInTheDocument();
     expect(screen.queryByRole("button", { name: /통합본|오류검토 보고서/ })).not.toBeInTheDocument();
+    expect(screen.getByText("정확한 자동 계산은 엑셀 파일(.xls, .xlsx)만 지원합니다. PDF 파일은 문서 형식에 따라 금액을 인식하지 못할 수 있습니다.")).toBeVisible();
   });
 
   it("captures the selected file before clearing a browser-live FileList", () => {
@@ -233,6 +234,23 @@ describe("본예산 PDF·Excel 자동 계산 화면", () => {
     expect(screen.getByLabelText(/경고 출처: 8쪽 2행/)).toBeInTheDocument();
     expect(screen.getByLabelText(/경고 출처: 8쪽 3행/)).toBeInTheDocument();
     expect(screen.queryByLabelText(/경고 출처: 8쪽 4행/)).not.toBeInTheDocument();
+  });
+
+  it("keeps PDF OCR details collapsed behind the Excel-only guidance", () => {
+    storageMocks.load.mockReturnValue(result({
+      source: { fileName: "유치원본예산.pdf", format: "pdf", pageCount: 13 },
+      warnings: [
+        { code: "TOTAL_REVENUE", message: "세입예산총액을 확인할 수 없습니다.", severity: "error" },
+        { code: "OCR_REVIEW_REVENUE", message: "OCR에서 세입 표 구조는 확인했지만 원본 확인이 필요합니다.", severity: "error" },
+      ],
+    }));
+
+    render(<MainBudgetPage />);
+
+    const details = screen.getByText("PDF 인식 상세 경고 보기 (2건)").closest("details");
+    expect(details).not.toBeNull();
+    expect(details).not.toHaveAttribute("open");
+    expect(within(details!).getByText("세입예산총액을 확인할 수 없습니다.")).toBeInTheDocument();
   });
 
   it("renders a successful analysis with a nonfatal restoration warning when saving is blocked", async () => {

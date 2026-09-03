@@ -75,12 +75,10 @@ function warningDisplayItems(warnings: AnalysisWarning[]): WarningDisplayItem[] 
   });
 }
 
-function AnalysisWarnings({ warnings }: { warnings: AnalysisWarning[] }) {
+function AnalysisWarnings({ warnings, collapseDetails = false }: { warnings: AnalysisWarning[]; collapseDetails?: boolean }) {
   if (warnings.length === 0) return null;
   const displayItems = warningDisplayItems(warnings);
-  return (
-    <section className="main-budget-warnings" aria-labelledby="main-budget-warnings-title">
-      <h2 id="main-budget-warnings-title">분석 경고</h2>
+  const warningList = (
       <ul>
         {displayItems.map((item) => {
           if (item.kind === "group") {
@@ -114,6 +112,16 @@ function AnalysisWarnings({ warnings }: { warnings: AnalysisWarning[] }) {
           );
         })}
       </ul>
+  );
+  return (
+    <section className="main-budget-warnings" aria-labelledby="main-budget-warnings-title">
+      <h2 id="main-budget-warnings-title">분석 경고</h2>
+      {collapseDetails ? (
+        <details className="main-budget-warning-details">
+          <summary>PDF 인식 상세 경고 보기 ({warnings.length}건)</summary>
+          {warningList}
+        </details>
+      ) : warningList}
     </section>
   );
 }
@@ -212,6 +220,7 @@ export function MainBudgetPage() {
         <span>MAIN BUDGET ANALYSIS</span>
         <h1>본예산 PDF·Excel 자동 계산</h1>
         <p>본예산서를 불러오면 세입 기준금액과 일반업무추진비 편성 비율을 자동으로 계산합니다.</p>
+        <p className="main-budget-format-guidance">정확한 자동 계산은 엑셀 파일(.xls, .xlsx)만 지원합니다. PDF 파일은 문서 형식에 따라 금액을 인식하지 못할 수 있습니다.</p>
       </div>
 
       {result ? (
@@ -221,7 +230,7 @@ export function MainBudgetPage() {
           </div>
           <MainBudgetSummary result={result} />
           {storageWarning ? <div className="main-budget-storage-warning" role="status">{storageWarning}</div> : null}
-          <AnalysisWarnings warnings={result.warnings} />
+          <AnalysisWarnings warnings={result.warnings} collapseDetails={result.source.format === "pdf"} />
           <RevenueBreakdownTable revenue={result.verificationRevenue} />
           <GeneralBusinessExpenseTable expenses={result.generalBusinessExpenses} />
         </>

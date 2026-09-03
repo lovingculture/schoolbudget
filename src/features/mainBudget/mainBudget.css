@@ -37,6 +37,7 @@
 .main-budget-progress h2,
 .main-budget-section-heading h2,
 .main-budget-warnings h2 { margin: 0; color: var(--workspace-navy); font-size: 19px; }
+.main-budget-format-guidance { margin-top: 10px !important; font-weight: 800; color: #8b5b20 !important; }
 .main-budget-upload-copy p,
 .main-budget-progress p,
 .main-budget-section-heading p { margin: 7px 0; color: #617886; font-size: 13px; line-height: 1.55; }
@@ -140,6 +141,8 @@
 
 .main-budget-warnings { background: #fffaf0; }
 .main-budget-warnings ul { display: grid; gap: 9px; margin: 14px 0 0; padding: 0; list-style: none; }
+.main-budget-warning-details { margin-top: 14px; }
+.main-budget-warning-details summary { cursor: pointer; color: var(--workspace-navy); font-weight: 800; }
 .main-budget-warnings li { display: flex; align-items: flex-start; gap: 11px; padding: 12px; border-radius: 11px; background: #fff3d9; color: #694b16; }
 .main-budget-warnings li.error { background: #fff0ed; color: #8b342b; }
 .main-budget-warnings li > span { display: grid; flex: 0 0 24px; place-items: center; width: 24px; height: 24px; border-radius: 50%; background: #9a6415; color: white; font-weight: 900; }
