@@ -579,6 +579,24 @@
 }
 
 @media (max-width: 420px) {
+  .home-work-card {
+    min-height: auto;
+    padding: 22px;
+  }
+
+  .home-work-card h3 {
+    font-size: 20px;
+  }
+
+  .home-work-card p,
+  .home-work-card button {
+    font-size: 14px;
+  }
+
+  .home-work-card button {
+    min-height: 44px;
+  }
+
   .home-hero h1 {
     font-size: 31px;
   }
