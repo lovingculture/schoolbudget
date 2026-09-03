@@ -218,7 +218,7 @@ export function MainBudgetPage() {
     <div className="content main-budget-page portal-workspace">
       <div className="page-title">
         <span>MAIN BUDGET ANALYSIS</span>
-        <h1>본예산 Excel 자동 계산</h1>
+        <h1>예산 편성 확인 (업무추진비 3% 편성 확인)</h1>
         <p>본예산서를 불러오면 세입 기준금액과 일반업무추진비 편성 비율을 자동으로 계산합니다.</p>
         <p className="main-budget-format-guidance">정확한 자동 계산은 엑셀 파일(.xls, .xlsx)만 지원합니다.</p>
       </div>

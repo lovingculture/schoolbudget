@@ -39,9 +39,9 @@ const workflows: Array<{
   },
   {
     view: "budget",
-    title: "본예산 Excel 자동 계산",
+    title: "예산 편성 확인 (업무추진비 3% 편성 확인)",
     description: "본예산서를 불러오면 세입 기준금액과 일반업무추진비 편성 비율을 자동으로 계산합니다.",
-    buttonLabel: "본예산 Excel 자동 계산으로 이동",
+    buttonLabel: "예산 편성 확인 (업무추진비 3% 편성 확인)으로 이동",
     icon: WalletCards,
   },
   {

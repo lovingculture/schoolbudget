@@ -59,7 +59,7 @@ function budgetFile(name = "budget.xlsx") {
   return new File(["budget"], name, { type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" });
 }
 
-describe("본예산 Excel 자동 계산 화면", () => {
+describe("예산 편성 확인 화면", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     storageMocks.load.mockReturnValue(null);
@@ -70,7 +70,7 @@ describe("본예산 Excel 자동 계산 화면", () => {
 
   it("starts with only a single-file PDF/Excel upload and no sample or retired results", () => {
     render(<MainBudgetPage />);
-    expect(screen.getByRole("heading", { level: 1, name: "본예산 Excel 자동 계산" }).closest(".portal-workspace")).not.toBeNull();
+    expect(screen.getByRole("heading", { level: 1, name: "예산 편성 확인 (업무추진비 3% 편성 확인)" }).closest(".portal-workspace")).not.toBeNull();
     const input = screen.getByLabelText("본예산 파일 선택");
     expect(input).toHaveAttribute("accept", ".pdf,.xls,.xlsx");
     expect(input).not.toHaveAttribute("multiple");
