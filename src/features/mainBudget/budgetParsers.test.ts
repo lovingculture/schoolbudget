@@ -136,6 +136,18 @@ describe("본예산 공통 구역 파서", () => {
     }));
   });
 
+  it("OCR 법령 문구 뒤에 추경 제목이 붙어도 뒤쪽 제목을 남겨 거부한다", () => {
+    const rows = logicalBudgetRows.map((row, index) => index === 0
+      ? { ...row, cells: ["가람초등학교", "불가피한 사유로 추가경정예산을 편성하지 못할 경우 2026학년도 제1회 추가경정예산안"] }
+      : row);
+
+    expect(parseBudgetSummary(rows)).toMatchObject({ identity: null });
+    expect(parseBudgetSummary(rows).warnings).toContainEqual(expect.objectContaining({
+      code: "NON_MAIN_BUDGET_MARKER",
+      row: rows[0],
+    }));
+  });
+
   it("OCR 표의 세부 머리글이 유실돼도 출처 있는 확인 경고와 함께 세 구역 구조를 보존한다", () => {
     const rows = [
       { cells: ["가람초등학교", "2026학년도 본예산"], sourcePage: 1, sourceRow: 1, confidence: 0.92 },
