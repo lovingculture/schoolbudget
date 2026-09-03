@@ -45,6 +45,13 @@ const workflows: Array<{
     icon: WalletCards,
   },
   {
+    view: "main-budget-foundation",
+    title: "본예산 편성 기초자료 만들기",
+    description: "K-에듀파인 세입·세출 통합 CSV를 불러오면 기초자료를 자동 정리하고 Excel로 내려받을 수 있습니다.",
+    buttonLabel: "본예산 편성 기초자료 만들기로 이동",
+    icon: Download,
+  },
+  {
     view: "agenda",
     title: "예산안건 설명서 만들기",
     description: "세입·세출 예산총괄표를 불러와 학교운영위원회용 예산안건 설명서를 작성하세요.",
@@ -166,6 +173,10 @@ export function UsageGuidePage({ onNavigate }: UsageGuidePageProps) {
         <details>
           <summary>본예산 파일은 어떻게 분석하나요?</summary>
           <p>K-에듀파인 본예산 Excel 파일을 선택하면 세입 기준금액과 일반업무추진비 편성 비율을 확인할 수 있습니다. .xls, .xlsx 파일을 선택할 수 있으며 파일은 이 브라우저에서만 처리합니다. 분석 결과는 현재 브라우저에만 복원됩니다.</p>
+        </details>
+        <details>
+          <summary>본예산 편성 기초자료는 어떻게 만드나요?</summary>
+          <p>K-에듀파인에서 내려받은 세입·세출 통합 CSV 파일 1개를 선택하세요. 학교마다 행 수가 달라도 제목과 합계 위치를 찾아 세입·세출, 조정안, 업무추진비 자료를 만들며 검증을 통과하면 Excel로 내려받을 수 있습니다. 작업 결과는 같은 브라우저에 임시저장됩니다.</p>
         </details>
       </section>
     </div>

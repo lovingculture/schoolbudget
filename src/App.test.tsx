@@ -37,7 +37,7 @@ describe("예산업무 포털", () => {
   it("홈에서 예산업무 흐름과 성립전예산 바로가기를 제공한다", () => {
     render(<Portal displayName="김담당" schoolName="서울한빛초등학교" onLogout={() => {}} />);
     expect(screen.getByRole("heading", { name: "예산업무, 흐름부터 문서까지 한곳에서" })).toBeVisible();
-    expect(screen.getAllByTestId("budget-step")).toHaveLength(7);
+    expect(screen.getAllByTestId("budget-step")).toHaveLength(8);
     expect(screen.getByRole("button", { name: "성립전예산 새로 작성" })).toBeVisible();
   });
 
@@ -204,6 +204,15 @@ describe("예산업무 포털", () => {
     expect(screen.getByRole("button", { name: "세입세출총괄표 불러오기" })).toBeVisible();
   });
 
+  it("예산 업무 메뉴에서 본예산 편성 기초자료 만들기를 연다", async () => {
+    const user = userEvent.setup();
+    render(<Portal displayName="김담당" schoolName="서울한빛초등학교" />);
+    await user.click(screen.getByRole("button", { name: "예산 업무" }));
+    await user.click(screen.getByRole("button", { name: "본예산 편성 기초자료 만들기" }));
+    expect(screen.getByRole("heading", { name: "본예산 편성 기초자료 만들기" })).toBeVisible();
+    expect(screen.getByLabelText("세입·세출 CSV 파일 선택")).toBeVisible();
+  });
+
   it("예산 업무 메뉴가 모든 기존 업무 화면으로 이동한다", async () => {
     const user = userEvent.setup();
     render(<Portal displayName="김담당" schoolName="서울한빛초등학교" />);
@@ -271,6 +280,7 @@ describe("예산업무 포털", () => {
       "예산 자료실로 이동",
       "성립전예산 작성으로 이동",
       "예산 편성 확인 (업무추진비 3% 편성 확인)으로 이동",
+      "본예산 편성 기초자료 만들기로 이동",
       "예산안건 설명서로 이동",
       "결산 설명서로 이동",
       "추경예산자료로 이동",

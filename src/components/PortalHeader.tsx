@@ -16,6 +16,7 @@ export type PortalHeaderView =
   | "guidelines"
   | "prebudget"
   | "budget"
+  | "main-budget-foundation"
   | "agenda"
   | "closing"
   | "supplementary"
@@ -35,6 +36,7 @@ type PortalHeaderProps = {
 const workItems: ReadonlyArray<[PortalHeaderView, string]> = [
   ["prebudget", "성립전예산"],
   ["budget", "본예산"],
+  ["main-budget-foundation", "본예산 편성 기초자료 만들기"],
   ["agenda", "예산안건 설명서"],
   ["closing", "결산설명서"],
   ["supplementary", "집행실적으로 추경자료 만들기"],

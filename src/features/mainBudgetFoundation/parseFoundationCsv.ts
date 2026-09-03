@@ -89,13 +89,11 @@ export function parseFoundationCsv(fileName: string, bytes: ArrayBuffer): Founda
     if (!section || isRepeatedHeader(row)) return;
 
     const hierarchy = section === "revenue" ? revenueHierarchy : expenseHierarchy;
-    let deepest = -1;
-    for (let index = 0; index < 5; index += 1) {
-      if (clean(row[index])) {
-        hierarchy[index] = label(row[index]);
-        deepest = index;
-        for (let child = index + 1; child < 5; child += 1) hierarchy[child] = "";
-      }
+    const deepest = Array.from({ length: 5 }, (_, index) => index)
+      .find((index) => Boolean(clean(row[index]))) ?? -1;
+    if (deepest >= 0) {
+      hierarchy[deepest] = label(row[deepest]);
+      for (let child = deepest + 1; child < 5; child += 1) hierarchy[child] = "";
     }
 
     if (deepest !== 4) {

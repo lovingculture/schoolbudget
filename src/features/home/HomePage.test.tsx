@@ -77,13 +77,14 @@ describe("승인된 포털 홈", () => {
         name: "예산업무, 흐름부터 문서까지 한곳에서",
       }),
     ).getAllByRole("article");
-    expect(workCards).toHaveLength(5);
+    expect(workCards).toHaveLength(6);
     expect(
       workCards.map((card) => within(card).getByRole("heading").textContent),
     ).toEqual([
       "성립전예산요구서작성(사업담당자용)",
       "추경예산자료 만들기",
       "예산 편성 확인 (업무추진비 3% 편성 확인)",
+      "본예산 편성 기초자료 만들기",
       "안건설명서 만들기",
       "결산 설명서 만들기",
     ]);
@@ -105,7 +106,7 @@ describe("승인된 포털 홈", () => {
     expect(screen.queryByRole("searchbox")).not.toBeInTheDocument();
   });
 
-  it("핵심 예산업무 3개와 설명서 업무 2개를 두 줄로 구분한다", () => {
+  it("예산업무 6개를 화면당 세 항목씩 배치한다", () => {
     const style = document.createElement("style");
     style.textContent = `${homeStyles}\n.primary { background: #f07450; color: white; }\n.secondary { background: white; }`;
     document.head.append(style);
@@ -119,8 +120,7 @@ describe("승인된 포털 홈", () => {
         />,
       );
       const cards = Array.from(container.querySelectorAll<HTMLElement>(".home-work-card"));
-      expect(cards.slice(0, 3).every((card) => card.classList.contains("home-work-primary"))).toBe(true);
-      expect(cards.slice(3).every((card) => card.classList.contains("home-work-secondary"))).toBe(true);
+      expect(cards.every((card) => card.classList.contains("home-work-primary"))).toBe(true);
       expect(cards.every((card) => !card.classList.contains("primary") && !card.classList.contains("secondary"))).toBe(true);
       expect(getComputedStyle(cards[0]).backgroundColor).toBe("rgb(255, 255, 255)");
 
@@ -131,7 +131,6 @@ describe("승인된 포털 홈", () => {
         "repeat(6, minmax(0, 1fr))",
       );
       expect(rules.find((rule) => rule.selectorText === ".home-work-card.home-work-primary")?.style.getPropertyValue("grid-column")).toBe("span 2");
-      expect(rules.find((rule) => rule.selectorText === ".home-work-card.home-work-secondary")?.style.getPropertyValue("grid-column")).toBe("span 3");
     } finally {
       style.remove();
     }
@@ -232,6 +231,7 @@ describe("승인된 포털 홈", () => {
       ["예산 지침 보기", "예산 자료실"],
       ["성립전예산 새로 작성", "성립전예산 요구서 작성"],
       ["본예산 시작하기", "예산 편성 확인 (업무추진비 3% 편성 확인)"],
+      ["본예산 편성 기초자료 만들기 시작하기", "본예산 편성 기초자료 만들기"],
       ["안건설명서 만들기 시작하기", "예산 안건설명서 자동작성"],
       ["결산 설명서 만들기 시작하기", "결산 안건설명서 자동작성"],
       ["추경예산자료 만들기 시작하기", "집행실적으로 추경자료 만들기"],

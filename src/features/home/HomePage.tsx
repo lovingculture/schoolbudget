@@ -53,6 +53,16 @@ const workCards: WorkCard[] = [
     actionLabel: "본예산 시작하기",
   },
   {
+    view: "main-budget-foundation",
+    imageSrc: "/characters/cards/main-budget-good.png",
+    imageAlt: "본예산 기초자료 정리를 돕는 서울교육 캐릭터 자라나",
+    tone: "blue",
+    badge: "기초자료",
+    title: "본예산 편성 기초자료 만들기",
+    description: "세입·세출 통합 CSV를 불러오면 편성 기초자료를 정리해 Excel로 내려받을 수 있습니다.",
+    actionLabel: "본예산 편성 기초자료 만들기 시작하기",
+  },
+  {
     view: "agenda",
     imageSrc: "/characters/cards/budget-agenda-calm.png",
     imageAlt: "예산안 설명서 업무를 돕는 서울교육 캐릭터 열리미",
@@ -165,7 +175,7 @@ export function HomePage({ onNavigate }: HomePageProps) {
           <div className="home-work-grid">
             {workCards.map((card) => (
               <article
-                className={`home-work-card ${["prebudget", "supplementary", "budget"].includes(card.view) ? "home-work-primary" : "home-work-secondary"}`}
+                className="home-work-card home-work-primary"
                 data-testid="budget-step"
                 data-view={card.view}
                 key={card.view}

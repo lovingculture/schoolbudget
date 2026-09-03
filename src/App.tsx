@@ -24,6 +24,7 @@ import { SupplementaryPage } from "./features/supplementary/SupplementaryPage";
 import { BudgetAgendaPage } from "./features/budgetAgenda/BudgetAgendaPage";
 import { PrebudgetPage } from "./features/prebudget/PrebudgetPage";
 import { MainBudgetPage } from "./features/mainBudget/MainBudgetPage";
+import { MainBudgetFoundationPage } from "./features/mainBudgetFoundation/MainBudgetFoundationPage";
 import { PortalHeader, type PortalHeaderView } from "./components/PortalHeader";
 import { HomePage } from "./features/home/HomePage";
 import { BudgetResourceLibraryPage } from "./features/resources/BudgetResourceLibraryPage";
@@ -38,6 +39,7 @@ const GUIDE_DESTINATIONS = new Set<View>([
   "resources",
   "prebudget",
   "budget",
+  "main-budget-foundation",
   "agenda",
   "closing",
   "supplementary",
@@ -414,6 +416,7 @@ export function Portal({
         {view === "agenda" && <BudgetAgendaPage />}
         {view === "supplementary" && <SupplementaryPage />}
         {view === "budget" && <MainBudgetPage />}
+        {view === "main-budget-foundation" && <MainBudgetFoundationPage />}
         {view === "resources" && <BudgetResourceLibraryPage isAdmin={isAdmin} userId={userId ?? ""} onAdminLogin={onAdminLogin} />}
         {view === "videos" && <VideoGuidePage />}
         {view === "guide" && <UsageGuidePage onNavigate={go} />}
