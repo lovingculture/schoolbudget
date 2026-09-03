@@ -201,8 +201,8 @@ function yearIdentity(rows: BudgetLogicalRow[], end: number): { value: number; r
 }
 
 function isNonMainBudgetMarker(label: string): boolean {
-  if (/(추가경정예산의성립이전|차기추가경정예산에계상)/.test(label)) return false;
-  return /(추가경정(?:예산)?|추경(?:예산)?|성립전(?:예산)?|결산(?:서|보고서)?)/.test(label);
+  const withoutLegalBoilerplate = label.replace(/추가경정예산의성립이전|차기추가경정예산에계상/g, "");
+  return /(추가경정(?:예산)?|추경(?:예산)?|성립전(?:예산)?|결산(?:서|보고서)?)/.test(withoutLegalBoilerplate);
 }
 
 export function parseBudgetSummary(rows: BudgetLogicalRow[]): BudgetSummaryParseResult {

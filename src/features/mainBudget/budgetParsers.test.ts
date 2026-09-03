@@ -84,6 +84,21 @@ describe("본예산 공통 구역 파서", () => {
     }
   });
 
+  it("추경 제목 뒤에 성립 이전 법령 문구가 이어져도 본예산으로 허용하지 않는다", () => {
+    const rows = logicalBudgetRows.map((row, index) => index === 0
+      ? { ...row, cells: ["가람초등학교", "2026학년도 제1회 추가경정예산안 추가경정예산의 성립 이전"] }
+      : row);
+
+    const summary = parseBudgetSummary(rows);
+
+    expect(summary.identity).toBeNull();
+    expect(summary.isComplete).toBe(false);
+    expect(summary.warnings).toContainEqual(expect.objectContaining({
+      code: "NON_MAIN_BUDGET_MARKER",
+      row: rows[0],
+    }));
+  });
+
   it("긴 예산총칙 문장 속 추가경정 언급은 본예산 표지를 무효화하지 않는다", () => {
     const rows = [
       ...logicalBudgetRows.slice(0, 1),

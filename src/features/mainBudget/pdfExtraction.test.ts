@@ -258,6 +258,29 @@ describe("extractPdfPages", () => {
     expect(result.imagePages).toHaveLength(0);
   });
 
+  it("routes a label-and-amount overlay backed by a full-page raster table exclusively to OCR", async () => {
+    const hybridPage = page(
+      [
+        textItem("교육활동지원", 80, 720, 90),
+        textItem("1,234,000", 320, 720, 70),
+      ],
+      [{ fn: pdfJsMock.ops.paintImageXObject, args: ["table-image", 1_240, 1_754] }],
+    );
+    const documentHandle = {
+      numPages: 1,
+      getPage: vi.fn().mockResolvedValue(hybridPage),
+      getMetadata: vi.fn().mockResolvedValue({ info: {}, metadata: null }),
+    };
+    pdfJsMock.getDocument.mockReturnValue(loadingTask(Promise.resolve(documentHandle)));
+
+    const result = await extractPdfPages(pdfFile(), new AbortController().signal, () => undefined);
+
+    expect(result.textPages).toHaveLength(0);
+    expect(result.imagePages).toEqual([{ pageNumber: 1, page: hybridPage }]);
+    expect(result.requiresOcr).toBe(true);
+    expect(hybridPage.getOperatorList).toHaveBeenCalledTimes(1);
+  });
+
   it("routes a heading-only hybrid page with a full-page raster table exclusively to OCR", async () => {
     const hybridPage = page(
       [textItem("세출예산명세서", 120, 780, 100)],

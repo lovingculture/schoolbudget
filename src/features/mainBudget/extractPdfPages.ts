@@ -143,9 +143,8 @@ function hasMeaningfulText(coverage: TextCoverage): boolean {
     || (coverage.meaningfulCellCount >= 4 && coverage.denseTextLength >= 40);
 }
 
-function hasSufficientTextCoverage(coverage: TextCoverage): boolean {
-  return coverage.hasLabelAmountRow
-    || (coverage.meaningfulCellCount >= 4 && coverage.denseTextLength >= 40);
+function hasDenseTextCoverage(coverage: TextCoverage): boolean {
+  return coverage.meaningfulCellCount >= 4 && coverage.denseTextLength >= 40;
 }
 
 type PdfOperatorList = {
@@ -231,7 +230,7 @@ export async function extractPdfPages(
       const coverage = textCoverage(rows);
       let sparseRasterPage = false;
       let largeRaster: boolean | null = null;
-      if (hasMeaningfulText(coverage) && !hasSufficientTextCoverage(coverage)) {
+      if (hasMeaningfulText(coverage) && !hasDenseTextCoverage(coverage)) {
         const operatorList = await awaitWithAbort(page.getOperatorList() as Promise<PdfOperatorList>, signal);
         largeRaster = hasLargeRaster(operatorList);
         sparseRasterPage = largeRaster;
