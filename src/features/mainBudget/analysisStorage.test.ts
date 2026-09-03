@@ -46,7 +46,7 @@ describe("mainBudgetAnalysisStorage", () => {
 
   it("restores a valid versioned result with fact provenance and confidence", () => {
     const result = validResult();
-    localStorage.setItem(KEY, JSON.stringify({ schemaVersion: 2, result }));
+    localStorage.setItem(KEY, JSON.stringify({ schemaVersion: 3, result }));
 
     expect(mainBudgetAnalysisStorage.load()).toEqual(result);
   });
@@ -59,7 +59,7 @@ describe("mainBudgetAnalysisStorage", () => {
   });
 
   it("removes a schema-version mismatch", () => {
-    localStorage.setItem(KEY, JSON.stringify({ schemaVersion: 1, result: validResult() }));
+    localStorage.setItem(KEY, JSON.stringify({ schemaVersion: 2, result: validResult() }));
 
     expect(mainBudgetAnalysisStorage.load()).toBeNull();
     expect(localStorage.getItem(KEY)).toBeNull();
@@ -76,7 +76,7 @@ describe("mainBudgetAnalysisStorage", () => {
   ])("removes a result with an invalid %s", (_label, mutate) => {
     const stored = validResult() as unknown as Record<string, unknown>;
     mutate(stored);
-    localStorage.setItem(KEY, JSON.stringify({ schemaVersion: 2, result: stored }));
+    localStorage.setItem(KEY, JSON.stringify({ schemaVersion: 3, result: stored }));
 
     expect(mainBudgetAnalysisStorage.load()).toBeNull();
     expect(localStorage.getItem(KEY)).toBeNull();
@@ -94,11 +94,11 @@ describe("mainBudgetAnalysisStorage", () => {
 
     const raw = localStorage.getItem(KEY)!;
     expect(raw).not.toMatch(/sourceFile|sourceBytes|pdfDocument|canvas|private-budget|secret-pdf-handle/);
-    expect(JSON.parse(raw)).toEqual({ schemaVersion: 2, result: validResult() });
+    expect(JSON.parse(raw)).toEqual({ schemaVersion: 3, result: validResult() });
   });
 
   it("removes both legacy keys idempotently while preserving the new result and unrelated data", () => {
-    localStorage.setItem(KEY, JSON.stringify({ schemaVersion: 2, result: validResult() }));
+    localStorage.setItem(KEY, JSON.stringify({ schemaVersion: 3, result: validResult() }));
     localStorage.setItem(OLD_EXPENDITURE_KEY, "legacy workbook state");
     localStorage.setItem(OLD_PDF_KEY, "legacy pdf state");
     localStorage.setItem("school-budget:unrelated", "kept");
