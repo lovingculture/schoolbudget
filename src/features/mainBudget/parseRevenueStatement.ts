@@ -161,7 +161,7 @@ export function parseRevenueStatement(rows: BudgetLogicalRow[]): RevenueStatemen
   const absenceRow = start < 0 ? undefined : rows[start];
   const requiredFact = (label: string): RevenueFact => facts.get(label) ?? (canInferAbsence
     ? { label, amount: 0, row: absenceRow, inferredAbsent: true }
-    : { label, amount: null, row: ocrEvidence?.body });
+    : { label, amount: null, row: ocrEvidence?.header });
   const purposeRevenue = requiredFact("목적사업비전입금");
   const beneficiaryRevenue = requiredFact("수익자부담수입");
   const factRowsReliable = [...facts.values()].every((fact) => isReliableBudgetRow(fact.row));

@@ -124,6 +124,18 @@ describe("본예산 공통 구역 파서", () => {
     });
   });
 
+  it("추경 제목과 OCR 법령 문구가 한 후보에 붙어도 추경 제목은 남겨 거부한다", () => {
+    const rows = logicalBudgetRows.map((row, index) => index === 0
+      ? { ...row, cells: ["가람초등학교", "2026학년도 제1회 추가경정예산안 불가피한 사유로 추가경정예산을 편성하지 못할 경우"] }
+      : row);
+
+    expect(parseBudgetSummary(rows)).toMatchObject({ identity: null });
+    expect(parseBudgetSummary(rows).warnings).toContainEqual(expect.objectContaining({
+      code: "NON_MAIN_BUDGET_MARKER",
+      row: rows[0],
+    }));
+  });
+
   it("OCR 표의 세부 머리글이 유실돼도 출처 있는 확인 경고와 함께 세 구역 구조를 보존한다", () => {
     const rows = [
       { cells: ["가람초등학교", "2026학년도 본예산"], sourcePage: 1, sourceRow: 1, confidence: 0.92 },
@@ -159,9 +171,9 @@ describe("본예산 공통 구역 파서", () => {
     expect(summary.warnings.find(({ code }) => code === "TOTAL_REVENUE")?.row)
       .toMatchObject({ sourcePage: 3, sourceRow: 3 });
     expect(revenue.warnings.find(({ code }) => code === "PURPOSE_REVENUE")?.row)
-      .toMatchObject({ sourcePage: 6, sourceRow: 4 });
+      .toMatchObject({ sourcePage: 6, sourceRow: 3, cells: ["예산액", "산출기초", "비고"] });
     expect(revenue.warnings.find(({ code }) => code === "BENEFICIARY_REVENUE")?.row)
-      .toMatchObject({ sourcePage: 6, sourceRow: 4 });
+      .toMatchObject({ sourcePage: 6, sourceRow: 3, cells: ["예산액", "산출기초", "비고"] });
   });
 
   it("OCR이 예산액 머리글까지 놓친 경우 본예산·단위·구분·본문·구역 경계를 함께 확인해야만 검토 구조로 인정한다", () => {
