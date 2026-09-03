@@ -40,16 +40,74 @@ function sourceNote(row: BudgetLogicalRow | undefined): string | null {
   return [source, recognizedNote, confidence].filter(Boolean).join(" · ") || null;
 }
 
+const repeatedOcrRowCodes = new Set([
+  "LOW_CONFIDENCE_REVENUE_ROW",
+  "LOW_CONFIDENCE_EXPENDITURE_ROW",
+]);
+const warningGroupThreshold = 10;
+const representativeWarningCount = 3;
+
+type WarningDisplayItem =
+  | { kind: "single"; warning: AnalysisWarning; key: string }
+  | { kind: "group"; warnings: AnalysisWarning[]; key: string };
+
+function warningDisplayItems(warnings: AnalysisWarning[]): WarningDisplayItem[] {
+  const repeatedCounts = new Map<string, number>();
+  for (const warning of warnings) {
+    if (repeatedOcrRowCodes.has(warning.code)) {
+      repeatedCounts.set(warning.code, (repeatedCounts.get(warning.code) ?? 0) + 1);
+    }
+  }
+
+  const emittedGroups = new Set<string>();
+  return warnings.flatMap((warning, index): WarningDisplayItem[] => {
+    const count = repeatedCounts.get(warning.code) ?? 0;
+    if (count <= warningGroupThreshold) {
+      return [{ kind: "single", warning, key: `${warning.code}-${index}` }];
+    }
+    if (emittedGroups.has(warning.code)) return [];
+    emittedGroups.add(warning.code);
+    return [{
+      kind: "group",
+      warnings: warnings.filter((candidate) => candidate.code === warning.code),
+      key: `group-${warning.code}`,
+    }];
+  });
+}
+
 function AnalysisWarnings({ warnings }: { warnings: AnalysisWarning[] }) {
   if (warnings.length === 0) return null;
+  const displayItems = warningDisplayItems(warnings);
   return (
     <section className="main-budget-warnings" aria-labelledby="main-budget-warnings-title">
       <h2 id="main-budget-warnings-title">분석 경고</h2>
       <ul>
-        {warnings.map((warning, index) => {
+        {displayItems.map((item) => {
+          if (item.kind === "group") {
+            const representativeWarnings = item.warnings.slice(0, representativeWarningCount);
+            const hiddenCount = item.warnings.length - representativeWarnings.length;
+            const severity = item.warnings.some(({ severity }) => severity === "error") ? "error" : "warning";
+            return (
+              <li className={`${severity} grouped`} key={item.key}>
+                <span aria-hidden="true">!</span>
+                <div>
+                  <b>동일한 OCR 행 경고 {item.warnings.length}건을 묶어서 표시합니다.</b>
+                  <p>{item.warnings[0].message}</p>
+                  <small>대표 출처 {representativeWarnings.length}건 표시 · 나머지 {hiddenCount}건은 목록에서 접었습니다.</small>
+                  <div className="main-budget-warning-evidence" aria-label="대표 경고 출처">
+                    {representativeWarnings.map((warning, index) => {
+                      const note = sourceNote(warning.row);
+                      return note ? <small key={`${warning.code}-evidence-${index}`} aria-label={`경고 출처: ${note}`}>{note}</small> : null;
+                    })}
+                  </div>
+                </div>
+              </li>
+            );
+          }
+          const warning = item.warning;
           const note = sourceNote(warning.row);
           return (
-            <li className={warning.severity} key={`${warning.code}-${index}`}>
+            <li className={warning.severity} key={item.key}>
               <span aria-hidden="true">!</span>
               <div><b>{warning.message}</b>{note ? <small aria-label={`경고 출처: ${note}`}>{note}</small> : null}</div>
             </li>

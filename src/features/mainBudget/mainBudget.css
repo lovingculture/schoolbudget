@@ -148,6 +148,8 @@
 .main-budget-warnings li small { display: block; }
 .main-budget-warnings li b { font-size: 13px; line-height: 1.5; }
 .main-budget-warnings li small { margin-top: 3px; opacity: .8; }
+.main-budget-warnings li.grouped p { margin: 4px 0; font-size: 13px; line-height: 1.5; }
+.main-budget-warning-evidence { display: grid; gap: 3px; margin-top: 8px; padding-top: 7px; border-top: 1px solid currentColor; }
 
 .main-budget-completeness.review { background: #f8dfda; color: #8b342b; }
 .main-budget-table-scroll { overflow: visible; }

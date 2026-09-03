@@ -193,6 +193,48 @@ describe("본예산 PDF·Excel 자동 계산 화면", () => {
     expect(source).not.toHaveAccessibleName(/A{100}/);
   });
 
+  it("keeps an ordinary small warning set fully expanded without a grouped-warning summary", () => {
+    storageMocks.load.mockReturnValue(result({
+      warnings: [
+        { code: "TOTAL_REVENUE", message: "세입예산총액을 확인할 수 없습니다.", severity: "error" },
+        { code: "LOW_CONFIDENCE_REVENUE_ROW", message: "세입예산명세서 본문에 신뢰도가 낮은 행이 있어 확인이 필요합니다.", severity: "error", row: { cells: ["이자수입"], sourcePage: 5, sourceRow: 12, confidence: 0.61 } },
+      ],
+    }));
+
+    render(<MainBudgetPage />);
+
+    expect(screen.getByText("세입예산총액을 확인할 수 없습니다.")).toBeVisible();
+    expect(screen.getByText("세입예산명세서 본문에 신뢰도가 낮은 행이 있어 확인이 필요합니다.")).toBeVisible();
+    expect(screen.getByLabelText(/경고 출처: 5쪽 12행/)).toBeVisible();
+    expect(screen.queryByText(/묶어서 표시/)).not.toBeInTheDocument();
+  });
+
+  it("groups a large repeated OCR warning set while retaining critical warnings, counts, and representative evidence", () => {
+    const repeatedWarnings = Array.from({ length: 100 }, (_, index) => ({
+      code: "LOW_CONFIDENCE_EXPENDITURE_ROW",
+      message: "세출예산명세서 본문에 신뢰도가 낮은 행이 있어 확인이 필요합니다.",
+      severity: "error" as const,
+      row: { cells: [`일반업무추진비 ${index + 1}`], sourcePage: 8 + Math.floor(index / 10), sourceRow: index + 1, confidence: 0.4 },
+    }));
+    storageMocks.load.mockReturnValue(result({
+      warnings: [
+        { code: "EXPENDITURE_SECTION_INCOMPLETE", message: "세출예산명세서의 데이터와 종료 구조를 완전하게 확인할 수 없습니다.", severity: "error" },
+        ...repeatedWarnings,
+      ],
+    }));
+
+    render(<MainBudgetPage />);
+
+    expect(screen.getByText("세출예산명세서의 데이터와 종료 구조를 완전하게 확인할 수 없습니다.")).toBeVisible();
+    expect(screen.getByText("동일한 OCR 행 경고 100건을 묶어서 표시합니다.")).toBeVisible();
+    expect(screen.getByText("대표 출처 3건 표시 · 나머지 97건은 목록에서 접었습니다.")).toBeVisible();
+    expect(screen.getAllByLabelText(/경고 출처:/)).toHaveLength(3);
+    expect(screen.getByLabelText(/경고 출처: 8쪽 1행/)).toBeInTheDocument();
+    expect(screen.getByLabelText(/경고 출처: 8쪽 2행/)).toBeInTheDocument();
+    expect(screen.getByLabelText(/경고 출처: 8쪽 3행/)).toBeInTheDocument();
+    expect(screen.queryByLabelText(/경고 출처: 8쪽 4행/)).not.toBeInTheDocument();
+  });
+
   it("renders a successful analysis with a nonfatal restoration warning when saving is blocked", async () => {
     const user = userEvent.setup();
     dispatcherMocks.analyzeBudgetFile.mockResolvedValue(result());
