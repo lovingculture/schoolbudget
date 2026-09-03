@@ -22,7 +22,7 @@ export function RevenueBreakdownTable({ revenue }: { revenue: RevenueFactCollect
                 <th scope="row">{fact.label}</th>
                 <td className="main-budget-money">{formatThousandWon(fact.amount)}</td>
                 <td className="main-budget-money secondary-value">{formatWon(fact.amount)}</td>
-                <td>{fact.row?.sourcePage !== undefined
+                <td>{fact.inferredAbsent ? "문서에 항목 없음(0원) · " : ""}{fact.row?.sourcePage !== undefined
                   ? `${fact.row.sourcePage}쪽${fact.row.sourceRow === undefined ? "" : ` · ${fact.row.sourceRow}행`}`
                   : fact.row?.sourceSheet !== undefined
                     ? `${fact.row.sourceSheet} 시트${fact.row.sourceRow === undefined ? "" : ` · ${fact.row.sourceRow}행`}`

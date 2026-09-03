@@ -94,6 +94,7 @@ async function settleWithin<T>(promise: Promise<T>, timeoutMs = 100) {
 function resultFor(format: "pdf" | "xls" | "xlsx", fileName = `budget.${format}`): MainBudgetAnalysisResult {
   return {
     source: { fileName, format },
+    identity: { schoolName: "가람초등학교", accountingYear: 2026, budgetType: "본예산" },
     totalRevenue: { label: "세입예산총액", amount: 1_000 },
     purposeRevenue: { label: "목적사업비전입금", amount: 0 },
     beneficiaryRevenue: { label: "수익자부담수입", amount: 0 },
@@ -109,14 +110,22 @@ function resultFor(format: "pdf" | "xls" | "xlsx", fileName = `budget.${format}`
   };
 }
 
-const summary = { totalRevenue: { label: "세입예산총액", amount: 1_000 }, isComplete: true, warnings: [] };
+const summary = {
+  identity: { schoolName: "가람초등학교", accountingYear: 2026, budgetType: "본예산" as const },
+  budgetTypeEvidence: "explicit" as const,
+  hasValidStructure: true,
+  totalRevenue: { label: "세입예산총액", amount: 1_000 },
+  isComplete: true,
+  warnings: [],
+};
 const revenue = {
   purposeRevenue: { label: "목적사업비전입금", amount: 0 },
   beneficiaryRevenue: { label: "수익자부담수입", amount: 0 },
   verificationRevenue: { facts: [], isComplete: true },
+  hasValidStructure: true,
   warnings: [],
 };
-const expenditure = { expenses: [], isComplete: true, warnings: [] };
+const expenditure = { expenses: [], isComplete: true, hasValidStructure: true, warnings: [] };
 
 function installSuccessfulParsers(result: MainBudgetAnalysisResult) {
   parserMocks.parseBudgetSummary.mockReturnValue(summary);
@@ -167,6 +176,7 @@ describe("analyzeBudgetFile", () => {
     expect(parserMocks.parseExpenditureStatement).toHaveBeenCalledWith(rows);
     expect(parserMocks.analyzeMainBudget).toHaveBeenCalledWith(expect.objectContaining({
       source: { fileName: name, format },
+      identity: summary.identity,
       totalRevenue: summary.totalRevenue,
       purposeRevenue: revenue.purposeRevenue,
       beneficiaryRevenue: revenue.beneficiaryRevenue,
@@ -279,6 +289,29 @@ describe("analyzeBudgetFile", () => {
     expect(extraction.cleanup).toHaveBeenCalledTimes(1);
   });
 
+  it("uses the OCR representation exclusively for a hybrid page so a recovered expense is not duplicated", async () => {
+    const file = budgetFile("hybrid.pdf", pdfMagic, "application/pdf");
+    const directHeading = { cells: ["세출예산명세서"], sourcePage: 5, sourceRow: 1 };
+    const hiddenDirectExpense = { cells: ["일반업무추진비", 100], sourcePage: 5, sourceRow: 2 };
+    const ocrHeading = { cells: ["세출예산명세서"], sourcePage: 5, sourceRow: 1, confidence: 0.95 };
+    const recoveredExpense = { cells: ["일반업무추진비", 100], sourcePage: 5, sourceRow: 2, confidence: 0.95 };
+    const imagePage = { pageNumber: 5, page: { kind: "hybrid-page" } };
+    const extraction = pdfExtraction({
+      textPages: [{ pageNumber: 5, page: imagePage.page, items: [], rows: [directHeading, hiddenDirectExpense] }],
+      imagePages: [imagePage],
+      requiresOcr: true,
+    });
+    adapterMocks.extractPdfPages.mockResolvedValue(extraction);
+    adapterMocks.ocrPdfPages.mockResolvedValue([ocrHeading, recoveredExpense]);
+    installSuccessfulParsers(resultFor("pdf", file.name));
+
+    await analyzeBudgetFile(file, { signal: new AbortController().signal, onProgress: vi.fn() });
+
+    expect(parserMocks.parseExpenditureStatement).toHaveBeenCalledWith([ocrHeading, recoveredExpense]);
+    const parsedRows = parserMocks.parseExpenditureStatement.mock.calls[0][0] as BudgetLogicalRow[];
+    expect(parsedRows.filter((row) => row.cells.includes("일반업무추진비"))).toEqual([recoveredExpense]);
+  });
+
   it("does not invoke OCR for a text-only PDF", async () => {
     const extraction = pdfExtraction({
       textPages: [{ pageNumber: 1, page: {}, items: [], rows: [{ cells: ["본예산"], sourcePage: 1 }] }],
@@ -364,17 +397,22 @@ describe("analyzeBudgetFile", () => {
       rows,
     });
     parserMocks.parseBudgetSummary.mockReturnValue({
+      identity: summary.identity,
+      budgetTypeEvidence: "explicit",
+      hasValidStructure: true,
       totalRevenue: { label: "세입예산총액", amount: 1_000_000, row: summaryRow }, isComplete: true, warnings: [],
     });
     parserMocks.parseRevenueStatement.mockReturnValue({
       purposeRevenue: { label: "목적사업비전입금", amount: 200_000, row: purposeRow },
       beneficiaryRevenue: { label: "수익자부담수입", amount: 0, row: purposeRow },
       verificationRevenue: { facts: [{ label: "이자수입", amount: 1_000, row: purposeRow }], isComplete: true },
+      hasValidStructure: true,
       warnings: [],
     });
     parserMocks.parseExpenditureStatement.mockReturnValue({
       expenses: [{ id: "expense", policy: "", unit: "", business: "", detail: "", costItem: "일반업무추진비", amount: 30_000, row: expenseRow }],
       isComplete: true,
+      hasValidStructure: true,
       warnings: [],
     });
     parserMocks.analyzeMainBudget.mockReturnValue(resultFor("xlsx"));
@@ -423,5 +461,42 @@ describe("analyzeBudgetFile", () => {
       signal: new AbortController().signal,
       onProgress: vi.fn(),
     })).rejects.toThrow("파일을 하나만 선택");
+  });
+
+  it.each([
+    ["summary", { summary: false, revenue: true, expenditure: true }, "세입세출예산총괄"],
+    ["revenue", { summary: true, revenue: false, expenditure: true }, "세입예산명세서"],
+    ["expenditure", { summary: true, revenue: true, expenditure: false }, "세출예산명세서"],
+  ])("rejects a workbook with an invalid %s section before analysis", async (_label, validity, expectedSection) => {
+    const file = budgetFile("budget.xls", xlsMagic);
+    adapterMocks.extractWorkbookRows.mockResolvedValue({
+      source: { fileName: file.name, format: "xls", sheetCount: 1 },
+      rows: [{ cells: ["본예산"] }],
+    });
+    installSuccessfulParsers(resultFor("xls"));
+    parserMocks.parseBudgetSummary.mockReturnValue({ ...summary, hasValidStructure: validity.summary });
+    parserMocks.parseRevenueStatement.mockReturnValue({ ...revenue, hasValidStructure: validity.revenue });
+    parserMocks.parseExpenditureStatement.mockReturnValue({ ...expenditure, hasValidStructure: validity.expenditure });
+
+    await expect(analyzeBudgetFile(file, {
+      signal: new AbortController().signal,
+      onProgress: vi.fn(),
+    })).rejects.toThrow(expectedSection);
+    expect(parserMocks.analyzeMainBudget).not.toHaveBeenCalled();
+  });
+
+  it("rejects a zero-sheet workbook before parsing or persistence can treat it as complete", async () => {
+    const file = budgetFile("empty.xls", xlsMagic);
+    adapterMocks.extractWorkbookRows.mockResolvedValue({
+      source: { fileName: file.name, format: "xls", sheetCount: 0 },
+      rows: [],
+    });
+
+    await expect(analyzeBudgetFile(file, {
+      signal: new AbortController().signal,
+      onProgress: vi.fn(),
+    })).rejects.toThrow("시트");
+    expect(parserMocks.parseBudgetSummary).not.toHaveBeenCalled();
+    expect(parserMocks.analyzeMainBudget).not.toHaveBeenCalled();
   });
 });

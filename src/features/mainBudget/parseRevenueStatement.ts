@@ -6,6 +6,7 @@ import {
   currentBudgetContexts,
   findSectionStart,
   isClosingTotal,
+  isNearBudgetLabel,
   isNonBlankBudgetRow,
   isReliableBudgetRow,
   isSectionHeading,
@@ -18,6 +19,7 @@ export type RevenueStatementParseResult = {
   purposeRevenue: RevenueFact;
   beneficiaryRevenue: RevenueFact;
   verificationRevenue: RevenueFactCollection;
+  hasValidStructure: boolean;
   warnings: AnalysisWarning[];
 };
 
@@ -111,6 +113,30 @@ function hasParsedData(rows: BudgetLogicalRow[], start: number, end: number, con
   return false;
 }
 
+function nearTargetRows(
+  rows: BudgetLogicalRow[],
+  start: number,
+  end: number,
+  contexts: HeaderContext[],
+): BudgetLogicalRow[] {
+  const suspicious: BudgetLogicalRow[] = [];
+  let contextIndex = -1;
+  for (let index = start + 1; index < end; index += 1) {
+    while (contextIndex + 1 < contexts.length && contexts[contextIndex + 1].start <= index) contextIndex += 1;
+    const context = contexts[contextIndex];
+    const row = rows[index];
+    if (!context || index === context.start || !isReliableBudgetRow(row)) continue;
+    const value = cellAtBudgetColumn(row, context.itemHeaderRow, context.itemColumn);
+    const label = canonicalBudgetLabel(value);
+    if (!label || targetLabels.has(label)) continue;
+    const repeatedHierarchyLabel = row.cells.filter((cell) => canonicalBudgetLabel(cell) === label).length > 1;
+    if (repeatedHierarchyLabel) continue;
+    if (parseBudgetNumber(cellAtBudgetColumn(row, context.currentHeaderRow, context.currentColumn)) === null) continue;
+    if ([...targetLabels].some((target) => isNearBudgetLabel(value, target))) suspicious.push(row);
+  }
+  return suspicious;
+}
+
 export function parseRevenueStatement(rows: BudgetLogicalRow[]): RevenueStatementParseResult {
   const warnings: AnalysisWarning[] = [];
   const start = findSectionStart(rows, "revenue");
@@ -121,38 +147,45 @@ export function parseRevenueStatement(rows: BudgetLogicalRow[]): RevenueStatemen
   const facts = start >= 0 && hasUsableHeader ? targetFacts(rows, start, end, contexts) : new Map<string, RevenueFact>();
   const lowConfidenceRows = start < 0 ? [] : rows.slice(start + 1, end)
     .filter((row) => isNonBlankBudgetRow(row) && !isReliableBudgetRow(row));
+  const nearMissRows = start < 0 || !hasUsableHeader ? [] : nearTargetRows(rows, start, end, contexts);
 
-  const requiredFact = (label: string): RevenueFact => facts.get(label) ?? { label, amount: null };
-  const purposeRevenue = requiredFact("목적사업비전입금");
-  const beneficiaryRevenue = requiredFact("수익자부담수입");
-  const factRowsReliable = [...facts.values()].every((fact) => isReliableBudgetRow(fact.row));
-  const hasCompleteStructure = start >= 0
+  const hasValidStructure = start >= 0
     && isReliableBudgetRow(rows[start])
     && hasUsableHeader
     && contexts.every((context) => context.isReliable)
     && hasParsedData(rows, start, end, contexts)
-    && span.hasReliableClosure
-    && lowConfidenceRows.length === 0;
-  const isComplete = hasCompleteStructure
+    && span.hasReliableClosure;
+  const canInferAbsence = hasValidStructure && lowConfidenceRows.length === 0 && nearMissRows.length === 0;
+  const absenceRow = start < 0 ? undefined : rows[start];
+  const requiredFact = (label: string): RevenueFact => facts.get(label) ?? (canInferAbsence
+    ? { label, amount: 0, row: absenceRow, inferredAbsent: true }
+    : { label, amount: null });
+  const purposeRevenue = requiredFact("목적사업비전입금");
+  const beneficiaryRevenue = requiredFact("수익자부담수입");
+  const factRowsReliable = [...facts.values()].every((fact) => isReliableBudgetRow(fact.row));
+  const isComplete = canInferAbsence
     && purposeRevenue.amount !== null
     && beneficiaryRevenue.amount !== null
     && factRowsReliable;
   const verificationRevenue: RevenueFactCollection = {
-    facts: verificationLabels.map((label) => facts.get(label) ?? { label, amount: isComplete ? 0 : null }),
+    facts: verificationLabels.map(requiredFact),
     isComplete,
   };
 
   if (start < 0) warnings.push(warning("REVENUE_SECTION", "세입예산명세서 구역을 확인할 수 없습니다."));
   else if (!hasUsableHeader) warnings.push(warning("REVENUE_CURRENT_COLUMN", "세입예산명세서의 현재 예산액과 원가통계비목 열을 확인할 수 없습니다."));
-  else if (!isComplete) warnings.push(warning("REVENUE_SECTION_INCOMPLETE", "세입예산명세서의 데이터와 종료 구조를 완전하게 확인할 수 없습니다."));
-  if (hasCompleteStructure && purposeRevenue.amount === null) warnings.push(warning("PURPOSE_REVENUE", "목적사업비전입금을 확인할 수 없습니다."));
-  if (hasCompleteStructure && beneficiaryRevenue.amount === null) warnings.push(warning("BENEFICIARY_REVENUE", "수익자부담수입을 확인할 수 없습니다."));
+  else if (!hasValidStructure) warnings.push(warning("REVENUE_SECTION_INCOMPLETE", "세입예산명세서의 데이터와 종료 구조를 완전하게 확인할 수 없습니다."));
+  if (hasValidStructure && purposeRevenue.amount === null) warnings.push(warning("PURPOSE_REVENUE", "목적사업비전입금을 확인할 수 없습니다."));
+  if (hasValidStructure && beneficiaryRevenue.amount === null) warnings.push(warning("BENEFICIARY_REVENUE", "수익자부담수입을 확인할 수 없습니다."));
   for (const fact of facts.values()) {
     if (!isReliableBudgetRow(fact.row)) warnings.push(warning("LOW_CONFIDENCE_REVENUE", `${fact.label} 행의 신뢰도가 낮아 확인이 필요합니다.`, fact.row));
   }
   for (const row of lowConfidenceRows) {
     warnings.push(warning("LOW_CONFIDENCE_REVENUE_ROW", "세입예산명세서 본문에 신뢰도가 낮은 행이 있어 확인이 필요합니다.", row));
   }
+  for (const row of nearMissRows) {
+    warnings.push(warning("NEAR_MATCH_REVENUE_LABEL", "필수 세입 항목과 유사한 인식 문자열이 있어 원본 확인이 필요합니다.", row));
+  }
 
-  return { purposeRevenue, beneficiaryRevenue, verificationRevenue, warnings };
+  return { purposeRevenue, beneficiaryRevenue, verificationRevenue, hasValidStructure, warnings };
 }

@@ -57,6 +57,7 @@ export function analyzeMainBudget(input: ParsedMainBudgetInput): MainBudgetAnaly
 
   return {
     source: input.source,
+    identity: input.identity,
     totalRevenue: input.totalRevenue,
     purposeRevenue: input.purposeRevenue,
     beneficiaryRevenue: input.beneficiaryRevenue,

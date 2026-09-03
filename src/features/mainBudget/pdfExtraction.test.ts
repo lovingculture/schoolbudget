@@ -3,11 +3,17 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 const pdfJsMock = vi.hoisted(() => ({
   getDocument: vi.fn(),
   workerOptions: { workerSrc: "" },
+  ops: {
+    paintImageMaskXObject: 83,
+    paintImageXObject: 85,
+    paintInlineImageXObject: 86,
+  },
 }));
 
 vi.mock("pdfjs-dist", () => ({
   getDocument: pdfJsMock.getDocument,
   GlobalWorkerOptions: pdfJsMock.workerOptions,
+  OPS: pdfJsMock.ops,
 }));
 
 import { extractPdfPages } from "./extractPdfPages";
@@ -32,9 +38,13 @@ function textItem(
   };
 }
 
-function page(items: PdfLineItem[]) {
+function page(items: PdfLineItem[], operators: Array<{ fn: number; args?: unknown[] }> = []) {
   return {
     getTextContent: vi.fn().mockResolvedValue({ items, styles: new Map(), lang: null }),
+    getOperatorList: vi.fn().mockResolvedValue({
+      fnArray: operators.map(({ fn }) => fn),
+      argsArray: operators.map(({ args }) => args ?? []),
+    }),
   };
 }
 
@@ -246,6 +256,26 @@ describe("extractPdfPages", () => {
 
     expect(result.textPages).toHaveLength(1);
     expect(result.imagePages).toHaveLength(0);
+  });
+
+  it("routes a heading-only hybrid page with a full-page raster table exclusively to OCR", async () => {
+    const hybridPage = page(
+      [textItem("세출예산명세서", 120, 780, 100)],
+      [{ fn: pdfJsMock.ops.paintImageXObject, args: ["table-image", 1_240, 1_754] }],
+    );
+    const documentHandle = {
+      numPages: 1,
+      getPage: vi.fn().mockResolvedValue(hybridPage),
+      getMetadata: vi.fn().mockResolvedValue({ info: {}, metadata: null }),
+    };
+    pdfJsMock.getDocument.mockReturnValue(loadingTask(Promise.resolve(documentHandle)));
+
+    const result = await extractPdfPages(pdfFile(), new AbortController().signal, () => undefined);
+
+    expect(result.textPages).toHaveLength(0);
+    expect(result.imagePages).toEqual([{ pageNumber: 1, page: hybridPage }]);
+    expect(result.requiresOcr).toBe(true);
+    expect(hybridPage.getOperatorList).toHaveBeenCalledTimes(1);
   });
 
   it("stops before reading the next page when the signal is aborted", async () => {

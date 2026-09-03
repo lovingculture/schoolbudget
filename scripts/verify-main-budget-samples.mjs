@@ -1,4 +1,5 @@
 import { readFile } from "node:fs/promises";
+import { File as NodeFile } from "node:buffer";
 import { basename, extname, resolve } from "node:path";
 import { pathToFileURL } from "node:url";
 import { createServer } from "vite";
@@ -81,7 +82,8 @@ async function main() {
       try {
         const bytes = await readFile(filePath);
         const extension = extname(fileName).toLowerCase();
-        const file = new File([bytes], fileName, { type: MIME_TYPES[extension] ?? "" });
+        const RuntimeFile = globalThis.File ?? NodeFile;
+        const file = new RuntimeFile([bytes], fileName, { type: MIME_TYPES[extension] ?? "" });
         const result = await analyzeBudgetFile(file, {
           signal: new AbortController().signal,
           onProgress: () => {},

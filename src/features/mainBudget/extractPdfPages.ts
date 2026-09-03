@@ -1,6 +1,7 @@
 import {
   getDocument,
   GlobalWorkerOptions,
+  OPS,
   type PDFDocumentProxy,
   type PDFPageProxy,
 } from "pdfjs-dist";
@@ -103,18 +104,71 @@ function isBudgetAmount(value: string): boolean {
   return /^\(?-?(?:\d{1,3}(?:,\d{3})+|\d{4,})(?:\.\d+)?\)?$/.test(value.replace(/\s/g, ""));
 }
 
-function hasMeaningfulText(rows: readonly BudgetLogicalRow[]): boolean {
+type TextCoverage = {
+  hasBudgetSignal: boolean;
+  hasLabelAmountRow: boolean;
+  meaningfulCellCount: number;
+  denseTextLength: number;
+};
+
+function textCoverage(rows: readonly BudgetLogicalRow[]): TextCoverage {
   const meaningful = rows.flatMap((row) => row.cells)
     .map((cell) => String(cell).trim())
     .filter((text) => !isBoilerplate(text));
   const combined = meaningful.join(" ");
-  if (budgetTextPattern.test(combined.replace(/\s/g, ""))) return true;
-  if (rows.some((row) => {
+  const hasLabelAmountRow = rows.some((row) => {
     const cells = row.cells.map((cell) => String(cell).trim()).filter((cell) => !isBoilerplate(cell));
     return cells.some((cell) => /[가-힣]{2,}/.test(cell)) && cells.some(isBudgetAmount);
-  })) return true;
-  const denseTextLength = combined.replace(/[\s\p{P}\p{S}]/gu, "").length;
-  return meaningful.length >= 4 && denseTextLength >= 40;
+  });
+  return {
+    hasBudgetSignal: budgetTextPattern.test(combined.replace(/\s/g, "")),
+    hasLabelAmountRow,
+    meaningfulCellCount: meaningful.length,
+    denseTextLength: combined.replace(/[\s\p{P}\p{S}]/gu, "").length,
+  };
+}
+
+function hasMeaningfulText(coverage: TextCoverage): boolean {
+  return coverage.hasBudgetSignal
+    || coverage.hasLabelAmountRow
+    || (coverage.meaningfulCellCount >= 4 && coverage.denseTextLength >= 40);
+}
+
+function hasSufficientTextCoverage(coverage: TextCoverage): boolean {
+  return coverage.hasLabelAmountRow
+    || (coverage.meaningfulCellCount >= 4 && coverage.denseTextLength >= 40);
+}
+
+type PdfOperatorList = {
+  fnArray: ArrayLike<number>;
+  argsArray?: ArrayLike<unknown>;
+};
+
+const rasterOperators = new Set<number>([
+  OPS.paintImageMaskXObject,
+  OPS.paintImageXObject,
+  OPS.paintInlineImageXObject,
+]);
+
+function imageDimensions(args: unknown): { width: number; height: number } | null {
+  if (!Array.isArray(args)) return null;
+  const object = args.find((value): value is { width: number; height: number } => (
+    typeof value === "object" && value !== null
+    && typeof (value as { width?: unknown }).width === "number"
+    && typeof (value as { height?: unknown }).height === "number"
+  ));
+  if (object) return { width: object.width, height: object.height };
+  const numbers = args.filter((value): value is number => typeof value === "number" && Number.isFinite(value));
+  return numbers.length < 2 ? null : { width: Math.abs(numbers.at(-2)!), height: Math.abs(numbers.at(-1)!) };
+}
+
+function hasLargeRaster(operatorList: PdfOperatorList): boolean {
+  for (let index = 0; index < operatorList.fnArray.length; index += 1) {
+    if (!rasterOperators.has(operatorList.fnArray[index])) continue;
+    const dimensions = imageDimensions(operatorList.argsArray?.[index]);
+    if (dimensions && dimensions.width * dimensions.height >= 200_000) return true;
+  }
+  return false;
 }
 
 function stringMetadata(info: Record<string, unknown>, key: string): Record<string, string> {
@@ -164,7 +218,13 @@ export async function extractPdfPages(
         });
       }
       const rows = normalizePdfLines(items, pageNumber);
-      if (hasMeaningfulText(rows)) {
+      const coverage = textCoverage(rows);
+      let sparseRasterPage = false;
+      if (hasMeaningfulText(coverage) && !hasSufficientTextCoverage(coverage)) {
+        const operatorList = await awaitWithAbort(page.getOperatorList() as Promise<PdfOperatorList>, signal);
+        sparseRasterPage = hasLargeRaster(operatorList);
+      }
+      if (hasMeaningfulText(coverage) && !sparseRasterPage) {
         textPages.push({ pageNumber, page, items, rows });
       } else {
         imagePages.push({ pageNumber, page });

@@ -261,9 +261,28 @@ function parsedInput(
   const summary = parseBudgetSummary(rows);
   const revenue = parseRevenueStatement(rows);
   const expenditure = parseExpenditureStatement(rows);
+  const missingSections = [
+    [summary.hasValidStructure, "세입세출예산총괄"],
+    [revenue.hasValidStructure, "세입예산명세서"],
+    [expenditure.hasValidStructure, "세출예산명세서"],
+  ].filter(([valid]) => !valid).map(([, label]) => label);
+  if (missingSections.length > 0) {
+    throw new Error(`${source.fileName}: 필수 예산 구역의 구조를 확인할 수 없습니다 (${missingSections.join(", ")}).`);
+  }
+  if (!summary.identity) {
+    const rejectedType = summary.warnings.some((warning) => warning.code === "NON_MAIN_BUDGET_MARKER");
+    throw new Error(rejectedType
+      ? `${source.fileName}: 본예산이 아닌 문서입니다. 본예산 파일을 선택해 주세요.`
+      : `${source.fileName}: 학교명, 회계연도, 본예산 구분을 확인할 수 없습니다.`);
+  }
+  if (summary.budgetTypeEvidence === "generic"
+    && (!revenue.hasValidStructure || !expenditure.hasValidStructure)) {
+    throw new Error(`${source.fileName}: 예산안의 본예산 세입·세출 구조를 확인할 수 없습니다.`);
+  }
   const units = sectionUnits(rows);
   return {
     source,
+    identity: summary.identity,
     totalRevenue: scaledRevenueFact(summary.totalRevenue, units.summary),
     purposeRevenue: scaledRevenueFact(revenue.purposeRevenue, units.revenue),
     beneficiaryRevenue: scaledRevenueFact(revenue.beneficiaryRevenue, units.revenue),
@@ -298,7 +317,10 @@ async function analyzePdf(file: File, options: AnalyzeBudgetFileOptions): Promis
   let primaryError: unknown;
   try {
     throwIfAborted(options.signal);
-    const directRows = extraction.textPages.flatMap((page) => page.rows);
+    const ocrPageNumbers = new Set(extraction.imagePages.map(({ pageNumber }) => pageNumber));
+    const directRows = extraction.textPages
+      .filter(({ pageNumber }) => !ocrPageNumbers.has(pageNumber))
+      .flatMap((page) => page.rows);
     const ocrRows = extraction.imagePages.length === 0
       ? []
       : await ocrPdfPages(extraction.imagePages, options.signal, options.onProgress);
@@ -342,6 +364,9 @@ export async function analyzeBudgetFile(file: File, options: AnalyzeBudgetFileOp
   } catch (error) {
     if (isAbortError(error)) throw error;
     throw corruptFileError(file, format, error);
+  }
+  if (extracted.source.sheetCount === 0) {
+    throw new Error(`${file.name}: 분석할 수 있는 시트가 없습니다.`);
   }
   throwIfAborted(options.signal);
   options.onProgress({ phase: "reading", completed: 1, total: 1 });

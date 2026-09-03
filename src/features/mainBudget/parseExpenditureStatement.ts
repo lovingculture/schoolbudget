@@ -6,6 +6,7 @@ import {
   currentBudgetContexts,
   findSectionStart,
   isClosingTotal,
+  isNearBudgetLabel,
   isNonBlankBudgetRow,
   isReliableBudgetRow,
   isSectionHeading,
@@ -13,6 +14,7 @@ import {
 
 export type ExpenditureStatementParseResult = {
   expenses: GeneralBusinessExpense[];
+  hasValidStructure: boolean;
   isComplete: boolean;
   warnings: AnalysisWarning[];
 };
@@ -138,6 +140,7 @@ export function parseExpenditureStatement(rows: BudgetLogicalRow[]): Expenditure
   const lowConfidenceRows = start < 0 ? [] : rows.slice(start + 1, end)
     .filter((row) => isNonBlankBudgetRow(row) && !isReliableBudgetRow(row));
   const expenses: GeneralBusinessExpense[] = [];
+  const nearMissRows: BudgetLogicalRow[] = [];
   let contextIndex = -1;
   let policy = "";
   let unit = "";
@@ -173,7 +176,11 @@ export function parseExpenditureStatement(rows: BudgetLogicalRow[]): Expenditure
       if (nextDetail) detail = nextDetail;
 
       const costItem = canonicalBudgetLabel(cellAtBudgetColumn(rows[index], context.costItemHeaderRow, context.costItemColumn));
-      if (costItem !== "일반업무추진비") continue;
+      if (costItem !== "일반업무추진비") {
+        if (isReliableBudgetRow(rows[index])
+          && isNearBudgetLabel(costItem, "일반업무추진비")) nearMissRows.push(rows[index]);
+        continue;
+      }
       const amount = parseBudgetNumber(cellAtBudgetColumn(rows[index], context.currentHeaderRow, context.currentColumn));
       expenses.push({ id: expenseId(rows[index], index), policy, unit, business, detail, costItem, amount, row: rows[index] });
       if (amount === null) warnings.push({
@@ -185,24 +192,34 @@ export function parseExpenditureStatement(rows: BudgetLogicalRow[]): Expenditure
     }
   }
 
-  const isComplete = start >= 0
+  const hasValidStructure = start >= 0
     && isReliableBudgetRow(rows[start])
     && hasUsableHeader
     && contexts.every((context) => context.isReliable)
     && hasParsedData(rows, start, end, contexts)
-    && span.hasReliableClosure
+    && span.hasReliableClosure;
+  const isComplete = hasValidStructure
     && lowConfidenceRows.length === 0
+    && nearMissRows.length === 0
     && expenses.every((expense) => isReliableBudgetRow(expense.row));
 
   if (start < 0) warnings.push({ code: "EXPENDITURE_SECTION", message: "세출예산명세서 구역을 확인할 수 없습니다.", severity: "error" });
   else if (!hasUsableHeader) warnings.push({ code: "EXPENDITURE_CURRENT_COLUMN", message: "세출예산명세서의 계층과 현재 예산액 열을 확인할 수 없습니다.", severity: "error" });
-  else if (!isComplete) warnings.push({ code: "EXPENDITURE_SECTION_INCOMPLETE", message: "세출예산명세서의 데이터와 종료 구조를 완전하게 확인할 수 없습니다.", severity: "error" });
+  else if (!hasValidStructure) warnings.push({ code: "EXPENDITURE_SECTION_INCOMPLETE", message: "세출예산명세서의 데이터와 종료 구조를 완전하게 확인할 수 없습니다.", severity: "error" });
   for (const expense of expenses) {
     if (!isReliableBudgetRow(expense.row)) warnings.push({ code: "LOW_CONFIDENCE_EXPENSE", message: "일반업무추진비 행의 신뢰도가 낮아 확인이 필요합니다.", severity: "error", row: expense.row });
   }
   for (const row of lowConfidenceRows) {
     warnings.push({ code: "LOW_CONFIDENCE_EXPENDITURE_ROW", message: "세출예산명세서 본문에 신뢰도가 낮은 행이 있어 확인이 필요합니다.", severity: "error", row });
   }
+  for (const row of nearMissRows) {
+    warnings.push({
+      code: "NEAR_MATCH_GENERAL_BUSINESS_EXPENSE",
+      message: "일반업무추진비와 유사한 인식 문자열이 있어 원본 확인이 필요합니다.",
+      severity: "error",
+      row,
+    });
+  }
 
-  return { expenses, isComplete, warnings };
+  return { expenses, hasValidStructure, isComplete, warnings };
 }

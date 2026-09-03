@@ -12,7 +12,7 @@ describe("본예산 공통 구역 파서", () => {
   it("PDF 행의 배열 열이 달라도 좌표로 현재 예산액과 비목을 맞춘다", () => {
     const at = (x: number, width: number) => ({ x, y: 0, width, height: 10 });
     const rows = [
-      { cells: ["본예산"], coordinates: [at(10, 30)], sourcePage: 1, sourceRow: 1, confidence: 0.99 },
+      { cells: ["가람초등학교", "2026회계연도", "본예산"], coordinates: [at(10, 50), at(70, 50), at(130, 30)], sourcePage: 1, sourceRow: 1, confidence: 0.99 },
       { cells: ["세입 세출 예산 총괄"], coordinates: [at(10, 100)], sourcePage: 1, sourceRow: 2, confidence: 0.99 },
       { cells: ["예산액"], coordinates: [at(100, 30)], sourcePage: 1, sourceRow: 3, confidence: 0.99 },
       { cells: ["본예산", "1,010,749"], coordinates: [at(10, 30), at(94, 36)], sourcePage: 1, sourceRow: 4, confidence: 0.99 },
@@ -60,12 +60,41 @@ describe("본예산 공통 구역 파서", () => {
     const summary = parseBudgetSummary(logicalBudgetRows);
 
     expect(summary.isComplete).toBe(true);
+    expect(summary.identity).toEqual({ schoolName: "가람초등학교", accountingYear: 2026, budgetType: "본예산" });
+    expect(summary.budgetTypeEvidence).toBe("generic");
+    expect(summary.hasValidStructure).toBe(true);
     expect(summary.totalRevenue).toEqual({
       label: "세입예산총액",
       amount: 1_010_749,
       row: logicalBudgetRows[3],
     });
     expect(summary.warnings).toEqual([]);
+  });
+
+  it("추가경정·추경·성립전·결산 표시는 본예산 정체성으로 허용하지 않는다", () => {
+    for (const marker of ["제1회 추가경정예산", "추경예산", "성립전예산", "2026학년도 결산서"]) {
+      const rows = logicalBudgetRows.map((row, index) => index === 0
+        ? { ...row, cells: ["가람초등학교", marker] }
+        : row);
+      const summary = parseBudgetSummary(rows);
+
+      expect(summary.identity, marker).toBeNull();
+      expect(summary.isComplete, marker).toBe(false);
+      expect(summary.warnings, marker).toContainEqual(expect.objectContaining({ code: "NON_MAIN_BUDGET_MARKER", row: rows[0] }));
+    }
+  });
+
+  it("긴 예산총칙 문장 속 추가경정 언급은 본예산 표지를 무효화하지 않는다", () => {
+    const rows = [
+      ...logicalBudgetRows.slice(0, 1),
+      { cells: ["제3조 지정 경비는 추가경정예산의 성립 이전에 사용할 수 있으며 차기 추가경정예산에 계상한다."], sourcePage: 1, confidence: 0.99 },
+      ...logicalBudgetRows.slice(1),
+    ];
+
+    expect(parseBudgetSummary(rows)).toMatchObject({
+      identity: { schoolName: "가람초등학교", accountingYear: 2026, budgetType: "본예산" },
+      isComplete: true,
+    });
   });
 
   it("번호 접두어를 제거하고 상위·하위 수익자부담수입을 중복 집계하지 않는다", () => {
@@ -76,12 +105,12 @@ describe("본예산 공통 구역 파서", () => {
     expect(revenue.verificationRevenue.isComplete).toBe(true);
     expect(revenue.verificationRevenue.facts).toEqual([
       { label: "학교운영비전입금", amount: 721_573, row: logicalBudgetRows[11] },
-      { label: "사용료", amount: 0 },
-      { label: "수수료", amount: 0 },
-      { label: "자산매각대", amount: 0 },
-      { label: "지난년도수입", amount: 0 },
+      { label: "사용료", amount: 0, inferredAbsent: true, row: logicalBudgetRows[4] },
+      { label: "수수료", amount: 0, inferredAbsent: true, row: logicalBudgetRows[4] },
+      { label: "자산매각대", amount: 0, inferredAbsent: true, row: logicalBudgetRows[4] },
+      { label: "지난년도수입", amount: 0, inferredAbsent: true, row: logicalBudgetRows[4] },
       { label: "이자수입", amount: 2_000, row: logicalBudgetRows[12] },
-      { label: "기타행정활동수입", amount: 0 },
+      { label: "기타행정활동수입", amount: 0, inferredAbsent: true, row: logicalBudgetRows[4] },
       { label: "순세계잉여금", amount: 80_000, row: logicalBudgetRows[13] },
     ]);
   });
@@ -228,6 +257,77 @@ describe("본예산 공통 구역 파서", () => {
     expect(expenditure.expenses.map((expense) => expense.amount)).toEqual([10_000, 13_020]);
     expect(expenditure.isComplete).toBe(false);
     expect(expenditure.warnings).toContainEqual(expect.objectContaining({ code: "LOW_CONFIDENCE_EXPENDITURE_ROW", row: unreadableRow }));
+  });
+
+  it("신뢰도 높은 일반업무추진비 한 글자 오인식은 정확 집계에서 제외하고 미완료 경고를 남긴다", () => {
+    const nearMissRow = { cells: ["", "", "", "", "3.일반업무추진버", 999], sourcePage: 11, sourceRow: 9, confidence: 0.96 };
+    const rows = [...logicalBudgetRows.slice(0, -1), nearMissRow, logicalBudgetRows.at(-1)!];
+
+    const expenditure = parseExpenditureStatement(rows);
+
+    expect(expenditure.expenses.map((expense) => expense.amount)).toEqual([10_000, 13_020]);
+    expect(expenditure.isComplete).toBe(false);
+    expect(expenditure.warnings).toContainEqual(expect.objectContaining({
+      code: "NEAR_MATCH_GENERAL_BUSINESS_EXPENSE",
+      row: nearMissRow,
+    }));
+    expect(expenditure.warnings).not.toContainEqual(expect.objectContaining({ row: logicalBudgetRows[25] }));
+  });
+
+  it("신뢰도 높은 필수 세입 항목 한 글자 오인식은 0원 추론을 막고 출처 경고를 남긴다", () => {
+    const nearMissRow = { cells: ["", "", "", "", "1.사용러", 123], sourcePage: 4, sourceRow: 20, confidence: 0.97 };
+    const rows = [...logicalBudgetRows.slice(0, 14), nearMissRow, ...logicalBudgetRows.slice(14)];
+
+    const revenue = parseRevenueStatement(rows);
+
+    expect(revenue.verificationRevenue.isComplete).toBe(false);
+    expect(revenue.verificationRevenue.facts.find((fact) => fact.label === "사용료")?.amount).toBeNull();
+    expect(revenue.warnings).toContainEqual(expect.objectContaining({ code: "NEAR_MATCH_REVENUE_LABEL", row: nearMissRow }));
+  });
+
+  it("병합된 상위 세입 분류가 필수 항목과 한 글자만 달라도 오인식으로 취급하지 않는다", () => {
+    const rows = logicalBudgetRows.map((row, index) => index === 6
+      ? { ...row, cells: ["1.이전수입", "1.이전수입", "1.이전수입", "1.이전수입", "1.이전수입", 721_573, 700_000] }
+      : row);
+
+    const revenue = parseRevenueStatement(rows);
+
+    expect(revenue.verificationRevenue.isComplete).toBe(true);
+    expect(revenue.warnings).not.toContainEqual(expect.objectContaining({ code: "NEAR_MATCH_REVENUE_LABEL" }));
+  });
+
+  it("총액과 차감 항목의 신뢰도 높은 한 글자 오인식도 필수 세입 경고로 남긴다", () => {
+    const summaryRows = logicalBudgetRows.map((row, index) => index === 3
+      ? { ...row, cells: ["세입예산총앱", "1,010,749", "900,000"], confidence: 0.97 }
+      : row);
+    const purposeRows = logicalBudgetRows.map((row, index) => index === 8
+      ? { ...row, cells: ["", "", "", "", "1.목적사업비전입건", 0, 50_000], confidence: 0.97 }
+      : row);
+
+    expect(parseBudgetSummary(summaryRows).warnings).toContainEqual(expect.objectContaining({
+      code: "NEAR_MATCH_REVENUE_LABEL",
+      row: summaryRows[3],
+    }));
+    const revenue = parseRevenueStatement(purposeRows);
+    expect(revenue.purposeRevenue.amount).toBeNull();
+    expect(revenue.verificationRevenue.isComplete).toBe(false);
+    expect(revenue.warnings).toContainEqual(expect.objectContaining({
+      code: "NEAR_MATCH_REVENUE_LABEL",
+      row: purposeRows[8],
+    }));
+  });
+
+  it("구조가 완전하고 의심 행이 없으면 생략된 차감 항목을 출처 있는 0원 사실로 추론한다", () => {
+    const rows = logicalBudgetRows.filter((_row, index) => ![8, 10].includes(index));
+
+    const revenue = parseRevenueStatement(rows);
+
+    expect(revenue.hasValidStructure).toBe(true);
+    expect(revenue.purposeRevenue).toMatchObject({ amount: 0, inferredAbsent: true, row: expect.objectContaining({ sourcePage: 3 }) });
+    expect(revenue.beneficiaryRevenue).toMatchObject({ amount: 0, inferredAbsent: true, row: expect.objectContaining({ sourcePage: 3 }) });
+    expect(revenue.verificationRevenue.isComplete).toBe(true);
+    expect(revenue.verificationRevenue.facts.find((fact) => fact.label === "사용료"))
+      .toMatchObject({ amount: 0, inferredAbsent: true, row: expect.objectContaining({ sourcePage: 3 }) });
   });
 
   it("낮은 신뢰도의 총괄 제목과 머리글을 각각 출처가 있는 경고로 표시한다", () => {

@@ -3,22 +3,35 @@ import { useState, type ChangeEvent, type DragEvent } from "react";
 type MainBudgetUploadProps = {
   disabled: boolean;
   onFile: (file: File) => void;
+  onSelectionError: (message: string) => void;
 };
 
-export function MainBudgetUpload({ disabled, onFile }: MainBudgetUploadProps) {
+const exactOneFileMessage = "분석할 파일을 정확히 하나만 선택해 주세요.";
+
+export function MainBudgetUpload({ disabled, onFile, onSelectionError }: MainBudgetUploadProps) {
   const [dragging, setDragging] = useState(false);
 
   const selectFile = (event: ChangeEvent<HTMLInputElement>) => {
-    const file = event.currentTarget.files?.[0];
+    const files = event.currentTarget.files;
+    const selected = files?.length === 1 ? files[0] : null;
     event.currentTarget.value = "";
-    if (file) onFile(file);
+    if (!selected) {
+      onSelectionError(exactOneFileMessage);
+      return;
+    }
+    onFile(selected);
   };
 
   const dropFile = (event: DragEvent<HTMLElement>) => {
     event.preventDefault();
     setDragging(false);
     if (disabled) return;
-    const file = event.dataTransfer.files.item(0);
+    const files = event.dataTransfer.files;
+    if (files.length !== 1) {
+      onSelectionError(exactOneFileMessage);
+      return;
+    }
+    const file = files.item(0);
     if (file) onFile(file);
   };
 

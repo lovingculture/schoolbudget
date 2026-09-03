@@ -23,10 +23,17 @@ export type BudgetSource = {
   sheetCount?: number;
 };
 
+export type BudgetDocumentIdentity = {
+  schoolName: string;
+  accountingYear: number;
+  budgetType: "본예산";
+};
+
 export type RevenueFact = {
   label: string;
   amount: number | null;
   row?: BudgetLogicalRow;
+  inferredAbsent?: boolean;
 };
 
 export type GeneralBusinessExpense = {
@@ -59,6 +66,7 @@ export type GeneralBusinessExpenseCollection = {
 
 export type ParsedMainBudgetInput = {
   source: BudgetSource;
+  identity: BudgetDocumentIdentity;
   totalRevenue: RevenueFact;
   purposeRevenue: RevenueFact;
   beneficiaryRevenue: RevenueFact;
@@ -76,6 +84,7 @@ export type MainBudgetComparison = {
 
 export type MainBudgetAnalysisResult = {
   source: BudgetSource;
+  identity: BudgetDocumentIdentity;
   totalRevenue: RevenueFact;
   purposeRevenue: RevenueFact;
   beneficiaryRevenue: RevenueFact;

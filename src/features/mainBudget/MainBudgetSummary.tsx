@@ -15,12 +15,23 @@ function comparisonLabel(status: MainBudgetAnalysisResult["comparison"]["status"
 }
 
 export function MainBudgetSummary({ result }: { result: MainBudgetAnalysisResult }) {
+  const sourceCount = result.source.pageCount !== undefined
+    ? `${result.source.pageCount.toLocaleString("ko-KR")}쪽`
+    : result.source.sheetCount !== undefined
+      ? `${result.source.sheetCount.toLocaleString("ko-KR")}개 시트`
+      : "분량 확인 필요";
   return (
     <section className="main-budget-summary-section" aria-labelledby="main-budget-summary-title">
       <div className="main-budget-section-heading">
         <div>
           <h2 id="main-budget-summary-title">분석 결과</h2>
           <p><b>{result.source.fileName}</b> · {result.source.format.toUpperCase()}</p>
+          <div className="main-budget-document-identity" aria-label="문서 정보">
+            <span>{result.identity.schoolName}</span>
+            <span>{result.identity.accountingYear}학년도</span>
+            <span>{result.identity.budgetType}</span>
+            <span>{sourceCount}</span>
+          </div>
         </div>
       </div>
       <div className="main-budget-summary">

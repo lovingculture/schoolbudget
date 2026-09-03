@@ -1,6 +1,7 @@
 import type {
   AnalysisWarning,
   BudgetCellCoordinate,
+  BudgetDocumentIdentity,
   BudgetLogicalRow,
   BudgetSource,
   GeneralBusinessExpense,
@@ -12,7 +13,7 @@ import type {
 } from "./analysisTypes";
 
 const STORAGE_KEY = "school-budget:main-budget:file-analysis:v1";
-const SCHEMA_VERSION = 1;
+const SCHEMA_VERSION = 2;
 const LEGACY_KEYS = [
   "school-budget:main-budget:expenditures:v1",
   "school-budget:main-budget:pdf-analysis:v1",
@@ -38,6 +39,10 @@ function optionalFiniteNumber(value: unknown): value is number | undefined {
 
 function optionalInteger(value: unknown): value is number | undefined {
   return value === undefined || (Number.isInteger(value) && (value as number) >= 0);
+}
+
+function optionalBoolean(value: unknown): value is boolean | undefined {
+  return value === undefined || typeof value === "boolean";
 }
 
 function coordinate(value: unknown): BudgetCellCoordinate | null {
@@ -92,6 +97,9 @@ function source(value: unknown): BudgetSource | null {
   const item = record(value);
   if (!item || typeof item.fileName !== "string" || !["pdf", "xls", "xlsx"].includes(String(item.format))
     || !optionalInteger(item.pageCount) || !optionalInteger(item.sheetCount)) return null;
+  if ((item.format === "pdf" && (!Number.isInteger(item.pageCount) || (item.pageCount as number) < 1))
+    || ((item.format === "xls" || item.format === "xlsx")
+      && (!Number.isInteger(item.sheetCount) || (item.sheetCount as number) < 1))) return null;
   return {
     fileName: item.fileName,
     format: item.format as BudgetSource["format"],
@@ -100,12 +108,30 @@ function source(value: unknown): BudgetSource | null {
   };
 }
 
+function identity(value: unknown): BudgetDocumentIdentity | null {
+  const item = record(value);
+  if (!item || typeof item.schoolName !== "string" || !item.schoolName.trim()
+    || !Number.isInteger(item.accountingYear) || (item.accountingYear as number) < 1900
+    || (item.accountingYear as number) > 2200 || item.budgetType !== "본예산") return null;
+  return {
+    schoolName: item.schoolName,
+    accountingYear: item.accountingYear as number,
+    budgetType: "본예산",
+  };
+}
+
 function revenueFact(value: unknown): RevenueFact | null {
   const item = record(value);
-  if (!item || typeof item.label !== "string" || !nullableNumber(item.amount)) return null;
+  if (!item || typeof item.label !== "string" || !nullableNumber(item.amount)
+    || !optionalBoolean(item.inferredAbsent)) return null;
   const row = optionalRow(item.row);
   if (row === null) return null;
-  return { label: item.label, amount: item.amount, ...(row === undefined ? {} : { row }) };
+  return {
+    label: item.label,
+    amount: item.amount,
+    ...(row === undefined ? {} : { row }),
+    ...(item.inferredAbsent === undefined ? {} : { inferredAbsent: item.inferredAbsent }),
+  };
 }
 
 function revenueCollection(value: unknown): RevenueFactCollection | null {
@@ -189,6 +215,7 @@ function analysisResult(value: unknown): MainBudgetAnalysisResult | null {
     || !nullableNumber(item.ratio)) return null;
 
   const safeSource = source(item.source);
+  const safeIdentity = identity(item.identity);
   const totalRevenue = revenueFact(item.totalRevenue);
   const purposeRevenue = revenueFact(item.purposeRevenue);
   const beneficiaryRevenue = revenueFact(item.beneficiaryRevenue);
@@ -197,11 +224,12 @@ function analysisResult(value: unknown): MainBudgetAnalysisResult | null {
   const generalBusinessExpenseFacts = expenseCollection(item.generalBusinessExpenseFacts);
   const safeComparison = comparison(item.comparison);
   const warnings = warningArray(item.warnings);
-  if (!safeSource || !totalRevenue || !purposeRevenue || !beneficiaryRevenue || !verificationRevenue
+  if (!safeSource || !safeIdentity || !totalRevenue || !purposeRevenue || !beneficiaryRevenue || !verificationRevenue
     || !generalBusinessExpenses || !generalBusinessExpenseFacts || !safeComparison || !warnings) return null;
 
   return {
     source: safeSource,
+    identity: safeIdentity,
     totalRevenue,
     purposeRevenue,
     beneficiaryRevenue,
@@ -217,46 +245,59 @@ function analysisResult(value: unknown): MainBudgetAnalysisResult | null {
   };
 }
 
-function removeCurrentValue(): void {
-  localStorage.removeItem(STORAGE_KEY);
+function removeValue(key: string): boolean {
+  try {
+    localStorage.removeItem(key);
+    return true;
+  } catch {
+    return false;
+  }
 }
 
 export const mainBudgetAnalysisStorage = {
   load(): MainBudgetAnalysisResult | null {
-    const raw = localStorage.getItem(STORAGE_KEY);
+    let raw: string | null;
+    try {
+      raw = localStorage.getItem(STORAGE_KEY);
+    } catch {
+      return null;
+    }
     if (raw === null) return null;
     try {
       const envelope = record(JSON.parse(raw));
       if (!envelope || envelope.schemaVersion !== SCHEMA_VERSION) {
-        removeCurrentValue();
+        removeValue(STORAGE_KEY);
         return null;
       }
       const result = analysisResult(envelope.result);
-      if (!result) removeCurrentValue();
+      if (!result) removeValue(STORAGE_KEY);
       return result;
     } catch {
-      removeCurrentValue();
+      removeValue(STORAGE_KEY);
       return null;
     }
   },
 
-  save(result: MainBudgetAnalysisResult): void {
+  save(result: MainBudgetAnalysisResult): boolean {
     const sanitized = analysisResult(result);
     if (!sanitized) throw new TypeError("저장할 본예산 분석 결과가 올바르지 않습니다.");
-    localStorage.setItem(STORAGE_KEY, JSON.stringify({ schemaVersion: SCHEMA_VERSION, result: sanitized }));
-  },
-
-  clear(): void {
-    removeCurrentValue();
-  },
-
-  migrateLegacy(): void {
-    for (const key of LEGACY_KEYS) {
-      try {
-        localStorage.removeItem(key);
-      } catch {
-        // A blocked legacy key must not prevent the new analysis page from loading.
-      }
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify({ schemaVersion: SCHEMA_VERSION, result: sanitized }));
+      return true;
+    } catch {
+      return false;
     }
+  },
+
+  clear(): boolean {
+    return removeValue(STORAGE_KEY);
+  },
+
+  migrateLegacy(): boolean {
+    let migrated = true;
+    for (const key of LEGACY_KEYS) {
+      migrated = removeValue(key) && migrated;
+    }
+    return migrated;
   },
 };

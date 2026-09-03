@@ -1,4 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
+import * as XLSX from "xlsx";
 import { mainBudgetWorkbookFile } from "./__fixtures__/mainBudgetWorkbook";
 import { extractWorkbookRows } from "./extractWorkbookRows";
 
@@ -71,5 +72,26 @@ describe("본예산 엑셀 행 추출", () => {
 
     await expect(extractWorkbookRows(file, { bytes: corruptZip, signal: new AbortController().signal }))
       .rejects.toThrow("손상되었거나 지원하지 않는 엑셀 파일");
+  });
+
+  it("preserves a populated covered cell inside a merged range", async () => {
+    const sheet = XLSX.utils.aoa_to_sheet([
+      ["원가통계비목", "예산액"],
+      ["병합 기준값", "덮어쓰면 안 되는 값"],
+    ]);
+    sheet["!merges"] = [XLSX.utils.decode_range("A2:B2")];
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, sheet, "본문");
+    const bytes = XLSX.write(workbook, { type: "array", bookType: "xlsx" }) as ArrayBuffer;
+    const file = new File([bytes], "병합셀.xlsx");
+    Object.defineProperty(file, "arrayBuffer", { value: async () => bytes });
+
+    const result = await extractWorkbookRows(file);
+
+    expect(result.rows[1]).toEqual({
+      cells: ["병합기준값", "덮어쓰면안되는값"],
+      sourceSheet: "본문",
+      sourceRow: 2,
+    });
   });
 });

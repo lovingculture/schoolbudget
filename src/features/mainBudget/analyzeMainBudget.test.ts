@@ -12,6 +12,7 @@ function verificationFacts(overrides: Partial<typeof verificationAmounts> = {}) 
 function input(overrides: Partial<ParsedMainBudgetInput> = {}): ParsedMainBudgetInput {
   return {
     source: { fileName: "sample.xlsx", format: "xlsx" },
+    identity: { schoolName: "가람초등학교", accountingYear: 2026, budgetType: "본예산" },
     totalRevenue: { label: "세입예산총액", amount: 1010749 },
     purposeRevenue: { label: "목적사업비전입금", amount: 0 },
     beneficiaryRevenue: { label: "수익자부담수입", amount: 207176 },

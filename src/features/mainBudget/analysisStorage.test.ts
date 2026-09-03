@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import type { MainBudgetAnalysisResult } from "./analysisTypes";
 import { mainBudgetAnalysisStorage } from "./analysisStorage";
 
@@ -24,6 +24,7 @@ function validResult(): MainBudgetAnalysisResult {
   };
   return {
     source: { fileName: "budget.pdf", format: "pdf", pageCount: 22 },
+    identity: { schoolName: "가람초등학교", accountingYear: 2026, budgetType: "본예산" },
     totalRevenue: { label: "세입예산총액", amount: 1_010_749, row: revenueRow },
     purposeRevenue: { label: "목적사업비전입금", amount: 0, row: revenueRow },
     beneficiaryRevenue: { label: "수익자부담수입", amount: 207_176, row: revenueRow },
@@ -41,10 +42,11 @@ function validResult(): MainBudgetAnalysisResult {
 
 describe("mainBudgetAnalysisStorage", () => {
   beforeEach(() => localStorage.clear());
+  afterEach(() => vi.restoreAllMocks());
 
   it("restores a valid versioned result with fact provenance and confidence", () => {
     const result = validResult();
-    localStorage.setItem(KEY, JSON.stringify({ schemaVersion: 1, result }));
+    localStorage.setItem(KEY, JSON.stringify({ schemaVersion: 2, result }));
 
     expect(mainBudgetAnalysisStorage.load()).toEqual(result);
   });
@@ -57,7 +59,7 @@ describe("mainBudgetAnalysisStorage", () => {
   });
 
   it("removes a schema-version mismatch", () => {
-    localStorage.setItem(KEY, JSON.stringify({ schemaVersion: 2, result: validResult() }));
+    localStorage.setItem(KEY, JSON.stringify({ schemaVersion: 1, result: validResult() }));
 
     expect(mainBudgetAnalysisStorage.load()).toBeNull();
     expect(localStorage.getItem(KEY)).toBeNull();
@@ -74,7 +76,7 @@ describe("mainBudgetAnalysisStorage", () => {
   ])("removes a result with an invalid %s", (_label, mutate) => {
     const stored = validResult() as unknown as Record<string, unknown>;
     mutate(stored);
-    localStorage.setItem(KEY, JSON.stringify({ schemaVersion: 1, result: stored }));
+    localStorage.setItem(KEY, JSON.stringify({ schemaVersion: 2, result: stored }));
 
     expect(mainBudgetAnalysisStorage.load()).toBeNull();
     expect(localStorage.getItem(KEY)).toBeNull();
@@ -92,11 +94,11 @@ describe("mainBudgetAnalysisStorage", () => {
 
     const raw = localStorage.getItem(KEY)!;
     expect(raw).not.toMatch(/sourceFile|sourceBytes|pdfDocument|canvas|private-budget|secret-pdf-handle/);
-    expect(JSON.parse(raw)).toEqual({ schemaVersion: 1, result: validResult() });
+    expect(JSON.parse(raw)).toEqual({ schemaVersion: 2, result: validResult() });
   });
 
   it("removes both legacy keys idempotently while preserving the new result and unrelated data", () => {
-    localStorage.setItem(KEY, JSON.stringify({ schemaVersion: 1, result: validResult() }));
+    localStorage.setItem(KEY, JSON.stringify({ schemaVersion: 2, result: validResult() }));
     localStorage.setItem(OLD_EXPENDITURE_KEY, "legacy workbook state");
     localStorage.setItem(OLD_PDF_KEY, "legacy pdf state");
     localStorage.setItem("school-budget:unrelated", "kept");
@@ -118,5 +120,38 @@ describe("mainBudgetAnalysisStorage", () => {
 
     expect(localStorage.getItem(KEY)).toBeNull();
     expect(localStorage.getItem("school-budget:unrelated")).toBe("kept");
+  });
+
+  it("round-trips inferred-absent revenue metadata and its provenance", () => {
+    const result = validResult();
+    result.purposeRevenue = {
+      label: "목적사업비전입금",
+      amount: 0,
+      inferredAbsent: true,
+      row: { cells: ["세입예산명세서"], sourcePage: 3, sourceRow: 1 },
+    };
+
+    expect(mainBudgetAnalysisStorage.save(result)).toBe(true);
+    expect(mainBudgetAnalysisStorage.load()?.purposeRevenue).toEqual(result.purposeRevenue);
+  });
+
+  it("treats blocked get and cleanup operations as an empty nonfatal restore", () => {
+    vi.spyOn(Storage.prototype, "getItem").mockImplementation(() => {
+      throw new DOMException("blocked", "SecurityError");
+    });
+    vi.spyOn(Storage.prototype, "removeItem").mockImplementation(() => {
+      throw new DOMException("blocked", "SecurityError");
+    });
+
+    expect(mainBudgetAnalysisStorage.load()).toBeNull();
+    expect(() => mainBudgetAnalysisStorage.clear()).not.toThrow();
+  });
+
+  it("returns false instead of throwing when a quota error blocks saving", () => {
+    vi.spyOn(Storage.prototype, "setItem").mockImplementation(() => {
+      throw new DOMException("quota", "QuotaExceededError");
+    });
+
+    expect(mainBudgetAnalysisStorage.save(validResult())).toBe(false);
   });
 });

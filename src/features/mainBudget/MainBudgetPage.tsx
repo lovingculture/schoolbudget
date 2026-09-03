@@ -28,7 +28,16 @@ function sourceNote(row: BudgetLogicalRow | undefined): string | null {
       ? `${row.sourceSheet} 시트${row.sourceRow === undefined ? "" : ` ${row.sourceRow}행`}`
       : null;
   const confidence = row.confidence === undefined ? null : `신뢰도 ${Math.round(row.confidence * 100)}%`;
-  return [source, confidence].filter(Boolean).join(" · ") || null;
+  const recognized = row.cells
+    .filter((cell): cell is string | number => typeof cell === "string" || typeof cell === "number")
+    .map(String)
+    .join(" ")
+    .replace(/\s+/g, " ")
+    .trim();
+  const characters = Array.from(recognized);
+  const truncated = characters.length > 72 ? `${characters.slice(0, 71).join("")}…` : recognized;
+  const recognizedNote = truncated ? `인식 문자열: “${truncated}”` : null;
+  return [source, recognizedNote, confidence].filter(Boolean).join(" · ") || null;
 }
 
 function AnalysisWarnings({ warnings }: { warnings: AnalysisWarning[] }) {
@@ -42,7 +51,7 @@ function AnalysisWarnings({ warnings }: { warnings: AnalysisWarning[] }) {
           return (
             <li className={warning.severity} key={`${warning.code}-${index}`}>
               <span aria-hidden="true">!</span>
-              <div><b>{warning.message}</b>{note ? <small>{note}</small> : null}</div>
+              <div><b>{warning.message}</b>{note ? <small aria-label={`경고 출처: ${note}`}>{note}</small> : null}</div>
             </li>
           );
         })}
@@ -53,12 +62,17 @@ function AnalysisWarnings({ warnings }: { warnings: AnalysisWarning[] }) {
 
 export function MainBudgetPage() {
   const [result, setResult] = useState<MainBudgetAnalysisResult | null>(() => {
-    mainBudgetAnalysisStorage.migrateLegacy();
-    return mainBudgetAnalysisStorage.load();
+    try {
+      mainBudgetAnalysisStorage.migrateLegacy();
+      return mainBudgetAnalysisStorage.load();
+    } catch {
+      return null;
+    }
   });
   const [progress, setProgress] = useState<AnalysisProgress | null>(null);
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
+  const [storageWarning, setStorageWarning] = useState("");
   const activeController = useRef<AbortController | null>(null);
   const activeRun = useRef(0);
 
@@ -77,6 +91,7 @@ export function MainBudgetPage() {
     setBusy(true);
     setProgress(initialProgress);
     setError("");
+    setStorageWarning("");
     setResult(null);
 
     try {
@@ -87,8 +102,14 @@ export function MainBudgetPage() {
         },
       });
       if (activeRun.current !== run || controller.signal.aborted) return;
-      mainBudgetAnalysisStorage.save(analyzed);
+      let saved = false;
+      try {
+        saved = mainBudgetAnalysisStorage.save(analyzed);
+      } catch {
+        saved = false;
+      }
       setResult(analyzed);
+      if (!saved) setStorageWarning("분석 결과는 표시되지만 브라우저에 저장하지 못해 다음 방문 때 복원할 수 없습니다.");
     } catch (analysisError) {
       if (activeRun.current === run && !controller.signal.aborted && !isAbortError(analysisError)) {
         setError(errorMessage(analysisError));
@@ -115,11 +136,16 @@ export function MainBudgetPage() {
     activeRun.current += 1;
     activeController.current?.abort();
     activeController.current = null;
-    mainBudgetAnalysisStorage.clear();
+    try {
+      mainBudgetAnalysisStorage.clear();
+    } catch {
+      // A blocked browser store must not prevent starting a new analysis.
+    }
     setResult(null);
     setBusy(false);
     setProgress(null);
     setError("");
+    setStorageWarning("");
   };
 
   return (
@@ -136,13 +162,18 @@ export function MainBudgetPage() {
             <button type="button" className="main-budget-reset" onClick={reset}>다른 파일 분석</button>
           </div>
           <MainBudgetSummary result={result} />
+          {storageWarning ? <div className="main-budget-storage-warning" role="status">{storageWarning}</div> : null}
           <AnalysisWarnings warnings={result.warnings} />
           <RevenueBreakdownTable revenue={result.verificationRevenue} />
           <GeneralBusinessExpenseTable expenses={result.generalBusinessExpenses} />
         </>
       ) : (
         <>
-          <MainBudgetUpload disabled={busy} onFile={(file) => { void analyze(file); }} />
+          <MainBudgetUpload
+            disabled={busy}
+            onFile={(file) => { void analyze(file); }}
+            onSelectionError={(message) => setError(message)}
+          />
           {progress ? <MainBudgetProgress progress={progress} onCancel={cancel} /> : null}
           {error ? <div className="main-budget-error" role="alert"><b>분석을 완료하지 못했습니다.</b><p>{error}</p></div> : null}
         </>

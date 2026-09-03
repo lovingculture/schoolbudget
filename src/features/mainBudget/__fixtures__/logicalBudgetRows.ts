@@ -1,7 +1,7 @@
 import type { BudgetLogicalRow } from "../analysisTypes";
 
 export const logicalBudgetRows: BudgetLogicalRow[] = [
-  { cells: ["2026회계연도 예산안"], sourcePage: 1, confidence: 0.99 },
+  { cells: ["가람초등학교", "2026회계연도 예산안"], sourcePage: 1, confidence: 0.99 },
   { cells: ["세입 세출 예산 총괄"], sourcePage: 2, confidence: 0.98 },
   { cells: ["구분", "본예산액(A)", "전년도예산액"], sourcePage: 2, confidence: 0.97 },
   { cells: ["세입예산총액", "1,010,749", "900,000"], sourcePage: 2, confidence: 0.96 },

@@ -26,6 +26,7 @@ function result(overrides: Partial<MainBudgetAnalysisResult> = {}): MainBudgetAn
   };
   const base: MainBudgetAnalysisResult = {
     source: { fileName: "2026본예산.xlsx", format: "xlsx", sheetCount: 1 },
+    identity: { schoolName: "가람초등학교", accountingYear: 2026, budgetType: "본예산" },
     totalRevenue: { label: "세입예산총액", amount: 1_010_749 },
     purposeRevenue: { label: "목적사업비전입금", amount: 0 },
     beneficiaryRevenue: { label: "수익자부담수입", amount: 207_176 },
@@ -62,6 +63,8 @@ describe("본예산 PDF·Excel 자동 계산 화면", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     storageMocks.load.mockReturnValue(null);
+    storageMocks.save.mockReturnValue(true);
+    storageMocks.clear.mockReturnValue(true);
   });
   afterEach(() => vi.restoreAllMocks());
 
@@ -75,6 +78,31 @@ describe("본예산 PDF·Excel 자동 계산 화면", () => {
     expect(screen.queryByText(/23,020/)).not.toBeInTheDocument();
     expect(screen.queryByRole("tab")).not.toBeInTheDocument();
     expect(screen.queryByRole("button", { name: /통합본|오류검토 보고서/ })).not.toBeInTheDocument();
+  });
+
+  it("captures the selected file before clearing a browser-live FileList", () => {
+    const selected = budgetFile();
+    const liveFiles: { 0?: File; length: number; item: (index: number) => File | null } = {
+      0: selected,
+      length: 1,
+      item: (index) => index === 0 && liveFiles.length === 1 ? selected : null,
+    };
+    dispatcherMocks.analyzeBudgetFile.mockResolvedValue(result());
+    render(<MainBudgetPage />);
+    const input = screen.getByLabelText("본예산 파일 선택");
+    Object.defineProperty(input, "files", { configurable: true, get: () => liveFiles });
+    Object.defineProperty(input, "value", {
+      configurable: true,
+      get: () => "",
+      set: () => {
+        liveFiles.length = 0;
+        delete liveFiles[0];
+      },
+    });
+
+    fireEvent.change(input);
+
+    expect(dispatcherMocks.analyzeBudgetFile).toHaveBeenCalledWith(selected, expect.any(Object));
   });
 
   it("shows progress, disables replacement, and cancels without accepting a late completion", async () => {
@@ -115,6 +143,10 @@ describe("본예산 PDF·Excel 자동 계산 화면", () => {
     expect(screen.getByText("23,020,000원")).toBeVisible();
     expect(screen.getByText("2.86%")).toBeVisible();
     expect(screen.getByText("일치")).toBeVisible();
+    expect(screen.getByText("가람초등학교")).toBeVisible();
+    expect(screen.getByText("2026학년도")).toBeVisible();
+    expect(screen.getByText("본예산")).toBeVisible();
+    expect(screen.getByText("1개 시트")).toBeVisible();
     const revenueTable = screen.getByRole("table", { name: "세입 검증 항목" });
     expect(within(revenueTable).getAllByRole("row")).toHaveLength(9);
     expect(within(revenueTable).getByText("721,573천원")).toBeVisible();
@@ -134,6 +166,7 @@ describe("본예산 PDF·Excel 자동 계산 화면", () => {
     render(<MainBudgetPage />);
     expect(screen.getByRole("heading", { name: "분석 결과" })).toBeVisible();
     expect(screen.getByText("restored-budget.pdf")).toBeVisible();
+    expect(screen.getByText("22쪽")).toBeVisible();
     expect(screen.queryByLabelText("본예산 파일 선택")).not.toBeInTheDocument();
     expect(dispatcherMocks.analyzeBudgetFile).not.toHaveBeenCalled();
   });
@@ -145,7 +178,7 @@ describe("본예산 PDF·Excel 자동 계산 화면", () => {
       comparison: { status: "mismatch", revenueBaseline: 803_573, verificationRevenueTotal: 782_000, difference: 21_573 },
       warnings: [
         { code: "REVENUE_BASELINE_MISMATCH", message: "세입 기준금액과 세입 검증 항목 합계가 일치하지 않습니다.", severity: "warning" },
-        { code: "LOW_CONFIDENCE", message: "OCR 인식 신뢰도가 낮아 원본 확인이 필요합니다.", severity: "warning", row: { cells: ["이자수입"], sourcePage: 4, confidence: 0.62 } },
+        { code: "LOW_CONFIDENCE", message: "OCR 인식 신뢰도가 낮아 원본 확인이 필요합니다.", severity: "warning", row: { cells: ["이자수입", "A".repeat(100)], sourcePage: 4, confidence: 0.62 } },
       ],
     }));
     render(<MainBudgetPage />);
@@ -154,7 +187,43 @@ describe("본예산 PDF·Excel 자동 계산 화면", () => {
     expect(screen.getByText("차이 21,573천원")).toBeVisible();
     expect(screen.getByText("세입 기준금액과 세입 검증 항목 합계가 일치하지 않습니다.")).toBeVisible();
     expect(screen.getByText("OCR 인식 신뢰도가 낮아 원본 확인이 필요합니다.")).toBeVisible();
-    expect(screen.getByText("4쪽 · 신뢰도 62%")).toBeVisible();
+    const source = screen.getByLabelText(/경고 출처:/);
+    expect(source).toBeVisible();
+    expect(source).toHaveAccessibleName(/4쪽.*인식 문자열:.*이자수입.*….*신뢰도 62%/);
+    expect(source).not.toHaveAccessibleName(/A{100}/);
+  });
+
+  it("renders a successful analysis with a nonfatal restoration warning when saving is blocked", async () => {
+    const user = userEvent.setup();
+    dispatcherMocks.analyzeBudgetFile.mockResolvedValue(result());
+    storageMocks.save.mockImplementation(() => {
+      throw new DOMException("quota", "QuotaExceededError");
+    });
+    render(<MainBudgetPage />);
+
+    await user.upload(screen.getByLabelText("본예산 파일 선택"), budgetFile());
+
+    expect(await screen.findByRole("heading", { name: "분석 결과" })).toBeVisible();
+    expect(screen.getByRole("status")).toHaveTextContent("다음 방문 때 복원할 수 없습니다");
+    expect(screen.queryByRole("alert")).not.toBeInTheDocument();
+  });
+
+  it.each([
+    [0, []],
+    [2, [budgetFile("one.pdf"), budgetFile("two.pdf")]],
+  ])("rejects a drag/drop selection containing %i files", async (count, dropped) => {
+    render(<MainBudgetPage />);
+    const files = {
+      length: count,
+      item: (index: number) => dropped[index] ?? null,
+    };
+
+    fireEvent.drop(screen.getByRole("region", { name: "본예산서 파일 불러오기" }), {
+      dataTransfer: { files },
+    });
+
+    expect(await screen.findByRole("alert")).toHaveTextContent("파일을 정확히 하나만 선택");
+    expect(dispatcherMocks.analyzeBudgetFile).not.toHaveBeenCalled();
   });
 
   it("renders unknown amounts as 확인 필요 and never manufactures a zero", async () => {
