@@ -14,7 +14,7 @@ const browserCandidates = [
 ].filter(Boolean);
 
 function blankReport(fatalReason = "") {
-  return { pages: [], summary: {}, revenue: {}, expenditure: {}, fatalReason };
+  return { pages: [], summary: {}, revenue: {}, expenditure: {}, result: {}, fatalReason };
 }
 
 async function availableBrowser() {
@@ -110,6 +110,7 @@ function harnessHtml(inputName) {
     }));
     const parserState = value => ({
       hasValidStructure: value.hasValidStructure,
+      isReviewable: value.isReviewable,
       isComplete: value.isComplete,
       warnings: warnings(value.warnings),
     });
@@ -158,11 +159,17 @@ function harnessHtml(inputName) {
       if (!response.ok) throw new Error("입력 파일을 읽지 못했습니다.");
       const blob = await response.blob();
       const file = new File([blob], ${JSON.stringify(inputName)}, { type: "application/pdf" });
-      await analyzeBudgetFile(file, {
+      const result = await analyzeBudgetFile(file, {
         signal: new AbortController().signal,
         onProgress: () => {},
         onDiagnostic,
       });
+      report.result = {
+        revenueBaseline: result.revenueBaseline,
+        generalBusinessExpenseTotal: result.generalBusinessExpenseTotal,
+        ratio: result.ratio,
+        comparisonStatus: result.comparison.status,
+      };
     } catch (error) {
       report.fatalReason = error instanceof Error ? error.message : String(error);
     } finally {

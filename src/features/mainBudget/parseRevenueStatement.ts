@@ -21,6 +21,7 @@ export type RevenueStatementParseResult = {
   beneficiaryRevenue: RevenueFact;
   verificationRevenue: RevenueFactCollection;
   hasValidStructure: boolean;
+  isReviewable: boolean;
   warnings: AnalysisWarning[];
 };
 
@@ -151,12 +152,15 @@ export function parseRevenueStatement(rows: BudgetLogicalRow[]): RevenueStatemen
     .filter((row) => isNonBlankBudgetRow(row) && !isReliableBudgetRow(row));
   const nearMissRows = start < 0 || !hasUsableHeader ? [] : nearTargetRows(rows, start, end, contexts);
 
-  const hasValidStructure = (start >= 0
+  const hasValidStructure = start >= 0
     && isReliableBudgetRow(rows[start])
     && hasUsableHeader
     && contexts.every((context) => context.isReliable)
     && hasParsedData(rows, start, end, contexts)
-    && span.hasReliableClosure) || (ocrEvidence !== null && span.hasReliableClosure);
+    && span.hasReliableClosure;
+  const isReviewable = hasValidStructure || (ocrEvidence !== null
+    && isReliableBudgetRow(rows[start])
+    && span.hasReliableClosure);
   const canInferAbsence = hasValidStructure && lowConfidenceRows.length === 0 && nearMissRows.length === 0;
   const absenceRow = start < 0 ? undefined : rows[start];
   const requiredFact = (label: string): RevenueFact => facts.get(label) ?? (canInferAbsence
@@ -178,8 +182,8 @@ export function parseRevenueStatement(rows: BudgetLogicalRow[]): RevenueStatemen
   else if (!hasUsableHeader) warnings.push(warning("REVENUE_CURRENT_COLUMN", "세입예산명세서의 현재 예산액과 원가통계비목 열을 확인할 수 없습니다."));
   else if (!hasValidStructure) warnings.push(warning("REVENUE_SECTION_INCOMPLETE", "세입예산명세서의 데이터와 종료 구조를 완전하게 확인할 수 없습니다."));
   if (ocrEvidence) warnings.push(warning("OCR_REVIEW_REVENUE", "OCR에서 세입 표 구조는 확인했지만 세부 머리글과 금액은 원본 확인이 필요합니다.", ocrEvidence.header));
-  if (hasValidStructure && purposeRevenue.amount === null) warnings.push(warning("PURPOSE_REVENUE", "목적사업비전입금을 확인할 수 없습니다.", purposeRevenue.row));
-  if (hasValidStructure && beneficiaryRevenue.amount === null) warnings.push(warning("BENEFICIARY_REVENUE", "수익자부담수입을 확인할 수 없습니다.", beneficiaryRevenue.row));
+  if (isReviewable && purposeRevenue.amount === null) warnings.push(warning("PURPOSE_REVENUE", "목적사업비전입금을 확인할 수 없습니다.", purposeRevenue.row));
+  if (isReviewable && beneficiaryRevenue.amount === null) warnings.push(warning("BENEFICIARY_REVENUE", "수익자부담수입을 확인할 수 없습니다.", beneficiaryRevenue.row));
   for (const fact of facts.values()) {
     if (!isReliableBudgetRow(fact.row)) warnings.push(warning("LOW_CONFIDENCE_REVENUE", `${fact.label} 행의 신뢰도가 낮아 확인이 필요합니다.`, fact.row));
   }
@@ -190,5 +194,5 @@ export function parseRevenueStatement(rows: BudgetLogicalRow[]): RevenueStatemen
     warnings.push(warning("NEAR_MATCH_REVENUE_LABEL", "필수 세입 항목과 유사한 인식 문자열이 있어 원본 확인이 필요합니다.", row));
   }
 
-  return { purposeRevenue, beneficiaryRevenue, verificationRevenue, hasValidStructure, warnings };
+  return { purposeRevenue, beneficiaryRevenue, verificationRevenue, hasValidStructure, isReviewable, warnings };
 }

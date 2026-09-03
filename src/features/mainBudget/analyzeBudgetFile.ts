@@ -277,9 +277,9 @@ function parsedInput(
   const expenditure = parseExpenditureStatement(rows);
   onDiagnostic?.({ kind: "parser", summary, revenue, expenditure });
   const missingSections = [
-    [summary.hasValidStructure, "세입세출예산총괄"],
-    [revenue.hasValidStructure, "세입예산명세서"],
-    [expenditure.hasValidStructure, "세출예산명세서"],
+    [summary.hasValidStructure || summary.isReviewable, "세입세출예산총괄"],
+    [revenue.hasValidStructure || revenue.isReviewable, "세입예산명세서"],
+    [expenditure.hasValidStructure || expenditure.isReviewable, "세출예산명세서"],
   ].filter(([valid]) => !valid).map(([, label]) => label);
   if (missingSections.length > 0) {
     throw new Error(`${source.fileName}: 필수 예산 구역의 구조를 확인할 수 없습니다 (${missingSections.join(", ")}).`);
@@ -291,7 +291,8 @@ function parsedInput(
       : `${source.fileName}: 학교명, 회계연도, 본예산 구분을 확인할 수 없습니다.`);
   }
   if (summary.budgetTypeEvidence === "generic"
-    && (!revenue.hasValidStructure || !expenditure.hasValidStructure)) {
+    && (!(revenue.hasValidStructure || revenue.isReviewable)
+      || !(expenditure.hasValidStructure || expenditure.isReviewable))) {
     throw new Error(`${source.fileName}: 예산안의 본예산 세입·세출 구조를 확인할 수 없습니다.`);
   }
   const units = sectionUnits(rows);

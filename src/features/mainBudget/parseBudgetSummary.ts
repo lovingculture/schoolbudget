@@ -15,6 +15,7 @@ export type BudgetSummaryParseResult = {
   budgetTypeEvidence: "explicit" | "generic" | null;
   totalRevenue: RevenueFact;
   hasValidStructure: boolean;
+  isReviewable: boolean;
   isComplete: boolean;
   warnings: AnalysisWarning[];
 };
@@ -78,8 +79,12 @@ export function isSectionHeading(row: BudgetLogicalRow, section: BudgetSection):
 
 export function findSectionStart(rows: BudgetLogicalRow[], section: BudgetSection): number {
   if (section === "summary") {
-    const strict = rows.findIndex((row) => rowText(row).includes("세입세출예산총괄"));
+    const strict = rows.findIndex((row) => rowText(row).includes("세입세출예산총괄") && isReliableBudgetRow(row));
     if (strict >= 0) return strict;
+    const reliable = rows.findIndex((row) => isSectionHeading(row, section) && isReliableBudgetRow(row));
+    if (reliable >= 0) return reliable;
+    const uncertainStrict = rows.findIndex((row) => rowText(row).includes("세입세출예산총괄"));
+    if (uncertainStrict >= 0) return uncertainStrict;
   }
   return rows.findIndex((row) => isSectionHeading(row, section));
 }
@@ -299,8 +304,10 @@ export function parseBudgetSummary(rows: BudgetLogicalRow[]): BudgetSummaryParse
     return isOcrRow(row) && text.includes("세입세출예산총액")
       && row.cells.some((cell) => parseBudgetNumber(cell) !== null);
   });
+  const reliableBudgetRuleHeading = rows.slice(start + 1, end)
+    .some((row) => isOcrRow(row) && rowText(row).includes("예산총칙") && isReliableBudgetRow(row));
   const hasReviewableOcrStructure = summaryOcrEvidence !== undefined
-    && rows.slice(start + 1, end).some((row) => isOcrRow(row) && rowText(row).includes("예산총칙"));
+    && (isReliableBudgetRow(sectionRow) || reliableBudgetRuleHeading);
 
   if (!totalRow) {
     const revenueStart = findSectionStart(rows, "revenue");
@@ -337,16 +344,17 @@ export function parseBudgetSummary(rows: BudgetLogicalRow[]): BudgetSummaryParse
   if (totalRow && !isReliableBudgetRow(totalRow)) warnings.push(warning("LOW_CONFIDENCE_TOTAL_REVENUE", "세입예산총액 행의 신뢰도가 낮아 확인이 필요합니다.", totalRow));
   if (hasReviewableOcrStructure) warnings.push(warning("OCR_REVIEW_BUDGET_SUMMARY", "OCR에서 총괄 구조는 확인했지만 금액과 머리글은 원본 확인이 필요합니다.", summaryOcrEvidence));
 
-  const hasValidStructure = (start >= 0
+  const hasValidStructure = start >= 0
     && currentColumn >= 0
     && isReliableBudgetRow(sectionRow)
-    && isReliableBudgetRow(currentHeaderRow)) || hasReviewableOcrStructure;
+    && isReliableBudgetRow(currentHeaderRow);
 
   return {
     identity,
     budgetTypeEvidence,
     totalRevenue: { label: "세입예산총액", amount, row: totalRow ?? summaryOcrEvidence },
     hasValidStructure,
+    isReviewable: hasValidStructure || hasReviewableOcrStructure,
     isComplete: hasValidStructure
       && identity !== null
       && amount !== null

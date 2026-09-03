@@ -16,6 +16,7 @@ import {
 export type ExpenditureStatementParseResult = {
   expenses: GeneralBusinessExpense[];
   hasValidStructure: boolean;
+  isReviewable: boolean;
   isComplete: boolean;
   warnings: AnalysisWarning[];
 };
@@ -198,12 +199,15 @@ export function parseExpenditureStatement(rows: BudgetLogicalRow[]): Expenditure
     .some((row) => row.sourcePage !== rows[start].sourcePage
       && isSectionHeading(row, "expenditure")
       && isReliableBudgetRow(row));
-  const hasValidStructure = (start >= 0
+  const hasValidStructure = start >= 0
     && isReliableBudgetRow(rows[start])
     && hasUsableHeader
     && contexts.every((context) => context.isReliable)
     && hasParsedData(rows, start, end, contexts)
-    && span.hasReliableClosure) || (ocrEvidence !== null && (span.hasReliableClosure || repeatedOcrHeading));
+    && span.hasReliableClosure;
+  const isReviewable = hasValidStructure || (ocrEvidence !== null
+    && isReliableBudgetRow(rows[start])
+    && (span.hasReliableClosure || repeatedOcrHeading));
   const isComplete = hasValidStructure
     && lowConfidenceRows.length === 0
     && nearMissRows.length === 0
@@ -228,5 +232,5 @@ export function parseExpenditureStatement(rows: BudgetLogicalRow[]): Expenditure
     });
   }
 
-  return { expenses, hasValidStructure, isComplete, warnings };
+  return { expenses, hasValidStructure, isReviewable, isComplete, warnings };
 }

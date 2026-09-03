@@ -170,9 +170,12 @@ describe("본예산 공통 구역 파서", () => {
     const revenue = parseRevenueStatement(rows);
     const expenditure = parseExpenditureStatement(rows);
 
-    expect(summary.hasValidStructure).toBe(true);
-    expect(revenue.hasValidStructure).toBe(true);
-    expect(expenditure.hasValidStructure).toBe(true);
+    expect(summary.hasValidStructure).toBe(false);
+    expect(summary.isReviewable).toBe(true);
+    expect(revenue.hasValidStructure).toBe(false);
+    expect(revenue.isReviewable).toBe(true);
+    expect(expenditure.hasValidStructure).toBe(false);
+    expect(expenditure.isReviewable).toBe(true);
     expect(summary.totalRevenue.amount).toBeNull();
     expect(revenue.beneficiaryRevenue.amount).toBeNull();
     expect(expenditure.isComplete).toBe(false);
@@ -201,8 +204,92 @@ describe("본예산 공통 구역 파서", () => {
       { cells: ["세출예산명세서"], sourcePage: 7, sourceRow: 1, confidence: 0.91 },
     ];
 
-    expect(parseRevenueStatement(rows)).toMatchObject({ hasValidStructure: true });
-    expect(parseExpenditureStatement(rows)).toMatchObject({ hasValidStructure: true, isComplete: false });
+    expect(parseRevenueStatement(rows)).toMatchObject({ hasValidStructure: false, isReviewable: true });
+    expect(parseExpenditureStatement(rows)).toMatchObject({ hasValidStructure: false, isReviewable: true, isComplete: false });
+  });
+
+  it("신뢰도 높은 OCR 검토 구조도 세입 누락 항목을 0원으로 추론하거나 수집 완료로 표시하지 않는다", () => {
+    const rows = [
+      { cells: ["세입예산명세서"], sourcePage: 5, sourceRow: 1, confidence: 0.95 },
+      { cells: ["구분"], sourcePage: 5, sourceRow: 2, confidence: 0.95 },
+      { cells: ["예산", "본예산", "단위", "천원"], sourcePage: 5, sourceRow: 3, confidence: 0.95 },
+      { cells: ["학교운영비전입금", "650,605"], sourcePage: 5, sourceRow: 4, confidence: 0.95 },
+      { cells: ["세출예산명세서"], sourcePage: 6, sourceRow: 1, confidence: 0.95 },
+    ];
+
+    const revenue = parseRevenueStatement(rows);
+
+    expect(revenue).toMatchObject({ hasValidStructure: false, isReviewable: true });
+    expect(revenue.purposeRevenue.amount).toBeNull();
+    expect(revenue.purposeRevenue).not.toHaveProperty("inferredAbsent");
+    expect(revenue.beneficiaryRevenue.amount).toBeNull();
+    expect(revenue.beneficiaryRevenue).not.toHaveProperty("inferredAbsent");
+    expect(revenue.verificationRevenue.isComplete).toBe(false);
+  });
+
+  it("신뢰도 높은 OCR 검토 구조도 일반업무추진비가 없다고 확정하지 않는다", () => {
+    const rows = [
+      { cells: ["세출예산명세서"], sourcePage: 8, sourceRow: 1, confidence: 0.95 },
+      { cells: ["구분"], sourcePage: 8, sourceRow: 2, confidence: 0.95 },
+      { cells: ["예산", "본예산", "단위", "천원"], sourcePage: 8, sourceRow: 3, confidence: 0.95 },
+      { cells: ["교직원복지", "15,620"], sourcePage: 8, sourceRow: 4, confidence: 0.95 },
+      { cells: ["세출예산명세서"], sourcePage: 9, sourceRow: 1, confidence: 0.95 },
+    ];
+
+    expect(parseExpenditureStatement(rows)).toMatchObject({
+      hasValidStructure: false,
+      isReviewable: true,
+      isComplete: false,
+      expenses: [],
+    });
+  });
+
+  it("OCR 검토 구조는 세 구역 제목의 신뢰도가 낮으면 인정하지 않는다", () => {
+    const summaryRows = [
+      { cells: ["세입세출예산서"], sourcePage: 3, sourceRow: 1, confidence: 0.4 },
+      { cells: ["예산총칙"], sourcePage: 3, sourceRow: 2, confidence: 0.4 },
+      { cells: ["세입세출예산총액", "1,000,000"], sourcePage: 3, sourceRow: 3, confidence: 0.95 },
+    ];
+    const revenueRows = [
+      { cells: ["세입예산명세서"], sourcePage: 5, sourceRow: 1, confidence: 0.4 },
+      { cells: ["구분"], sourcePage: 5, sourceRow: 2, confidence: 0.95 },
+      { cells: ["예산액"], sourcePage: 5, sourceRow: 3, confidence: 0.95 },
+      { cells: ["학교운영비전입금", "1,000"], sourcePage: 5, sourceRow: 4, confidence: 0.95 },
+      { cells: ["세출예산명세서"], sourcePage: 6, sourceRow: 1, confidence: 0.95 },
+    ];
+    const expenditureRows = [
+      { cells: ["세출예산명세서"], sourcePage: 8, sourceRow: 1, confidence: 0.4 },
+      { cells: ["구분"], sourcePage: 8, sourceRow: 2, confidence: 0.95 },
+      { cells: ["예산액"], sourcePage: 8, sourceRow: 3, confidence: 0.95 },
+      { cells: ["교직원복지", "1,000"], sourcePage: 8, sourceRow: 4, confidence: 0.95 },
+      { cells: ["세출예산명세서"], sourcePage: 9, sourceRow: 1, confidence: 0.95 },
+    ];
+
+    expect(parseBudgetSummary(summaryRows).isReviewable).toBe(false);
+    expect(parseRevenueStatement(revenueRows).isReviewable).toBe(false);
+    expect(parseExpenditureStatement(expenditureRows).isReviewable).toBe(false);
+  });
+
+  it("낮은 신뢰도의 표지 제목보다 뒤의 신뢰도 높은 총괄 제목을 구역 시작으로 사용한다", () => {
+    const rows = [
+      { cells: ["서울가람초등학교회계 세입세출예산서"], sourcePage: 1, sourceRow: 1, confidence: 0.5 },
+      { cells: ["세입세출예산서"], sourcePage: 3, sourceRow: 1, confidence: 0.95 },
+      { cells: ["예산총칙"], sourcePage: 3, sourceRow: 2, confidence: 0.95 },
+      { cells: ["세입세출예산총액", "1,000,000"], sourcePage: 3, sourceRow: 3, confidence: 0.9 },
+    ];
+
+    expect(parseBudgetSummary(rows)).toMatchObject({ hasValidStructure: false, isReviewable: true });
+  });
+
+  it("OCR 총괄 제목이 분절돼도 신뢰도 높은 예산총칙 제목과 총액 근거가 있으면 검토 가능하다", () => {
+    const rows = [
+      { cells: ["서울가람초등학교회계 세입세출예산서"], sourcePage: 1, sourceRow: 1, confidence: 0.5 },
+      { cells: ["서울가람 학 교 회계 세입 세출 예산서"], sourcePage: 3, sourceRow: 1, confidence: 0.79 },
+      { cells: ["예산총칙"], sourcePage: 3, sourceRow: 2, confidence: 0.96 },
+      { cells: ["세입세출예산총액", "1,000,000"], sourcePage: 3, sourceRow: 3, confidence: 0.9 },
+    ];
+
+    expect(parseBudgetSummary(rows)).toMatchObject({ hasValidStructure: false, isReviewable: true });
   });
 
   it("번호 접두어를 제거하고 상위·하위 수익자부담수입을 중복 집계하지 않는다", () => {
