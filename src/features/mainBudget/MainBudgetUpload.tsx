@@ -50,8 +50,8 @@ export function MainBudgetUpload({ disabled, onFile, onSelectionError }: MainBud
         <span className="main-budget-upload-icon" aria-hidden="true">↑</span>
         <div>
           <h2 id="main-budget-upload-title">본예산서 파일 불러오기</h2>
-          <p>K-에듀파인에서 출력한 본예산 PDF 또는 Excel 파일 하나를 선택하세요.</p>
-          <small>지원 형식: PDF, XLS, XLSX · 원본 파일은 브라우저 밖으로 전송되지 않습니다.</small>
+          <p>K-에듀파인에서 출력한 본예산 Excel 파일 하나를 선택하세요.</p>
+          <small>지원 형식: XLS, XLSX · 원본 파일은 브라우저 밖으로 전송되지 않습니다.</small>
         </div>
       </div>
       <label className={`main-budget-file-button${disabled ? " disabled" : ""}`}>

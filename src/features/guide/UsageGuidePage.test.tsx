@@ -13,12 +13,11 @@ describe("학교예산 한눈에 이용 안내", () => {
     expect(screen.getByRole("heading", { name: "파일 내려받기 안내" })).toBeVisible();
     expect(screen.getByRole("heading", { name: "자주 묻는 질문" })).toBeVisible();
     expect(screen.getByRole("heading", { name: "추경예산자료 만들기 이용 방법" })).toBeVisible();
-    expect(screen.getByRole("heading", { name: "본예산 PDF·Excel 자동 계산" })).toBeVisible();
+    expect(screen.getByRole("heading", { name: "본예산 Excel 자동 계산" })).toBeVisible();
     expect(screen.getByText("본예산서를 불러오면 세입 기준금액과 일반업무추진비 편성 비율을 자동으로 계산합니다.")).toBeVisible();
     await user.click(screen.getByText("본예산 파일은 어떻게 분석하나요?"));
-    expect(screen.getByText(/K-에듀파인 본예산 PDF 또는 Excel 파일/)).toBeVisible();
-    expect(screen.getByText(/PDF, \.xls, \.xlsx 파일을 선택할 수 있으며/)).toBeVisible();
-    expect(screen.getByText("이미지형 PDF의 OCR은 최초 이용 시 인터넷 연결 또는 네트워크 권한이 필요할 수 있습니다.")).toBeVisible();
+    expect(screen.getByText(/K-에듀파인 본예산 Excel 파일/)).toBeVisible();
+    expect(screen.getByText(/\.xls, \.xlsx 파일을 선택할 수 있으며/)).toBeVisible();
     expect(screen.getByText(/분석 결과는 현재 브라우저에만 복원됩니다/)).toBeVisible();
     expect(screen.getByText(/각 열 제목의 필터 버튼/)).toBeVisible();
     expect(screen.getByText(/브라우저를 닫았다가 다음 날 다시 접속해도/)).toBeVisible();
@@ -33,7 +32,7 @@ describe("학교예산 한눈에 이용 안내", () => {
     const destinations = [
       ["예산 자료실로 이동", "resources"],
       ["성립전예산 작성으로 이동", "prebudget"],
-      ["본예산 PDF·Excel 자동 계산으로 이동", "budget"],
+      ["본예산 Excel 자동 계산으로 이동", "budget"],
       ["예산안건 설명서로 이동", "agenda"],
       ["결산 설명서로 이동", "closing"],
       ["추경예산자료로 이동", "supplementary"],
