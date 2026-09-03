@@ -45,6 +45,15 @@ export type PdfExtractionResult = {
   cleanup: () => Promise<void>;
 };
 
+export type PdfPageDiagnostic = {
+  pageNumber: number;
+  classification: "text" | "ocr";
+  rowCount: number;
+  coverage: TextCoverage;
+  hasLargeRaster: boolean | null;
+  rows: BudgetLogicalRow[];
+};
+
 const budgetTextPattern = /(세입\s*(?:세출\s*)?예산|세출\s*예산|예산\s*(?:총괄|명세서|액|안)|본\s*예산|원가\s*통계\s*비목|목적\s*사업비\s*전입금|수익자\s*부담\s*수입|일반\s*업무\s*추진비)/;
 
 function throwIfAborted(signal: AbortSignal): void {
@@ -180,6 +189,7 @@ export async function extractPdfPages(
   file: File,
   signal: AbortSignal,
   onProgress: (progress: PdfExtractionProgress) => void,
+  onDiagnostic?: (diagnostic: PdfPageDiagnostic) => void,
 ): Promise<PdfExtractionResult> {
   throwIfAborted(signal);
   const source = new Uint8Array(await awaitWithAbort(file.arrayBuffer(), signal));
@@ -220,15 +230,19 @@ export async function extractPdfPages(
       const rows = normalizePdfLines(items, pageNumber);
       const coverage = textCoverage(rows);
       let sparseRasterPage = false;
+      let largeRaster: boolean | null = null;
       if (hasMeaningfulText(coverage) && !hasSufficientTextCoverage(coverage)) {
         const operatorList = await awaitWithAbort(page.getOperatorList() as Promise<PdfOperatorList>, signal);
-        sparseRasterPage = hasLargeRaster(operatorList);
+        largeRaster = hasLargeRaster(operatorList);
+        sparseRasterPage = largeRaster;
       }
-      if (hasMeaningfulText(coverage) && !sparseRasterPage) {
+      const classification = hasMeaningfulText(coverage) && !sparseRasterPage ? "text" : "ocr";
+      if (classification === "text") {
         textPages.push({ pageNumber, page, items, rows });
       } else {
         imagePages.push({ pageNumber, page });
       }
+      onDiagnostic?.({ pageNumber, classification, rowCount: rows.length, coverage, hasLargeRaster: largeRaster, rows });
       onProgress({ phase: "pdf-text", completed: pageNumber, total: document.numPages });
       throwIfAborted(signal);
     }

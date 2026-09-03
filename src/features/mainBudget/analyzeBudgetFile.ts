@@ -9,9 +9,9 @@ import type {
   RevenueFact,
   RevenueFactCollection,
 } from "./analysisTypes";
-import { extractPdfPages, type PdfExtractionProgress } from "./extractPdfPages";
+import { extractPdfPages, type PdfExtractionProgress, type PdfPageDiagnostic } from "./extractPdfPages";
 import { extractWorkbookRows } from "./extractWorkbookRows";
-import { ocrPdfPages, type OcrProgress } from "./ocrPdfPages";
+import { ocrPdfPages, type OcrProgress, type OcrPageDiagnostic } from "./ocrPdfPages";
 import { parseBudgetSummary } from "./parseBudgetSummary";
 import { parseExpenditureStatement } from "./parseExpenditureStatement";
 import { parseRevenueStatement } from "./parseRevenueStatement";
@@ -25,7 +25,20 @@ export type AnalysisProgress = PdfExtractionProgress | OcrProgress | {
 export type AnalyzeBudgetFileOptions = {
   signal: AbortSignal;
   onProgress: (progress: AnalysisProgress) => void;
+  onDiagnostic?: (diagnostic: AnalysisDiagnostic) => void;
 };
+
+export type ParserDiagnostic = {
+  kind: "parser";
+  summary: ReturnType<typeof parseBudgetSummary>;
+  revenue: ReturnType<typeof parseRevenueStatement>;
+  expenditure: ReturnType<typeof parseExpenditureStatement>;
+};
+
+export type AnalysisDiagnostic =
+  | ({ kind: "pdf-page" } & PdfPageDiagnostic)
+  | ({ kind: "ocr-page" } & OcrPageDiagnostic)
+  | ParserDiagnostic;
 
 const PDF_MAGIC = [0x25, 0x50, 0x44, 0x46, 0x2d] as const;
 const XLS_MAGIC = [0xd0, 0xcf, 0x11, 0xe0, 0xa1, 0xb1, 0x1a, 0xe1] as const;
@@ -257,10 +270,12 @@ function scaledExpense(expense: GeneralBusinessExpense, unit: ExplicitMoneyUnit 
 function parsedInput(
   source: ParsedMainBudgetInput["source"],
   rows: BudgetLogicalRow[],
+  onDiagnostic?: (diagnostic: AnalysisDiagnostic) => void,
 ): ParsedMainBudgetInput {
   const summary = parseBudgetSummary(rows);
   const revenue = parseRevenueStatement(rows);
   const expenditure = parseExpenditureStatement(rows);
+  onDiagnostic?.({ kind: "parser", summary, revenue, expenditure });
   const missingSections = [
     [summary.hasValidStructure, "세입세출예산총괄"],
     [revenue.hasValidStructure, "세입예산명세서"],
@@ -308,7 +323,11 @@ function corruptFileError(file: File, format: BudgetFileFormat, cause: unknown):
 async function analyzePdf(file: File, options: AnalyzeBudgetFileOptions): Promise<MainBudgetAnalysisResult> {
   let extraction;
   try {
-    extraction = await extractPdfPages(file, options.signal, options.onProgress);
+    extraction = options.onDiagnostic
+      ? await extractPdfPages(file, options.signal, options.onProgress, (diagnostic) => {
+        options.onDiagnostic?.({ kind: "pdf-page", ...diagnostic });
+      })
+      : await extractPdfPages(file, options.signal, options.onProgress);
   } catch (error) {
     if (isAbortError(error)) throw error;
     throw corruptFileError(file, "pdf", error);
@@ -323,7 +342,11 @@ async function analyzePdf(file: File, options: AnalyzeBudgetFileOptions): Promis
       .flatMap((page) => page.rows);
     const ocrRows = extraction.imagePages.length === 0
       ? []
-      : await ocrPdfPages(extraction.imagePages, options.signal, options.onProgress);
+      : options.onDiagnostic
+        ? await ocrPdfPages(extraction.imagePages, options.signal, options.onProgress, (diagnostic) => {
+          options.onDiagnostic?.({ kind: "ocr-page", ...diagnostic });
+        })
+        : await ocrPdfPages(extraction.imagePages, options.signal, options.onProgress);
     throwIfAborted(options.signal);
     const rows = [...directRows, ...ocrRows].sort(sourceOrder);
     options.onProgress({ phase: "parsing", completed: 0, total: 1 });
@@ -332,7 +355,7 @@ async function analyzePdf(file: File, options: AnalyzeBudgetFileOptions): Promis
       fileName: file.name,
       format: "pdf",
       pageCount: extraction.metadata.pageCount,
-    }, rows));
+    }, rows, options.onDiagnostic));
     options.onProgress({ phase: "complete", completed: 1, total: 1 });
     throwIfAborted(options.signal);
     return result;
@@ -373,7 +396,7 @@ export async function analyzeBudgetFile(file: File, options: AnalyzeBudgetFileOp
   throwIfAborted(options.signal);
   options.onProgress({ phase: "parsing", completed: 0, total: 1 });
   throwIfAborted(options.signal);
-  const result = analyzeMainBudget(parsedInput(extracted.source, extracted.rows));
+  const result = analyzeMainBudget(parsedInput(extracted.source, extracted.rows, options.onDiagnostic));
   throwIfAborted(options.signal);
   options.onProgress({ phase: "complete", completed: 1, total: 1 });
   throwIfAborted(options.signal);

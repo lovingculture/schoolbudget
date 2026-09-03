@@ -9,6 +9,13 @@ export type OcrProgress = {
   total: number;
 };
 
+export type OcrPageDiagnostic = {
+  pageNumber: number;
+  rowCount: number;
+  averageConfidence: number | null;
+  rows: BudgetLogicalRow[];
+};
+
 export const OCR_ASSET_LOAD_ERROR_MESSAGE = "OCR 파일을 불러오지 못했습니다. 인터넷 연결 또는 네트워크 권한을 확인해 주세요.";
 
 type TesseractModule = typeof import("tesseract.js");
@@ -93,6 +100,7 @@ export async function ocrPdfPages(
   pages: readonly PdfImagePage[],
   signal: AbortSignal,
   onProgress: (progress: OcrProgress) => void,
+  onDiagnostic?: (diagnostic: OcrPageDiagnostic) => void,
 ): Promise<BudgetLogicalRow[]> {
   throwIfAborted(signal);
   if (pages.length === 0) return [];
@@ -179,7 +187,17 @@ export async function ocrPdfPages(
         await awaitWithAbort(renderTask.promise, signal, () => renderTask.cancel());
         throwIfAborted(signal);
         const result = await awaitWithAbort(worker.recognize(canvas, {}, { blocks: true }), signal);
-        rows.push(...wordsFromResult(result, pageNumber, viewport.height));
+        const pageRows = wordsFromResult(result, pageNumber, viewport.height);
+        rows.push(...pageRows);
+        const confidences = pageRows.map((row) => row.confidence).filter((value): value is number => value !== undefined);
+        onDiagnostic?.({
+          pageNumber,
+          rowCount: pageRows.length,
+          averageConfidence: confidences.length === 0
+            ? null
+            : confidences.reduce((sum, value) => sum + value, 0) / confidences.length,
+          rows: pageRows,
+        });
         completedPages += 1;
         report("ocr-recognizing", "page complete", completedPages);
         throwIfAborted(signal);
