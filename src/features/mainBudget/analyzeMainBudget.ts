@@ -26,15 +26,16 @@ export function analyzeMainBudget(input: ParsedMainBudgetInput): MainBudgetAnaly
     if (!isKnownFact(fact)) warnings.push(missingFactWarning(code, fact.label, fact.row));
   }
 
-  let revenueBaseline: number | null = null;
+  let originalRevenueCalculation: number | null = null;
   if (isKnownFact(input.totalRevenue) && isKnownFact(input.purposeRevenue) && isKnownFact(input.beneficiaryRevenue)) {
-    revenueBaseline = input.totalRevenue.amount - (input.purposeRevenue.amount + input.beneficiaryRevenue.amount);
+    originalRevenueCalculation = input.totalRevenue.amount - (input.purposeRevenue.amount + input.beneficiaryRevenue.amount);
   }
 
   const verificationFacts = verificationLabels.map((label) => input.verificationRevenue.facts.find((fact) => fact.label === label));
   const missingVerificationFact = !input.verificationRevenue.isComplete || verificationFacts.some((fact) => !fact || !isKnownFact(fact));
   if (missingVerificationFact) warnings.push(missingFactWarning("VERIFICATION_REVENUE", "세입 검증 항목"));
   const verificationRevenueTotal = missingVerificationFact ? null : verificationFacts.reduce((total, fact) => total + fact!.amount!, 0);
+  const revenueBaseline = verificationRevenueTotal;
 
   const generalBusinessExpenses = input.generalBusinessExpenses.facts.filter((expense) => expense.costItem === "일반업무추진비");
   const missingExpense = !input.generalBusinessExpenses.isComplete || generalBusinessExpenses.some((expense) => !isKnownAmount(expense.amount));
@@ -48,11 +49,11 @@ export function analyzeMainBudget(input: ParsedMainBudgetInput): MainBudgetAnaly
     warnings.push({ code: "ZERO_REVENUE_BASELINE", message: "세입 기준금액이 0이어서 비율을 계산할 수 없습니다.", severity: "warning" });
   }
 
-  const comparison = revenueBaseline === null || verificationRevenueTotal === null
-    ? { status: "needs-review" as const, revenueBaseline, verificationRevenueTotal, difference: null }
-    : { status: revenueBaseline === verificationRevenueTotal ? "match" as const : "mismatch" as const, revenueBaseline, verificationRevenueTotal, difference: revenueBaseline - verificationRevenueTotal };
+  const comparison = originalRevenueCalculation === null || verificationRevenueTotal === null
+    ? { status: "needs-review" as const, revenueBaseline: originalRevenueCalculation, verificationRevenueTotal, difference: null }
+    : { status: originalRevenueCalculation === verificationRevenueTotal ? "match" as const : "mismatch" as const, revenueBaseline: originalRevenueCalculation, verificationRevenueTotal, difference: originalRevenueCalculation - verificationRevenueTotal };
   if (comparison.status === "mismatch") {
-    warnings.push({ code: "REVENUE_BASELINE_MISMATCH", message: "세입 기준금액과 세입 검증 항목 합계가 일치하지 않습니다.", severity: "warning" });
+    warnings.push({ code: "REVENUE_BASELINE_MISMATCH", message: "원본 세입합계 계산값과 8개 확인 항목 합계가 일치하지 않습니다.", severity: "warning" });
   }
 
   return {

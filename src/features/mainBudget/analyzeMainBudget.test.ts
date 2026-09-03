@@ -43,8 +43,31 @@ describe("analyzeMainBudget", () => {
 
   it("reports mismatched independent revenue verification totals", () => {
     const result = analyzeMainBudget(input({ verificationRevenue: { facts: verificationFacts({ 학교운영비전입금: 700000 }), isComplete: true } }));
+    expect(result.revenueBaseline).toBe(782000);
     expect(result.comparison).toMatchObject({ status: "mismatch", verificationRevenueTotal: 782000, difference: 21573 });
     expect(result.warnings).toContainEqual(expect.objectContaining({ severity: "warning" }));
+  });
+
+  it("uses the eight verification items including interest income as the revenue baseline", () => {
+    const result = analyzeMainBudget(input({
+      verificationRevenue: {
+        facts: verificationFacts({ 사용료: 16000, 이자수입: 4000, 기타행정활동수입: 51000, 순세계잉여금: 15000 }),
+        isComplete: true,
+      },
+    }));
+
+    expect(result.revenueBaseline).toBe(807573);
+    expect(result.ratio).toBeCloseTo(23020 / 807573 * 100, 6);
+    expect(result.comparison).toMatchObject({
+      status: "mismatch",
+      revenueBaseline: 803573,
+      verificationRevenueTotal: 807573,
+      difference: -4000,
+    });
+    expect(result.warnings).toContainEqual(expect.objectContaining({
+      code: "REVENUE_BASELINE_MISMATCH",
+      message: "원본 세입합계 계산값과 8개 확인 항목 합계가 일치하지 않습니다.",
+    }));
   });
 
   it("keeps incomplete verification and expense collections unresolved", () => {

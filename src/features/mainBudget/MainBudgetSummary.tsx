@@ -53,11 +53,11 @@ export function MainBudgetSummary({ result }: { result: MainBudgetAnalysisResult
       </div>
       <div className={`main-budget-comparison ${result.comparison.status}`}>
         <div>
-          <span>세입 독립 검증</span>
+          <span>원본 세입합계 대조</span>
           <b>{comparisonLabel(result.comparison.status)}</b>
         </div>
         <p>
-          기준금액 {formatThousandWon(result.comparison.revenueBaseline)} · 검증 합계 {formatThousandWon(result.comparison.verificationRevenueTotal)}
+          원본 계산값 {formatThousandWon(result.comparison.revenueBaseline)} · 8개 항목 합계 {formatThousandWon(result.comparison.verificationRevenueTotal)}
           {result.comparison.status === "mismatch" && result.comparison.difference !== null
             ? <strong>차이 {formatThousandWon(result.comparison.difference)}</strong>
             : null}

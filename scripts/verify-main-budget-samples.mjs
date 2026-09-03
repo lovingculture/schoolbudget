@@ -5,9 +5,9 @@ import { pathToFileURL } from "node:url";
 import { createServer } from "vite";
 
 const EXPECTED = {
-  revenueBaseline: 803_573,
+  revenueBaseline: 807_573,
   generalBusinessExpenseTotal: 23_020,
-  ratioRounded: 2.86,
+  ratioRounded: 2.85,
 };
 
 const MIME_TYPES = {

@@ -178,7 +178,7 @@ describe("본예산 PDF·Excel 자동 계산 화면", () => {
       verificationRevenueTotal: 782_000,
       comparison: { status: "mismatch", revenueBaseline: 803_573, verificationRevenueTotal: 782_000, difference: 21_573 },
       warnings: [
-        { code: "REVENUE_BASELINE_MISMATCH", message: "세입 기준금액과 세입 검증 항목 합계가 일치하지 않습니다.", severity: "warning" },
+        { code: "REVENUE_BASELINE_MISMATCH", message: "원본 세입합계 계산값과 8개 확인 항목 합계가 일치하지 않습니다.", severity: "warning" },
         { code: "LOW_CONFIDENCE", message: "OCR 인식 신뢰도가 낮아 원본 확인이 필요합니다.", severity: "warning", row: { cells: ["이자수입", "A".repeat(100)], sourcePage: 4, confidence: 0.62 } },
       ],
     }));
@@ -186,7 +186,7 @@ describe("본예산 PDF·Excel 자동 계산 화면", () => {
     await user.upload(screen.getByLabelText("본예산 파일 선택"), budgetFile("mismatch.pdf"));
     expect(await screen.findByText("불일치")).toBeVisible();
     expect(screen.getByText("차이 21,573천원")).toBeVisible();
-    expect(screen.getByText("세입 기준금액과 세입 검증 항목 합계가 일치하지 않습니다.")).toBeVisible();
+    expect(screen.getByText("원본 세입합계 계산값과 8개 확인 항목 합계가 일치하지 않습니다.")).toBeVisible();
     expect(screen.getByText("OCR 인식 신뢰도가 낮아 원본 확인이 필요합니다.")).toBeVisible();
     const source = screen.getByLabelText(/경고 출처:/);
     expect(source).toBeVisible();

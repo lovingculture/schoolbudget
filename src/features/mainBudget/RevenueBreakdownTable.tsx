@@ -7,7 +7,7 @@ export function RevenueBreakdownTable({ revenue }: { revenue: RevenueFactCollect
       <div className="main-budget-section-heading">
         <div>
           <h2 id="revenue-breakdown-title">세입 검증 항목</h2>
-          <p>세입 기준금액과 독립적으로 대조한 8개 항목입니다.</p>
+          <p>세입 기준금액을 계산하는 8개 확인 항목입니다.</p>
         </div>
         <span className={`main-budget-completeness ${revenue.isComplete ? "complete" : "review"}`}>
           {revenue.isComplete ? "8개 항목 확인" : "원본 확인 필요"}
