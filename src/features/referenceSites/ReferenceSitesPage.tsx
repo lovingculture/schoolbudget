@@ -42,11 +42,25 @@ export const REFERENCE_SITES: ReferenceSite[] = [
     url: "https://www.ssem.or.kr/api/intergrated/tutHpDta/metaSearch/apiBbs/apiBbsList.do?bbsSn=1216",
   },
   {
+    id: "sen-electronic-library",
+    title: "서울시교육청 전자도서관",
+    category: "교육청",
+    description: "전자책·오디오북·온라인 강좌 등 서울시교육청의 디지털 자료를 이용할 수 있는 전자도서관입니다.",
+    url: "https://e-lib.sen.go.kr/",
+  },
+  {
     id: "sen-school",
     title: "센스쿨",
     category: "업무지원",
     description: "AI 맞춤형 교수·학습 플랫폼으로, 서울시교육청 교직원은 로그인하여 센지피티, 미리캔버스, 캔바 등 교육활동에 필요한 사이트를 이용할 수 있습니다.",
     url: "https://senedu.kr/",
+  },
+  {
+    id: "government-employees-pension-service",
+    title: "공무원연금공단",
+    category: "업무지원",
+    description: "공무원 연금·퇴직급여·재해보상·복지서비스와 관련 민원 정보를 확인할 수 있는 공식 사이트입니다.",
+    url: "https://www.geps.or.kr/",
   },
   {
     id: "k-edufine-main-budget-training-2025-11-20",

@@ -65,6 +65,28 @@ describe("참고사이트 게시판", () => {
     expect(within(card).getByText("AI 맞춤형 교수·학습 플랫폼으로, 서울시교육청 교직원은 로그인하여 센지피티, 미리캔버스, 캔바 등 교육활동에 필요한 사이트를 이용할 수 있습니다.")).toBeVisible();
   });
 
+  it("공무원연금공단을 업무지원 링크로 제공한다", () => {
+    render(<ReferenceSitesPage />);
+    const link = screen.getByRole("link", { name: "공무원연금공단 바로가기" });
+    const card = link.closest("article")!;
+
+    expect(link).toHaveAttribute("href", "https://www.geps.or.kr/");
+    expect(link).toHaveAttribute("target", "_blank");
+    expect(within(card).getByText("업무지원")).toBeVisible();
+    expect(within(card).getByText("공무원 연금·퇴직급여·재해보상·복지서비스와 관련 민원 정보를 확인할 수 있는 공식 사이트입니다.")).toBeVisible();
+  });
+
+  it("서울시교육청 전자도서관을 교육청 링크로 제공한다", () => {
+    render(<ReferenceSitesPage />);
+    const link = screen.getByRole("link", { name: "서울시교육청 전자도서관 바로가기" });
+    const card = link.closest("article")!;
+
+    expect(link).toHaveAttribute("href", "https://e-lib.sen.go.kr/");
+    expect(link).toHaveAttribute("target", "_blank");
+    expect(within(card).getByText("교육청")).toBeVisible();
+    expect(within(card).getByText("전자책·오디오북·온라인 강좌 등 서울시교육청의 디지털 자료를 이용할 수 있는 전자도서관입니다.")).toBeVisible();
+  });
+
   it("서울교육포털 SSEM 연계자료실을 교육청 링크로 제공한다", () => {
     render(<ReferenceSitesPage />);
     const link = screen.getByRole("link", { name: "서울교육포털(SSEM) 바로가기" });
