@@ -87,6 +87,17 @@ describe("참고사이트 게시판", () => {
     expect(within(card).getByText("전자책·오디오북·온라인 강좌 등 서울시교육청의 디지털 자료를 이용할 수 있는 전자도서관입니다.")).toBeVisible();
   });
 
+  it("서울시교육청 원격업무지원시스템을 업무지원 링크로 제공한다", () => {
+    render(<ReferenceSitesPage />);
+    const link = screen.getByRole("link", { name: "서울시교육청 원격업무지원시스템(EVPN) 바로가기" });
+    const card = link.closest("article")!;
+
+    expect(link).toHaveAttribute("href", "https://evpn.sen.go.kr/");
+    expect(link).toHaveAttribute("target", "_blank");
+    expect(within(card).getByText("업무지원")).toBeVisible();
+    expect(within(card).getByText("서울시교육청 교직원이 외부에서 업무포털·나이스·K-에듀파인 등에 안전하게 접속할 수 있는 원격업무지원시스템입니다.")).toBeVisible();
+  });
+
   it("서울교육포털 SSEM 연계자료실을 교육청 링크로 제공한다", () => {
     render(<ReferenceSitesPage />);
     const link = screen.getByRole("link", { name: "서울교육포털(SSEM) 바로가기" });

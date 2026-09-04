@@ -63,6 +63,13 @@ export const REFERENCE_SITES: ReferenceSite[] = [
     url: "https://www.geps.or.kr/",
   },
   {
+    id: "sen-evpn",
+    title: "서울시교육청 원격업무지원시스템(EVPN)",
+    category: "업무지원",
+    description: "서울시교육청 교직원이 외부에서 업무포털·나이스·K-에듀파인 등에 안전하게 접속할 수 있는 원격업무지원시스템입니다.",
+    url: "https://evpn.sen.go.kr/",
+  },
+  {
     id: "k-edufine-main-budget-training-2025-11-20",
     title: "(25.11.20.) K-에듀파인 학교회계 예산관리(본예산편성) 대표강사 교육영상",
     category: "학교회계",
