@@ -77,7 +77,7 @@ describe("예산 편성 확인 화면", () => {
     expect(screen.getByText("정확한 자동 계산은 엑셀 파일(.xls, .xlsx)만 지원합니다.")).toBeVisible();
     expect(screen.getByRole("heading", { name: "세입·세출예산명세서 내려받는 경로" })).toBeVisible();
     expect(screen.getByRole("list", { name: "에듀파인 메뉴 이동 경로" }).children).toHaveLength(4);
-    expect(screen.getByText("세입예산명세서와 세출예산명세서를 각각 Excel로 내려받아 주세요.")).toBeVisible();
+    expect(screen.getByText("예산서 현황에서 세입예산 명세서와 세출예산 명세서를 각각 클릭한 뒤 Excel(.xls 또는 .xlsx)로 저장합니다.")).toBeVisible();
     expect(screen.getByText(/학교회계/)).toBeVisible();
     expect(screen.getAllByText(/세입예산명세서/).length).toBeGreaterThanOrEqual(2);
     expect(screen.getByRole("img", { name: /학교명이 가려진 에듀파인/ })).toHaveAttribute(

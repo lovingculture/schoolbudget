@@ -48,7 +48,7 @@ export function MainBudgetUpload({ disabled, onFile, onSelectionError }: MainBud
             <li><span>4</span><b>예산서현황</b></li>
           </ol>
           <p className="main-budget-guide-highlight">
-            <b>세입세출예산총괄</b>에서 <strong>세입예산명세서와 세출예산명세서를 각각 Excel로 내려받아 주세요.</strong>
+            예산서 현황에서 세입예산 명세서와 세출예산 명세서를 각각 클릭한 뒤 Excel(.xls 또는 .xlsx)로 저장합니다.
           </p>
         </div>
         <figure className="main-budget-guide-figure">
