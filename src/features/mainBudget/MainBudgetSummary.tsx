@@ -21,7 +21,6 @@ export function MainBudgetSummary({ result }: { result: MainBudgetAnalysisResult
           <h2 id="main-budget-summary-title">분석 결과</h2>
           <p><b>{result.source.fileName}</b> · {result.source.format.toUpperCase()}</p>
           <div className="main-budget-document-identity" aria-label="문서 정보">
-            <span>{result.identity.schoolName}</span>
             <span>{result.identity.accountingYear}학년도</span>
             <span>{result.identity.budgetType}</span>
             <span>{sourceCount}</span>

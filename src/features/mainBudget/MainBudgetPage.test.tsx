@@ -151,7 +151,7 @@ describe("예산 편성 확인 화면", () => {
     expect(screen.getByText("23,020,000원")).toBeVisible();
     expect(screen.getByText("2.86%")).toBeVisible();
     expect(screen.queryByText("원본 세입합계 대조")).not.toBeInTheDocument();
-    expect(screen.getByText("가람초등학교")).toBeVisible();
+    expect(screen.queryByText("가람초등학교")).not.toBeInTheDocument();
     expect(screen.getByText("2026학년도")).toBeVisible();
     expect(screen.getByText("본예산")).toBeVisible();
     expect(screen.getByText("1개 시트")).toBeVisible();
