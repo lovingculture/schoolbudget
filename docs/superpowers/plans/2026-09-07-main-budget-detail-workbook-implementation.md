@@ -20,6 +20,7 @@
 - 세출 대상은 원가통계비목이 정확히 `일반업무추진비`인 행만 포함한다.
 - 기존 `세입세출예산총괄` 포함 Excel도 계속 분석한다.
 - 원본 세입합계 비교와 `REVENUE_BASELINE_MISMATCH` 경고는 제거한다.
+- K-에듀파인 안내 캡처에는 학교명·학교코드·계정 식별정보가 보이지 않아야 한다.
 - 테스트와 빌드가 모두 성공한 뒤 GitHub 푸시와 Sites 배포를 수행한다.
 
 ---
@@ -264,7 +265,7 @@ git commit -m "feat: show budget calculation totals"
 - Modify: `src/features/mainBudget/analyzeBudgetFile.test.ts`
 
 **Interfaces:**
-- Consumes: 사용자 제공 화면 캡처 `codex-clipboard-39a3a87b-5e1b-4e3b-aa68-57576cfc3a6f.png`
+- Consumes: 사용자가 학교명을 제거해 제공한 화면 캡처 `codex-clipboard-eed11ba5-d926-4bfa-9581-6898251eff85.png`
 - Produces: `.xls,.xlsx` 전용 파일 선택과 단계별 다운로드 안내
 
 - [ ] **Step 1: PDF가 거부되고 Excel만 선택 가능하며 정확한 다운로드 경로가 보이는 실패 테스트를 작성한다.**
@@ -297,6 +298,8 @@ if (extension !== "xls" && extension !== "xlsx") {
   <li>Excel(.xls 또는 .xlsx) 파일로 저장</li>
 </ol>
 ```
+
+이미지를 프로젝트에 복사하기 전 상단 학교 선택란, 본문 학교명, 우측 계정/학교명이 비어 있거나 식별 불가능한지 육안으로 확인한다. 자료코드와 메뉴 경로는 그대로 보여야 한다.
 
 - [ ] **Step 5: 업로드 및 분석 테스트를 다시 실행한다.**
 
@@ -354,4 +357,3 @@ Expected: remote branch updated successfully.
 - [ ] **Step 7: Sites 프로젝트에 새 빌드를 배포하고 공개 주소에서 업로드 안내와 결과 화면을 확인한다.**
 
 Expected: `https://school-budget-hannune.ekego1102.chatgpt.site/`에서 Excel 전용 안내, 비교 상자 제거, 두 합계 행, 상단 비율이 정상 표시된다.
-
