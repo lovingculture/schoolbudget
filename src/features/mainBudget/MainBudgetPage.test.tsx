@@ -84,7 +84,7 @@ describe("예산 편성 확인 화면", () => {
       "src", "/guides/edu-finance-main-budget-statements.png",
     );
     const guide = screen.getByRole("region", { name: "세입·세출예산명세서 내려받는 경로" });
-    const upload = screen.getByRole("region", { name: "본예산서 파일 불러오기" });
+    const upload = screen.getByRole("region", { name: "예산서 파일 불러오기" });
     expect(guide.compareDocumentPosition(upload) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
   });
 
@@ -283,7 +283,7 @@ describe("예산 편성 확인 화면", () => {
       item: (index: number) => dropped[index] ?? null,
     };
 
-    fireEvent.drop(screen.getByRole("region", { name: "본예산서 파일 불러오기" }), {
+    fireEvent.drop(screen.getByRole("region", { name: "예산서 파일 불러오기" }), {
       dataTransfer: { files },
     });
 

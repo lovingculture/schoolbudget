@@ -69,7 +69,7 @@ export function MainBudgetUpload({ disabled, onFile, onSelectionError }: MainBud
         <div className="main-budget-upload-copy">
           <span className="main-budget-upload-icon" aria-hidden="true">↑</span>
           <div>
-            <h2 id="main-budget-upload-title">본예산서 파일 불러오기</h2>
+            <h2 id="main-budget-upload-title">예산서 파일 불러오기</h2>
             <p>K-에듀파인에서 내려받은 세입예산명세서와 세출예산명세서가 들어 있는 Excel 파일을 선택하세요.</p>
             <small>지원 형식: XLS, XLSX · 원본 파일은 브라우저 밖으로 전송되지 않습니다.</small>
           </div>
