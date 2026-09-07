@@ -62,7 +62,7 @@ function StaticResourceCards() {
         <div className="guideline-document-actions">
           <a
             href="/resources/expenditure-performance-budget-revision.xlsm"
-            download="집행실적정리용엑셀 확정본.xlsm"
+            download="★집행실적정리용엑셀_버튼캐릭터추가.xlsm"
           >
             <Download size={18} /> 집행실적 정리(추경예산 만들기)용 엑셀파일 다운로드
           </a>
