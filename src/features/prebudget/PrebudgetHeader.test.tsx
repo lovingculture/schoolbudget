@@ -18,7 +18,12 @@ describe("성립전예산 홈 일치형 상단", () => {
     ).toBeVisible();
     expect(screen.getByRole("img", { name: "문서를 작성하는 서울시교육청 캐릭터 자라나" })).toHaveAttribute("src", "/characters/cards/prebudget-writing.png");
     expect(screen.getByLabelText("성립전예산 작성 단계").children).toHaveLength(4);
-    await userEvent.setup().click(screen.getByRole("button", { name: "예시에서 시작하기" }));
+    const exampleRegion = screen.getByRole("region", { name: "예시 작성 안내" });
+    const exampleButton = screen.getByRole("button", { name: "예시에서 시작하기" });
+    expect(exampleRegion).toHaveClass("prebudget-example-start-highlighted");
+    expect(exampleRegion.querySelector("svg")).not.toBeNull();
+    expect(exampleButton).toHaveClass("prebudget-example-start-button");
+    await userEvent.setup().click(exampleButton);
     expect(onOpenExamples).toHaveBeenCalledOnce();
   });
 
