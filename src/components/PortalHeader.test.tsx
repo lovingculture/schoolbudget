@@ -35,6 +35,16 @@ describe("PortalHeader", () => {
     ]) {
       expect(screen.getByRole("button", { name: label })).toBeVisible();
     }
+    const webtoon = screen.getByRole("button", { name: "예산 웹툰" });
+    const questionAndAnswer = screen.getByRole("link", {
+      name: "학교예산 질의응답 (노트북엘앰기반)",
+    });
+    expect(questionAndAnswer).toHaveAttribute(
+      "href",
+      "https://notebook.google.com/notebook/db7666d9-8e19-4d43-8f3e-b8f1345e7d08/preview",
+    );
+    expect(questionAndAnswer).toHaveAttribute("target", "_blank");
+    expect(webtoon.compareDocumentPosition(questionAndAnswer) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
     expect(screen.queryByRole("button", { name: "통합검색 준비 중" })).not.toBeInTheDocument();
 
     await user.click(screen.getByRole("button", { name: "예산 업무" }));

@@ -2,6 +2,7 @@ import { useState } from "react";
 import {
   BookOpen,
   ChevronDown,
+  CircleHelp,
   CircleUserRound,
   FolderOpen,
   Home,
@@ -164,6 +165,15 @@ export function PortalHeader({
             <BookOpen size={17} aria-hidden="true" />
             예산 웹툰
           </button>
+          <a
+            href="https://notebook.google.com/notebook/db7666d9-8e19-4d43-8f3e-b8f1345e7d08/preview"
+            target="_blank"
+            rel="noreferrer"
+            aria-label="학교예산 질의응답 (노트북엘앰기반)"
+          >
+            <CircleHelp size={17} aria-hidden="true" />
+            학교예산 질의응답
+          </a>
           {onLogout && (
             <button
               type="button"

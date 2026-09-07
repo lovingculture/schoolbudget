@@ -166,3 +166,40 @@
   letter-spacing: -0.02em;
   white-space: nowrap;
 }
+
+.portal-nav > a {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 10px 11px;
+  border-radius: 9px;
+  color: #53615e;
+  font-size: 13px;
+  font-weight: 700;
+  white-space: nowrap;
+  text-decoration: none;
+}
+
+.portal-nav > a:hover {
+  background: #e8f3ef;
+  color: #245b54;
+}
+
+@media (max-width: 1040px) {
+  .portal-nav > a {
+    padding: 9px 8px;
+    font-size: 12px;
+  }
+}
+
+@media (max-width: 760px) {
+  .portal-nav > a {
+    width: 100%;
+    justify-content: flex-start;
+    padding: 12px;
+  }
+
+  .portal-nav > a svg {
+    display: block;
+  }
+}
