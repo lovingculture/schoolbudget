@@ -268,7 +268,7 @@ describe("예산업무 포털", () => {
     await user.click(screen.getByRole("button", { name: "동영상 안내" }));
 
     expect(screen.getByRole("heading", { name: "동영상 안내" })).toBeVisible();
-    expect(screen.getByText("안내 동영상을 준비하고 있습니다.")).toBeVisible();
+    expect(screen.getByRole("link", { name: /본예산편성.*유튜브에서 보기/ })).toBeVisible();
   });
 
   it("이용안내에서 연 모든 업무 화면은 이용안내 목록으로 돌아갈 수 있다", async () => {

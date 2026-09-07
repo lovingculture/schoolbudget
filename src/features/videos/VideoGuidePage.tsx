@@ -43,7 +43,7 @@ export function VideoGuidePage() {
                 <span>{guide.category}</span>
                 <h2>{guide.title}</h2>
                 <p>{guide.description}</p>
-                {guide.videoUrl && <a href={guide.videoUrl} target="_blank" rel="noreferrer">영상 보기</a>}
+                {guide.videoUrl && <a href={guide.videoUrl} target="_blank" rel="noreferrer" aria-label={`${guide.title} 유튜브에서 보기`}>유튜브에서 보기</a>}
               </div>
             </article>
           ))}
