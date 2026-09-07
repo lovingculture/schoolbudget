@@ -12,14 +12,12 @@
 }
 
 .portal-page-navigation {
-  position: sticky;
-  top: 76px;
-  z-index: 9;
   display: flex;
+  flex-wrap: wrap;
   gap: 10px;
   width: min(calc(100% - 80px), 1240px);
-  margin: 0 auto -20px;
-  padding: 16px 0 0;
+  margin: 0 auto;
+  padding: 20px 0 0;
 }
 .portal-page-navigation button {
   display: inline-flex;
@@ -36,7 +34,6 @@
   font-size: 14px;
   font-weight: 800;
   cursor: pointer;
-  backdrop-filter: blur(8px);
 }
 .portal-page-navigation button:last-child:not(:only-child) {
   border-color: #9fd3d4;
@@ -209,9 +206,8 @@
 @media (max-width: 760px) {
   .portal-workspace { padding-inline: 18px; }
   .portal-page-navigation {
-    top: 64px;
     width: calc(100% - 36px);
-    margin-bottom: -12px;
+    padding-top: 14px;
   }
-  .portal-page-navigation button { flex: 1; padding-inline: 10px; font-size: 13px; }
+  .portal-page-navigation button { flex: 0 1 auto; padding-inline: 10px; font-size: 13px; }
 }

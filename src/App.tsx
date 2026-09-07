@@ -433,7 +433,15 @@ export function Portal({
 }
 
 function PortalPageNavigation({ children }: { children: ReactNode }) {
-  return <nav className="portal-page-navigation" aria-label="페이지 이동">{children}</nav>;
+  return (
+    <nav
+      className="portal-page-navigation"
+      aria-label="페이지 이동"
+      style={{ position: "static", justifyContent: "flex-start" }}
+    >
+      {children}
+    </nav>
+  );
 }
 
 function Prebudget({

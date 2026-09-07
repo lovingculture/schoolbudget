@@ -316,6 +316,17 @@ describe("예산업무 포털", () => {
     expect(screen.getByRole("heading", { name: "학교예산 한눈에 이용 안내" })).toBeVisible();
   });
 
+  it("업무 화면 이동 버튼은 왼쪽에 배치되고 스크롤을 따라오지 않는다", async () => {
+    const user = userEvent.setup();
+    render(<Portal displayName="김담당" schoolName="서울한빛초등학교" />);
+    await user.click(screen.getByRole("button", { name: "학교예산 한눈에 이용 안내 확인" }));
+    await user.click(screen.getByRole("button", { name: "결산 설명서로 이동" }));
+
+    const navigation = screen.getByRole("navigation", { name: "페이지 이동" });
+    expect(getComputedStyle(navigation).position).toBe("static");
+    expect(getComputedStyle(navigation).justifyContent).toBe("flex-start");
+  });
+
   it("통합검색 준비 중 메뉴를 표시하지 않는다", () => {
     render(<Portal displayName="김담당" schoolName="서울한빛초등학교" />);
     expect(screen.queryByRole("button", { name: "통합검색 준비 중" })).not.toBeInTheDocument();
