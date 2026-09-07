@@ -15,6 +15,15 @@ describe("홈 화면 혜택 아이콘", () => {
   });
 });
 
+describe("홈 화면 구축 목적", () => {
+  it("다른 홈 카드와 어울리는 부드러운 카드 형태로 표시한다", () => {
+    expect(homeCss).toMatch(/\.home-intro-layout \{[\s\S]*?border: 1px solid #dce9e7;/);
+    expect(homeCss).toMatch(/\.home-intro-layout \{[\s\S]*?border-radius: 30px;/);
+    expect(homeCss).toMatch(/\.home-intro-layout \{[\s\S]*?background: linear-gradient\(135deg, #f7fcfb 0%, #ffffff 62%, #f2f8ff 100%\);/);
+    expect(homeCss).toMatch(/\.home-intro-layout \{[\s\S]*?box-shadow: 0 18px 45px rgba\(32, 76, 72, \.08\);/);
+  });
+});
+
 describe("모바일 홈 화면", () => {
   it("휴대폰 실제 화면 너비를 사용하고 업무 카드를 한 열로 표시한다", () => {
     expect(indexHtml).toContain('name="viewport"');
