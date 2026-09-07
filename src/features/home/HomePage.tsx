@@ -99,11 +99,6 @@ export function HomePage({ onNavigate }: HomePageProps) {
               교직원이 예산 업무에 필요한 정보를 한곳에서 쉽고 빠르게 확인하고,
               반복적인 확인·조회 업무를 줄일 수 있도록 만든 예산 업무지원 서비스입니다.
             </p>
-            <div className="home-hero-actions">
-              <button type="button" onClick={() => onNavigate("resources")}>
-                예산 지침 보기
-              </button>
-            </div>
             <ul className="home-hero-benefits" aria-label="서비스 특징">
               <li>별도 설치 없이</li>
               <li>예산 파일 그대로</li>
@@ -141,6 +136,21 @@ export function HomePage({ onNavigate }: HomePageProps) {
           </span>
           <ArrowRight aria-hidden="true" />
         </button>
+        <a
+          href="https://notebook.google.com/notebook/db7666d9-8e19-4d43-8f3e-b8f1345e7d08/preview"
+          target="_blank"
+          rel="noreferrer"
+          aria-label="학교예산 질의응답 질문하러 가기"
+        >
+          <span className="home-quick-icon question" aria-hidden="true">
+            <CircleHelp />
+          </span>
+          <span>
+            <strong>학교예산 질의응답</strong>
+            <small>학교예산 업무와 관련해 궁금한 내용을 질문하고 답변을 확인해 보세요.</small>
+          </span>
+          <ArrowRight aria-hidden="true" />
+        </a>
         <button
           type="button"
           data-testid="budget-step"
@@ -271,16 +281,16 @@ export function HomePage({ onNavigate }: HomePageProps) {
             </button>
           </article>
           <article>
-            <small className="question">질의응답</small>
-            <h3>학교예산 질의응답</h3>
-            <p>학교예산 업무와 관련해 궁금한 내용을 질문하고 답변을 확인해 보세요.</p>
+            <small className="site">교육청</small>
+            <h3>서울시교육청 열린 재정</h3>
+            <p>서울교육 재정정보와 예산·결산 자료를 확인할 수 있습니다.</p>
             <a
-              href="https://notebook.google.com/notebook/db7666d9-8e19-4d43-8f3e-b8f1345e7d08/preview"
+              href="https://open.sen.go.kr/fus/MI000000000000000509/html/cont0010v.do"
               target="_blank"
               rel="noreferrer"
-              aria-label="학교예산 질의응답 질문하러 가기"
+              aria-label="서울시교육청 열린 재정 바로가기"
             >
-              질문하러 가기 <ArrowRight aria-hidden="true" />
+              사이트 바로가기 <ArrowRight aria-hidden="true" />
             </a>
           </article>
         </div>

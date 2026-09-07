@@ -174,7 +174,7 @@
   min-height: 126px;
   padding: 20px 26px;
   display: grid;
-  grid-template-columns: 1.05fr 1fr 1fr;
+  grid-template-columns: 1.05fr repeat(3, 1fr);
   align-items: stretch;
   border-radius: 18px;
   background: #fff;
@@ -182,7 +182,7 @@
 }
 
 .home-quick-intro,
-.home-quick-services > button {
+.home-quick-services > :is(button, a) {
   padding: 0 25px;
 }
 
@@ -205,7 +205,7 @@
   font-size: 14px;
 }
 
-.home-quick-services > button {
+.home-quick-services > :is(button, a) {
   display: grid;
   grid-template-columns: 48px 1fr 20px;
   align-items: center;
@@ -215,28 +215,29 @@
   background: transparent;
   color: var(--home-navy);
   text-align: left;
+  text-decoration: none;
 }
 
-.home-quick-services > button:hover {
+.home-quick-services > :is(button, a):hover {
   background: #f8fbfc;
 }
 
-.home-quick-services > button > span:nth-child(2) strong,
-.home-quick-services > button > span:nth-child(2) small {
+.home-quick-services > :is(button, a) > span:nth-child(2) strong,
+.home-quick-services > :is(button, a) > span:nth-child(2) small {
   display: block;
 }
 
-.home-quick-services > button strong {
+.home-quick-services > :is(button, a) strong {
   font-size: 14px;
   line-height: 1.55;
 }
 
-.home-quick-services > button small {
+.home-quick-services > :is(button, a) small {
   margin-top: 5px;
   color: #8897a6;
 }
 
-.home-quick-services > button > svg {
+.home-quick-services > :is(button, a) > svg {
   width: 16px;
   color: #91a5b4;
 }
@@ -265,6 +266,11 @@
 .home-quick-icon.green {
   background: #e7f7f1;
   color: #149875;
+}
+
+.home-quick-icon.question {
+  background: #f0ecff;
+  color: #6d50bd;
 }
 
 .home-intro {
@@ -613,12 +619,12 @@
   }
 
   .home-quick-intro,
-  .home-quick-services > button {
+  .home-quick-services > :is(button, a) {
     min-height: 100px;
     padding: 18px 22px;
   }
 
-  .home-quick-services > button {
+  .home-quick-services > :is(button, a) {
     border-left: 0;
     border-top: 1px solid #e4eaee;
   }

@@ -67,7 +67,7 @@ describe("승인된 포털 홈", () => {
     expect(screen.getByText(/학교 공사가 집중되는 겨울방학 중 예산 편성 업무에 소요되는 시간을 줄이고/)).toBeVisible();
     expect(screen.getByText("업무 시간은 줄이고, 예산 업무는 더 정확하게.")).toBeVisible();
     expect(screen.queryByRole("button", { name: "업무 시작하기" })).not.toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "예산 지침 보기" })).toBeVisible();
+    expect(screen.queryByRole("button", { name: "예산 지침 보기" })).not.toBeInTheDocument();
     expect(
       screen.getByRole("img", {
         name: "환영 인사를 건네는 서울교육 캐릭터 자라나와 열리미",
@@ -233,7 +233,6 @@ describe("승인된 포털 홈", () => {
     render(<Portal displayName="김담당" schoolName="서울한빛초등학교" />);
 
     const destinations = [
-      ["예산 지침 보기", "예산 자료실"],
       ["성립전예산 새로 작성", "성립전예산 요구서 작성"],
       ["본예산 시작하기", "예산 편성 확인 (업무추진비 3% 편성 확인)"],
       ["본예산 편성 기초자료 만들기 시작하기", "본예산 편성 기초자료 만들기"],
@@ -267,5 +266,24 @@ describe("승인된 포털 홈", () => {
     expect(link).toHaveAttribute("target", "_blank");
     expect(link).toHaveAttribute("rel", expect.stringContaining("noreferrer"));
     expect(screen.getByText("학교예산 업무와 관련해 궁금한 내용을 질문하고 답변을 확인해 보세요.")).toBeVisible();
+    expect(within(screen.getByRole("region", { name: "자주 찾는 서비스" })).getByRole(
+      "link", { name: "학교예산 질의응답 질문하러 가기" },
+    )).toBe(link);
+    expect(within(screen.getByRole("region", { name: "새로운 소식을 확인하세요" })).queryByText(
+      "학교예산 질의응답",
+    )).not.toBeInTheDocument();
+  });
+
+  it("서울시교육청 열린 재정을 홈 하단에서 새 창으로 연다", () => {
+    render(<HomePage displayName="김담당" schoolName="서울한빛초등학교" onNavigate={() => {}} />);
+
+    const news = screen.getByRole("region", { name: "새로운 소식을 확인하세요" });
+    const link = within(news).getByRole("link", { name: "서울시교육청 열린 재정 바로가기" });
+    expect(link).toHaveAttribute(
+      "href",
+      "https://open.sen.go.kr/fus/MI000000000000000509/html/cont0010v.do",
+    );
+    expect(link).toHaveAttribute("target", "_blank");
+    expect(within(news).getByText("서울교육 재정정보와 예산·결산 자료를 확인할 수 있습니다.")).toBeVisible();
   });
 });
