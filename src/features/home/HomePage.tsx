@@ -96,8 +96,9 @@ export function HomePage({ onNavigate }: HomePageProps) {
               <strong>더 빠르고 편리하게.</strong>
             </h1>
             <p>
-              교직원이 예산 업무에 필요한 정보를 한곳에서 쉽고 빠르게 확인하고,
-              반복적인 확인·조회 업무를 줄일 수 있도록 만든 예산 업무지원 서비스입니다.
+              교직원이 예산 업무에 필요한 정보를 한곳에서 쉽고 빠르게 확인하고,{
+              " "}<span className="home-hero-nowrap">반복적인 확인·조회 업무를</span>{" "}
+              줄일 수 있도록 만든 예산 업무지원 서비스입니다.
             </p>
             <ul className="home-hero-benefits" aria-label="서비스 특징">
               <li>별도 설치 없이</li>
@@ -131,7 +132,7 @@ export function HomePage({ onNavigate }: HomePageProps) {
             <BookOpen />
           </span>
           <span>
-            <strong>2026 학교회계<br />예산편성 기본지침</strong>
+            <strong>2026 학교회계 예산편성 기본지침</strong>
             <small>PDF 검색·열람</small>
           </span>
           <ArrowRight aria-hidden="true" />
@@ -146,7 +147,7 @@ export function HomePage({ onNavigate }: HomePageProps) {
             <CircleHelp />
           </span>
           <span>
-            <strong>학교예산 질의응답</strong>
+            <strong>학교예산 질의응답 (노트북엘앰기반)</strong>
             <small>학교예산 업무와 관련해 궁금한 내용을 질문하고 답변을 확인해 보세요.</small>
           </span>
           <ArrowRight aria-hidden="true" />

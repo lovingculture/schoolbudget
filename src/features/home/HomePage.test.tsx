@@ -94,6 +94,7 @@ describe("승인된 포털 홈", () => {
       "결산 설명서 만들기",
     ]);
     expect(screen.getByText("본예산서를 불러오면 세입 기준금액과 일반업무추진비 편성 비율을 자동으로 계산합니다.")).toBeVisible();
+    expect(screen.getByText("반복적인 확인·조회 업무를")).toHaveClass("home-hero-nowrap");
 
     expect(screen.getByRole("region", { name: "자주 찾는 서비스" })).toBeVisible();
     expect(
@@ -265,6 +266,7 @@ describe("승인된 포털 홈", () => {
     );
     expect(link).toHaveAttribute("target", "_blank");
     expect(link).toHaveAttribute("rel", expect.stringContaining("noreferrer"));
+    expect(screen.getByText("학교예산 질의응답 (노트북엘앰기반)")).toBeVisible();
     expect(screen.getByText("학교예산 업무와 관련해 궁금한 내용을 질문하고 답변을 확인해 보세요.")).toBeVisible();
     expect(within(screen.getByRole("region", { name: "자주 찾는 서비스" })).getByRole(
       "link", { name: "학교예산 질의응답 질문하러 가기" },

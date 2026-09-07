@@ -22,4 +22,9 @@ describe("모바일 홈 화면", () => {
     expect(homeCss).toMatch(/@media \(max-width: 760px\)[\s\S]*?\.home-work-grid,[\s\S]*?grid-template-columns: 1fr/);
     expect(homeCss).toMatch(/@media \(max-width: 420px\)[\s\S]*?\.home-work-card[\s\S]*?min-height: auto/);
   });
+
+  it("빠른 서비스를 중간 화면에서는 두 열, 휴대폰에서는 한 열로 표시한다", () => {
+    expect(homeCss).toMatch(/@media \(max-width: 1050px\)[\s\S]*?\.home-quick-services[\s\S]*?grid-template-columns: repeat\(2, minmax\(0, 1fr\)\)/);
+    expect(homeCss).toMatch(/@media \(max-width: 760px\)[\s\S]*?\.home-quick-services[\s\S]*?grid-template-columns: 1fr/);
+  });
 });
