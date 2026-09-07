@@ -8,6 +8,7 @@ import { validateClosing } from "./validation";
 import { ClosingEditor } from "./ClosingEditor";
 import { ClosingAgendaPreview } from "./ClosingAgendaPreview";
 import { ClosingDownloads } from "./ClosingDownloads";
+import "./closingGuide.css";
 
 export function ClosingPage() {
   const inputRef = useRef<HTMLInputElement>(null);
@@ -72,8 +73,23 @@ export function ClosingPage() {
 
   return <div className="content closing-page portal-workspace">
     <div className="page-title"><span>CLOSING AGENDA</span><h1>결산 안건설명서 자동작성</h1><p>에듀파인 결산자료를 올리면 공식 안건설명서를 자동으로 만듭니다.</p></div>
+    <section className="closing-download-guide" aria-labelledby="closing-download-guide-title">
+      <div>
+        <span>에듀파인 자료 준비</span>
+        <h2 id="closing-download-guide-title">세입세출결산총괄표 내려받는 경로</h2>
+        <ol aria-label="에듀파인 결산 메뉴 이동 경로">
+          <li><span>1</span><b>학교회계</b></li>
+          <li><span>2</span><b>예산결산</b></li>
+          <li><span>3</span><b>결산서</b></li>
+          <li><span>4</span><b>결산서 일괄출력</b></li>
+        </ol>
+        <p>세입세출결산총괄표를 선택하여 Excel로 내려받아 주세요.</p>
+      </div>
+      <figure><img src="/guides/edu-finance-closing-summary.png" alt="학교명이 가려진 에듀파인 결산서 일괄출력 화면" /><figcaption>세입세출결산총괄표를 선택한 후 Excel 파일로 저장합니다.</figcaption></figure>
+    </section>
     <div
       className={dragging ? "closing-dropzone dragging" : "closing-dropzone"}
+      data-testid="closing-upload"
       onDragEnter={() => setDragging(true)}
       onDragLeave={() => setDragging(false)}
       onDragOver={event => event.preventDefault()}
@@ -81,7 +97,6 @@ export function ClosingPage() {
     >
       <UploadCloud size={48}/>
       <strong>에듀파인 「세입세출결산총괄표」를 여기에 끌어다 놓으세요</strong>
-      <div className="closing-path"><b>다운로드 경로</b><span>학교회계 → 예산결산 → 결산서 → 결산서 일괄 출력 → 세입세출결산총괄표 → 엑셀 다운로드</span></div>
       <span className="closing-formats">지원 파일: .xls, .xlsx</span>
       <button className="primary" type="button" onClick={() => inputRef.current?.click()}>파일 선택</button>
       <input ref={inputRef} className="visually-hidden" aria-label="세입세출결산총괄표 파일" type="file" accept=".xls,.xlsx" onChange={onInput}/>

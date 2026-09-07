@@ -83,6 +83,9 @@ describe("예산 편성 확인 화면", () => {
     expect(screen.getByRole("img", { name: /학교명이 가려진 에듀파인/ })).toHaveAttribute(
       "src", "/guides/edu-finance-main-budget-statements.png",
     );
+    const guide = screen.getByRole("region", { name: "세입·세출예산명세서 내려받는 경로" });
+    const upload = screen.getByRole("region", { name: "본예산서 파일 불러오기" });
+    expect(guide.compareDocumentPosition(upload) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
   });
 
   it("captures the selected file before clearing a browser-live FileList", () => {

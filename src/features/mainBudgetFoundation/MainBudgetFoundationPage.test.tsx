@@ -29,6 +29,19 @@ function csvFile(text = validCsv): File {
 describe("MainBudgetFoundationPage", () => {
   beforeEach(() => localStorage.clear());
 
+  it("shows the Edufine CSV download guide before the file picker", () => {
+    render(<MainBudgetFoundationPage />);
+    expect(screen.getByRole("heading", { name: "세입·세출예산명세서 CSV 내려받는 경로" })).toBeVisible();
+    expect(screen.getByRole("list", { name: "에듀파인 예산서 메뉴 이동 경로" }).children).toHaveLength(4);
+    expect(screen.getByText("세입예산명세서와 세출예산명세서를 선택하여 CSV 파일로 내려받아 주세요.")).toBeVisible();
+    expect(screen.getByRole("img", { name: "학교명이 가려진 에듀파인 예산서현황 CSV 선택 화면" })).toHaveAttribute(
+      "src", "/guides/edu-finance-foundation-csv.png",
+    );
+    const guide = screen.getByRole("region", { name: "세입·세출예산명세서 CSV 내려받는 경로" });
+    const upload = screen.getByRole("heading", { name: "세입·세출 CSV 파일 불러오기" }).closest("section")!;
+    expect(guide.compareDocumentPosition(upload) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+  });
+
   it("uploads one CSV, shows reconciled totals, and enables Excel export", async () => {
     const user = userEvent.setup();
     render(<MainBudgetFoundationPage />);

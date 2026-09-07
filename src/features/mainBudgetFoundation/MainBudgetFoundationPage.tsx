@@ -32,7 +32,23 @@ export function MainBudgetFoundationPage() {
   return (
     <div className="content foundation-page portal-workspace">
       <div className="page-title"><span>MAIN BUDGET FOUNDATION</span><h1>본예산 편성 기초자료 만들기</h1><p>세입·세출 통합 CSV를 불러오면 편성 기초자료를 자동 정리하고 Excel 파일로 내려받을 수 있습니다.</p></div>
-      {!document ? <FoundationCsvUpload disabled={busy} onFile={(file) => void analyze(file)} /> : validation ? <>
+      {!document ? <>
+        <section className="foundation-download-guide" aria-labelledby="foundation-download-guide-title">
+          <div>
+            <span>에듀파인 자료 준비</span>
+            <h2 id="foundation-download-guide-title">세입·세출예산명세서 CSV 내려받는 경로</h2>
+            <ol aria-label="에듀파인 예산서 메뉴 이동 경로">
+              <li><span>1</span><b>학교회계</b></li>
+              <li><span>2</span><b>예산관리</b></li>
+              <li><span>3</span><b>예산현황(학교)</b></li>
+              <li><span>4</span><b>예산서현황</b></li>
+            </ol>
+            <p>세입예산명세서와 세출예산명세서를 선택하여 CSV 파일로 내려받아 주세요.</p>
+          </div>
+          <figure><img src="/guides/edu-finance-foundation-csv.png" alt="학교명이 가려진 에듀파인 예산서현황 CSV 선택 화면" /><figcaption>세입예산명세서와 세출예산명세서를 함께 선택한 후 CSV로 저장합니다.</figcaption></figure>
+        </section>
+        <FoundationCsvUpload disabled={busy} onFile={(file) => void analyze(file)} />
+      </> : validation ? <>
         <div className="foundation-top-actions"><button type="button" className="foundation-secondary" onClick={reset}>새 파일 분석</button><button type="button" className="foundation-primary" disabled={!validation.canExport || busy} onClick={() => void downloadFoundationWorkbook(document)}>Excel 내려받기</button></div>
         <FoundationSummary document={document} validation={validation} />
         {validation.warnings.length ? <section className="foundation-warnings" aria-label="검증 안내">{validation.warnings.map((warning, index) => <p className={warning.severity} key={`${warning.code}-${index}`}>{warning.message}</p>)}</section> : null}
