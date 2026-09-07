@@ -114,13 +114,13 @@ describe("예산 편성 확인 화면", () => {
     let signal!: AbortSignal;
     dispatcherMocks.analyzeBudgetFile.mockImplementation((_file, options) => {
       signal = options.signal;
-      options.onProgress({ phase: "ocr-recognizing", status: "recognizing text", completed: 2, total: 10 });
+      options.onProgress({ phase: "parsing", completed: 2, total: 10 });
       return pending.promise;
     });
     render(<MainBudgetPage />);
     const input = screen.getByLabelText("본예산 파일 선택");
     await user.upload(input, budgetFile("scan.xlsx"));
-    expect(await screen.findByRole("status")).toHaveTextContent("OCR로 문자를 인식하는 중");
+    expect(await screen.findByRole("status")).toHaveTextContent("예산 항목을 계산하는 중");
     expect(screen.getByText("2 / 10")).toBeVisible();
     expect(input).toBeDisabled();
     await user.click(screen.getByRole("button", { name: "분석 취소" }));

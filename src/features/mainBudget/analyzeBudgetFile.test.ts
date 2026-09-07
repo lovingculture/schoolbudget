@@ -240,7 +240,7 @@ describe("analyzeBudgetFile", () => {
     const arrayBuffer = vi.fn(() => read.promise);
     const file = {
       name: `budget.${format}`,
-      type: format === "pdf" ? "application/pdf" : "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+      type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
       arrayBuffer,
     } as unknown as File;
 
@@ -255,7 +255,7 @@ describe("analyzeBudgetFile", () => {
     expect(adapterMocks.extractPdfPages).not.toHaveBeenCalled();
     expect(adapterMocks.extractWorkbookRows).not.toHaveBeenCalled();
 
-    read.resolve(Uint8Array.from(format === "pdf" ? pdfMagic : xlsxMagic).buffer);
+    read.resolve(Uint8Array.from(xlsxMagic).buffer);
   });
 
   it.skip("OCRs only image pages, merges direct and OCR rows in source order, and always cleans a successful PDF", async () => {
