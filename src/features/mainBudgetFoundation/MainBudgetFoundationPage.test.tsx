@@ -50,7 +50,8 @@ describe("MainBudgetFoundationPage", () => {
     await user.upload(input, csvFile());
     expect(await screen.findByText("세입·세출 일치")).toBeVisible();
     expect(screen.getAllByText("100천원").length).toBeGreaterThan(0);
-    expect(screen.getByRole("button", { name: "Excel 내려받기" })).toBeEnabled();
+    await user.click(screen.getByRole("button", { name: "엑셀 자료 내려받기" }));
+    expect(screen.getByRole("button", { name: "분석 결과 Excel 내려받기" })).toBeEnabled();
   });
 
   it("shows workbook-style sheet tabs after analysis", async () => {
@@ -79,6 +80,7 @@ describe("MainBudgetFoundationPage", () => {
     render(<MainBudgetFoundationPage />);
     await user.upload(screen.getByLabelText("세입·세출예산서 Excel 파일 선택"), csvFile(validCsv.replace("세출합계,100", "세출합계,90")), { applyAccept: false });
     expect(await screen.findByText(/세입합계와 세출합계가 10천원 차이/)).toBeVisible();
-    expect(screen.getByRole("button", { name: "Excel 내려받기" })).toBeDisabled();
+    await user.click(screen.getByRole("button", { name: "엑셀 자료 내려받기" }));
+    expect(screen.getByRole("button", { name: "분석 결과 Excel 내려받기" })).toBeDisabled();
   });
 });

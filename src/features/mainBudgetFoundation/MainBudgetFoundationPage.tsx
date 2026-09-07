@@ -2,6 +2,7 @@ import { useMemo, useState } from "react";
 import { downloadFoundationWorkbook } from "./downloadFoundationWorkbook";
 import { FoundationCsvUpload } from "./FoundationCsvUpload";
 import { FoundationWorkbookPreview } from "./FoundationWorkbookPreview";
+import { FoundationDownloadDialog } from "./FoundationDownloadDialog";
 import { FoundationSummary } from "./FoundationSummary";
 import { foundationStorage } from "./foundationStorage";
 import { parseFoundationCsv } from "./parseFoundationCsv";
@@ -51,7 +52,7 @@ export function MainBudgetFoundationPage() {
         </section>
         <FoundationCsvUpload disabled={busy} onFile={(file) => void analyze(file)} />
       </> : validation ? <>
-        <div className="foundation-top-actions"><button type="button" className="foundation-secondary" onClick={reset}>새 파일 분석</button><button type="button" className="foundation-primary" disabled={!validation.canExport || busy} onClick={() => void downloadFoundationWorkbook(document)}>Excel 내려받기</button></div>
+        <div className="foundation-top-actions"><button type="button" className="foundation-secondary" onClick={reset}>새 파일 분석</button><FoundationDownloadDialog canDownloadResult={validation.canExport && !busy} onDownloadResult={() => void downloadFoundationWorkbook(document)} /></div>
         <FoundationSummary document={document} validation={validation} />
         {validation.warnings.length ? <section className="foundation-warnings" aria-label="검증 안내">{validation.warnings.map((warning, index) => <p className={warning.severity} key={`${warning.code}-${index}`}>{warning.message}</p>)}</section> : null}
         <FoundationWorkbookPreview document={document} />
