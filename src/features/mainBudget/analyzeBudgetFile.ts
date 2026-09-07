@@ -9,15 +9,13 @@ import type {
   RevenueFact,
   RevenueFactCollection,
 } from "./analysisTypes";
-import { extractPdfPages, type PdfExtractionProgress, type PdfPageDiagnostic } from "./extractPdfPages";
 import { extractWorkbookRows } from "./extractWorkbookRows";
-import { ocrPdfPages, type OcrProgress, type OcrPageDiagnostic } from "./ocrPdfPages";
 import { parseBudgetSummary } from "./parseBudgetSummary";
 import { parseExpenditureStatement } from "./parseExpenditureStatement";
 import { parseRevenueStatement } from "./parseRevenueStatement";
 import { parseDetailWorkbookIdentity } from "./parseDetailWorkbookIdentity";
 
-export type AnalysisProgress = PdfExtractionProgress | OcrProgress | {
+export type AnalysisProgress = {
   phase: "reading" | "parsing" | "complete";
   completed: number;
   total: number;
@@ -36,12 +34,8 @@ export type ParserDiagnostic = {
   expenditure: ReturnType<typeof parseExpenditureStatement>;
 };
 
-export type AnalysisDiagnostic =
-  | ({ kind: "pdf-page" } & PdfPageDiagnostic)
-  | ({ kind: "ocr-page" } & OcrPageDiagnostic)
-  | ParserDiagnostic;
+export type AnalysisDiagnostic = ParserDiagnostic;
 
-const PDF_MAGIC = [0x25, 0x50, 0x44, 0x46, 0x2d] as const;
 const XLS_MAGIC = [0xd0, 0xcf, 0x11, 0xe0, 0xa1, 0xb1, 0x1a, 0xe1] as const;
 const ZIP_MAGICS = [
   [0x50, 0x4b, 0x03, 0x04],
@@ -75,7 +69,7 @@ function isFileLike(value: unknown): value is File {
 function extensionFormat(fileName: string): BudgetFileFormat | null {
   const match = /\.([^.]+)$/.exec(fileName.trim());
   const extension = match?.[1].toLowerCase();
-  if (extension === "pdf" || extension === "xls" || extension === "xlsx") return extension;
+  if (extension === "xls" || extension === "xlsx") return extension;
   return null;
 }
 
@@ -84,7 +78,6 @@ function startsWith(bytes: Uint8Array, magic: readonly number[]): boolean {
 }
 
 function detectedFormat(bytes: Uint8Array): BudgetFileFormat | null {
-  if (startsWith(bytes, PDF_MAGIC)) return "pdf";
   if (startsWith(bytes, XLS_MAGIC)) return "xls";
   if (ZIP_MAGICS.some((magic) => startsWith(bytes, magic))) return "xlsx";
   return null;
@@ -169,7 +162,7 @@ async function readFileBytes(file: File, signal: AbortSignal): Promise<Uint8Arra
 function requiredFormat(file: File): BudgetFileFormat {
   const format = extensionFormat(file.name);
   if (!format) {
-    throw new Error(`${file.name}: 지원하지 않는 파일 형식입니다. PDF, XLS, XLSX 파일만 선택해 주세요.`);
+    throw new Error(`${file.name}: XLS, XLSX 형식의 Excel 파일만 선택해 주세요.`);
   }
   return format;
 }
@@ -306,65 +299,8 @@ function parsedInput(
   };
 }
 
-function sourceOrder(left: BudgetLogicalRow, right: BudgetLogicalRow): number {
-  const page = (left.sourcePage ?? Number.MAX_SAFE_INTEGER) - (right.sourcePage ?? Number.MAX_SAFE_INTEGER);
-  if (page !== 0) return page;
-  return (left.sourceRow ?? Number.MAX_SAFE_INTEGER) - (right.sourceRow ?? Number.MAX_SAFE_INTEGER);
-}
-
 function corruptFileError(file: File, format: BudgetFileFormat, cause: unknown): Error {
   return new Error(`${file.name}: 손상되었거나 지원하지 않는 ${format.toUpperCase()} 파일입니다.`, { cause });
-}
-
-async function analyzePdf(file: File, options: AnalyzeBudgetFileOptions): Promise<MainBudgetAnalysisResult> {
-  let extraction;
-  try {
-    extraction = options.onDiagnostic
-      ? await extractPdfPages(file, options.signal, options.onProgress, (diagnostic) => {
-        options.onDiagnostic?.({ kind: "pdf-page", ...diagnostic });
-      })
-      : await extractPdfPages(file, options.signal, options.onProgress);
-  } catch (error) {
-    if (isAbortError(error)) throw error;
-    throw corruptFileError(file, "pdf", error);
-  }
-
-  let primaryError: unknown;
-  try {
-    throwIfAborted(options.signal);
-    const ocrPageNumbers = new Set(extraction.imagePages.map(({ pageNumber }) => pageNumber));
-    const directRows = extraction.textPages
-      .filter(({ pageNumber }) => !ocrPageNumbers.has(pageNumber))
-      .flatMap((page) => page.rows);
-    const ocrRows = extraction.imagePages.length === 0
-      ? []
-      : options.onDiagnostic
-        ? await ocrPdfPages(extraction.imagePages, options.signal, options.onProgress, (diagnostic) => {
-          options.onDiagnostic?.({ kind: "ocr-page", ...diagnostic });
-        })
-        : await ocrPdfPages(extraction.imagePages, options.signal, options.onProgress);
-    throwIfAborted(options.signal);
-    const rows = [...directRows, ...ocrRows].sort(sourceOrder);
-    options.onProgress({ phase: "parsing", completed: 0, total: 1 });
-    throwIfAborted(options.signal);
-    const result = analyzeMainBudget(parsedInput({
-      fileName: file.name,
-      format: "pdf",
-      pageCount: extraction.metadata.pageCount,
-    }, rows, options.onDiagnostic));
-    options.onProgress({ phase: "complete", completed: 1, total: 1 });
-    throwIfAborted(options.signal);
-    return result;
-  } catch (error) {
-    primaryError = error;
-    throw error;
-  } finally {
-    try {
-      await extraction.cleanup();
-    } catch (cleanupError) {
-      if (primaryError === undefined) throw cleanupError;
-    }
-  }
 }
 
 export async function analyzeBudgetFile(file: File, options: AnalyzeBudgetFileOptions): Promise<MainBudgetAnalysisResult> {
@@ -375,8 +311,6 @@ export async function analyzeBudgetFile(file: File, options: AnalyzeBudgetFileOp
   const bytes = await readFileBytes(file, options.signal);
   verifyContent(file, format, bytes);
   if (format === "xlsx") await validateXlsxPackage(file, bytes, options.signal);
-  if (format === "pdf") return analyzePdf(file, options);
-
   let extracted;
   try {
     extracted = await extractWorkbookRows(file, { bytes, signal: options.signal });

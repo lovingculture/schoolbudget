@@ -9,7 +9,7 @@ function provenance(expense: GeneralBusinessExpense): string {
   return "위치 확인 필요";
 }
 
-export function GeneralBusinessExpenseTable({ expenses }: { expenses: GeneralBusinessExpense[] }) {
+export function GeneralBusinessExpenseTable({ expenses, total }: { expenses: GeneralBusinessExpense[]; total: number | null }) {
   return (
     <section className="main-budget-detail-card" aria-labelledby="general-expense-title">
       <div className="main-budget-section-heading">
@@ -34,6 +34,13 @@ export function GeneralBusinessExpenseTable({ expenses }: { expenses: GeneralBus
               </tr>
             ))}
           </tbody>
+          <tfoot>
+            <tr>
+              <th scope="row" colSpan={4}>일반업무추진비 합계</th>
+              <td className="main-budget-money">{total === null ? "확인 필요" : `${formatThousandWon(total)} / ${formatWon(total)}`}</td>
+              <td colSpan={2}>전체 내역 합계</td>
+            </tr>
+          </tfoot>
         </table>
       </div>
     </section>

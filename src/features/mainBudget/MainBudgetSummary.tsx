@@ -8,12 +8,6 @@ export function formatWon(value: number | null): string {
   return value === null ? "확인 필요" : `${(value * 1_000).toLocaleString("ko-KR", { maximumFractionDigits: 0 })}원`;
 }
 
-function comparisonLabel(status: MainBudgetAnalysisResult["comparison"]["status"]): string {
-  if (status === "match") return "일치";
-  if (status === "mismatch") return "불일치";
-  return "확인 필요";
-}
-
 export function MainBudgetSummary({ result }: { result: MainBudgetAnalysisResult }) {
   const sourceCount = result.source.pageCount !== undefined
     ? `${result.source.pageCount.toLocaleString("ko-KR")}쪽`
@@ -50,18 +44,6 @@ export function MainBudgetSummary({ result }: { result: MainBudgetAnalysisResult
           <b>{result.ratio === null ? "확인 필요" : `${result.ratio.toFixed(2)}%`}</b>
           <small>일반업무추진비 ÷ 세입 기준금액</small>
         </article>
-      </div>
-      <div className={`main-budget-comparison ${result.comparison.status}`}>
-        <div>
-          <span>원본 세입합계 대조</span>
-          <b>{comparisonLabel(result.comparison.status)}</b>
-        </div>
-        <p>
-          원본 계산값 {formatThousandWon(result.comparison.revenueBaseline)} · 8개 항목 합계 {formatThousandWon(result.comparison.verificationRevenueTotal)}
-          {result.comparison.status === "mismatch" && result.comparison.difference !== null
-            ? <strong>차이 {formatThousandWon(result.comparison.difference)}</strong>
-            : null}
-        </p>
       </div>
     </section>
   );

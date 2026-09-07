@@ -234,7 +234,7 @@ describe("analyzeBudgetFile", () => {
     expect(adapterMocks.extractWorkbookRows).not.toHaveBeenCalled();
   });
 
-  it.each(["pdf", "xlsx"] as const)("rejects promptly when %s signature bytes are still being read", async (format) => {
+  it.each(["xlsx"] as const)("rejects promptly when %s signature bytes are still being read", async (format) => {
     const read = deferred<ArrayBuffer>();
     const controller = new AbortController();
     const arrayBuffer = vi.fn(() => read.promise);
@@ -258,7 +258,7 @@ describe("analyzeBudgetFile", () => {
     read.resolve(Uint8Array.from(format === "pdf" ? pdfMagic : xlsxMagic).buffer);
   });
 
-  it("OCRs only image pages, merges direct and OCR rows in source order, and always cleans a successful PDF", async () => {
+  it.skip("OCRs only image pages, merges direct and OCR rows in source order, and always cleans a successful PDF", async () => {
     const file = budgetFile("Budget.PdF", pdfMagic, "application/pdf");
     const directPage1 = { cells: ["direct-1"], sourcePage: 1, sourceRow: 1 };
     const directPage3 = { cells: ["direct-3"], sourcePage: 3, sourceRow: 1 };
@@ -290,7 +290,7 @@ describe("analyzeBudgetFile", () => {
     expect(extraction.cleanup).toHaveBeenCalledTimes(1);
   });
 
-  it("uses the OCR representation exclusively for a hybrid page so a recovered expense is not duplicated", async () => {
+  it.skip("uses the OCR representation exclusively for a hybrid page so a recovered expense is not duplicated", async () => {
     const file = budgetFile("hybrid.pdf", pdfMagic, "application/pdf");
     const directHeading = { cells: ["세출예산명세서"], sourcePage: 5, sourceRow: 1 };
     const hiddenDirectExpense = { cells: ["일반업무추진비", 100], sourcePage: 5, sourceRow: 2 };
@@ -313,7 +313,7 @@ describe("analyzeBudgetFile", () => {
     expect(parsedRows.filter((row) => row.cells.includes("일반업무추진비"))).toEqual([recoveredExpense]);
   });
 
-  it("does not invoke OCR for a text-only PDF", async () => {
+  it.skip("does not invoke OCR for a text-only PDF", async () => {
     const extraction = pdfExtraction({
       textPages: [{ pageNumber: 1, page: {}, items: [], rows: [{ cells: ["본예산"], sourcePage: 1 }] }],
     });
@@ -329,7 +329,7 @@ describe("analyzeBudgetFile", () => {
     expect(extraction.cleanup).toHaveBeenCalledTimes(1);
   });
 
-  it.each([
+  it.skip.each([
     ["OCR", () => adapterMocks.ocrPdfPages.mockRejectedValue(new Error("OCR failed"))],
     ["parser", () => parserMocks.parseBudgetSummary.mockImplementation(() => { throw new Error("parser failed"); })],
     ["analyzer", () => parserMocks.analyzeMainBudget.mockImplementation(() => { throw new Error("analyzer failed"); })],
@@ -350,7 +350,7 @@ describe("analyzeBudgetFile", () => {
     expect(extraction.cleanup).toHaveBeenCalledTimes(1);
   });
 
-  it("cleans the PDF and preserves AbortError when OCR is aborted", async () => {
+  it.skip("cleans the PDF and preserves AbortError when OCR is aborted", async () => {
     const abortError = new DOMException("cancelled", "AbortError");
     const extraction = pdfExtraction({ imagePages: [{ pageNumber: 1, page: {} }], requiresOcr: true });
     adapterMocks.extractPdfPages.mockResolvedValue(extraction);
@@ -364,7 +364,7 @@ describe("analyzeBudgetFile", () => {
     expect(extraction.cleanup).toHaveBeenCalledTimes(1);
   });
 
-  it("cleans and stops before parsing when the parsing progress callback aborts", async () => {
+  it.skip("cleans and stops before parsing when the parsing progress callback aborts", async () => {
     const controller = new AbortController();
     const extraction = pdfExtraction({
       textPages: [{ pageNumber: 1, page: {}, items: [], rows: [{ cells: ["본예산"], sourcePage: 1 }] }],
@@ -430,8 +430,9 @@ describe("analyzeBudgetFile", () => {
   });
 
   it.each([
-    ["unsupported extension", budgetFile("budget.csv", [0x31, 0x2c, 0x32]), /지원하지 않는 파일 형식/],
-    ["extension/content mismatch", budgetFile("budget.pdf", xlsxMagic), /확장자와 내용이 일치하지/],
+    ["unsupported extension", budgetFile("budget.csv", [0x31, 0x2c, 0x32]), /XLS, XLSX/],
+    ["PDF is no longer supported", budgetFile("budget.pdf", pdfMagic), /XLS, XLSX/],
+    ["extension/content mismatch", budgetFile("budget.xls", xlsxMagic), /확장자와 내용이 일치하지/],
     ["corrupt workbook", budgetFile("budget.xlsx", [0x31, 0x32, 0x33]), /손상되었거나/],
   ])("rejects $s clearly before invoking an adapter", async (_label, file, message) => {
     await expect(analyzeBudgetFile(file, { signal: new AbortController().signal, onProgress: vi.fn() }))
@@ -447,7 +448,7 @@ describe("analyzeBudgetFile", () => {
     await expect(analyzeBudgetFile(file, {
       signal: new AbortController().signal,
       onProgress: vi.fn(),
-    })).rejects.toThrow("지원하지 않는 파일 형식");
+    })).rejects.toThrow("XLS, XLSX");
 
     expect(arrayBuffer).not.toHaveBeenCalled();
     expect(adapterMocks.extractPdfPages).not.toHaveBeenCalled();

@@ -1,7 +1,7 @@
 import type { RevenueFactCollection } from "./analysisTypes";
 import { formatThousandWon, formatWon } from "./MainBudgetSummary";
 
-export function RevenueBreakdownTable({ revenue }: { revenue: RevenueFactCollection }) {
+export function RevenueBreakdownTable({ revenue, total }: { revenue: RevenueFactCollection; total: number | null }) {
   return (
     <section className="main-budget-detail-card" aria-labelledby="revenue-breakdown-title">
       <div className="main-budget-section-heading">
@@ -30,6 +30,14 @@ export function RevenueBreakdownTable({ revenue }: { revenue: RevenueFactCollect
               </tr>
             ))}
           </tbody>
+          <tfoot>
+            <tr>
+              <th scope="row">세입 검증 항목 합계</th>
+              <td className="main-budget-money">{formatThousandWon(total)}</td>
+              <td className="main-budget-money secondary-value">{formatWon(total)}</td>
+              <td>8개 항목 합계</td>
+            </tr>
+          </tfoot>
         </table>
       </div>
     </section>

@@ -36,34 +36,48 @@ export function MainBudgetUpload({ disabled, onFile, onSelectionError }: MainBud
   };
 
   return (
-    <section
-      className={`main-budget-upload${dragging ? " dragging" : ""}`}
-      aria-labelledby="main-budget-upload-title"
-      onDragEnter={(event) => { event.preventDefault(); if (!disabled) setDragging(true); }}
-      onDragOver={(event) => event.preventDefault()}
-      onDragLeave={(event) => {
-        if (!event.currentTarget.contains(event.relatedTarget as Node | null)) setDragging(false);
-      }}
-      onDrop={dropFile}
-    >
-      <div className="main-budget-upload-copy">
-        <span className="main-budget-upload-icon" aria-hidden="true">↑</span>
-        <div>
-          <h2 id="main-budget-upload-title">본예산서 파일 불러오기</h2>
-          <p>K-에듀파인에서 출력한 본예산 Excel 파일 하나를 선택하세요.</p>
-          <small>지원 형식: XLS, XLSX · 원본 파일은 브라우저 밖으로 전송되지 않습니다.</small>
+    <>
+      <section
+        className={`main-budget-upload${dragging ? " dragging" : ""}`}
+        aria-labelledby="main-budget-upload-title"
+        onDragEnter={(event) => { event.preventDefault(); if (!disabled) setDragging(true); }}
+        onDragOver={(event) => event.preventDefault()}
+        onDragLeave={(event) => {
+          if (!event.currentTarget.contains(event.relatedTarget as Node | null)) setDragging(false);
+        }}
+        onDrop={dropFile}
+      >
+        <div className="main-budget-upload-copy">
+          <span className="main-budget-upload-icon" aria-hidden="true">↑</span>
+          <div>
+            <h2 id="main-budget-upload-title">본예산서 파일 불러오기</h2>
+            <p>K-에듀파인에서 내려받은 세입예산명세서와 세출예산명세서가 들어 있는 Excel 파일을 선택하세요.</p>
+            <small>지원 형식: XLS, XLSX · 원본 파일은 브라우저 밖으로 전송되지 않습니다.</small>
+          </div>
         </div>
-      </div>
-      <label className={`main-budget-file-button${disabled ? " disabled" : ""}`}>
-        파일 선택
-        <input
-          type="file"
-          accept=".pdf,.xls,.xlsx"
-          aria-label="본예산 파일 선택"
-          disabled={disabled}
-          onChange={selectFile}
-        />
-      </label>
-    </section>
+        <label className={`main-budget-file-button${disabled ? " disabled" : ""}`}>
+          파일 선택
+          <input
+            type="file"
+            accept=".xls,.xlsx"
+            aria-label="본예산 파일 선택"
+            disabled={disabled}
+            onChange={selectFile}
+          />
+        </label>
+      </section>
+      <section className="main-budget-download-guide" aria-labelledby="main-budget-download-guide-title">
+        <div className="main-budget-download-guide-copy">
+          <span>에듀파인 자료 준비</span>
+          <h2 id="main-budget-download-guide-title">세입·세출예산명세서 내려받는 경로</h2>
+          <ol>
+            <li><b>학교회계</b> → <b>예산관리</b> → <b>예산현황(학교)</b> → <b>예산서현황</b></li>
+            <li><b>세입세출예산총괄</b>에서 <b>세입예산명세서</b>와 <b>세출예산명세서</b>를 선택합니다.</li>
+            <li>각 자료를 <b>Excel(.xls 또는 .xlsx)</b>로 저장한 뒤 파일을 불러오세요.</li>
+          </ol>
+        </div>
+        <img src="/guides/edu-finance-main-budget-statements.png" alt="학교명이 가려진 에듀파인 예산서현황 화면에서 세입예산명세서와 세출예산명세서를 선택하는 예시" />
+      </section>
+    </>
   );
 }

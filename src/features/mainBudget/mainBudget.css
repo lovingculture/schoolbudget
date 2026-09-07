@@ -32,6 +32,21 @@
   transition: border-color .18s ease, background .18s ease;
 }
 .main-budget-upload.dragging { border-color: var(--workspace-teal); background: var(--workspace-mint); }
+.main-budget-download-guide {
+  display: grid;
+  grid-template-columns: minmax(280px, .8fr) minmax(0, 1.2fr);
+  gap: 24px;
+  padding: 24px;
+  border: 1px solid var(--workspace-border);
+  border-radius: 20px;
+  background: white;
+  box-shadow: 0 12px 32px rgb(20 51 78 / 6%);
+}
+.main-budget-download-guide-copy > span { color: var(--workspace-teal-text); font-size: 12px; font-weight: 850; letter-spacing: .08em; }
+.main-budget-download-guide h2 { margin: 7px 0 14px; color: var(--workspace-navy); font-size: 19px; }
+.main-budget-download-guide ol { display: grid; gap: 10px; margin: 0; padding-left: 22px; color: #526c79; font-size: 14px; line-height: 1.65; }
+.main-budget-download-guide b { color: var(--workspace-navy); }
+.main-budget-download-guide img { display: block; width: 100%; max-height: 330px; border: 1px solid #dce8ec; border-radius: 14px; object-fit: contain; background: #eef7fb; }
 .main-budget-upload-copy { display: flex; align-items: center; gap: 18px; min-width: 0; }
 .main-budget-upload-copy h2,
 .main-budget-progress h2,
@@ -163,6 +178,8 @@
 .main-budget-detail-card thead th:first-child { border-radius: 9px 0 0 9px; }
 .main-budget-detail-card thead th:last-child { border-radius: 0 9px 9px 0; }
 .main-budget-detail-card tbody th { color: var(--workspace-navy); }
+.main-budget-detail-card tfoot th,
+.main-budget-detail-card tfoot td { border-top: 2px solid #b8d2da; border-bottom: 0; background: #eff8f7; color: var(--workspace-navy); font-weight: 800; }
 .main-budget-money { color: var(--workspace-navy); font-weight: 800; white-space: nowrap; }
 .main-budget-money.secondary-value { color: #647985; font-weight: 600; }
 .main-budget-empty-row { padding: 24px !important; color: #6c7f89; text-align: center !important; }
@@ -171,6 +188,7 @@
   .main-budget-upload { align-items: stretch; flex-direction: column; padding: 22px; }
   .main-budget-file-button { width: 100%; }
   .main-budget-upload-copy { align-items: flex-start; }
+  .main-budget-download-guide { grid-template-columns: minmax(0, 1fr); padding: 20px; }
   .portal-workspace.main-budget-page .main-budget-summary { grid-template-columns: minmax(0, 1fr); }
   .main-budget-comparison,
   .main-budget-section-heading { align-items: flex-start; flex-direction: column; }

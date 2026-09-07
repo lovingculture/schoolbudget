@@ -231,8 +231,8 @@ export function MainBudgetPage() {
           <MainBudgetSummary result={result} />
           {storageWarning ? <div className="main-budget-storage-warning" role="status">{storageWarning}</div> : null}
           <AnalysisWarnings warnings={result.warnings} collapseDetails={result.source.format === "pdf"} />
-          <RevenueBreakdownTable revenue={result.verificationRevenue} />
-          <GeneralBusinessExpenseTable expenses={result.generalBusinessExpenses} />
+          <RevenueBreakdownTable revenue={result.verificationRevenue} total={result.verificationRevenueTotal} />
+          <GeneralBusinessExpenseTable expenses={result.generalBusinessExpenses} total={result.generalBusinessExpenseTotal} />
         </>
       ) : (
         <>
