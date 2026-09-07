@@ -33,6 +33,7 @@ function isRepeatedHeader(row: string[]): boolean {
   return text.includes("예산구분")
     || text.startsWith("과목예산액")
     || text.startsWith("사업예산액")
+    || (text.includes("정책사업") && text.includes("단위사업") && text.includes("원가통계비목"))
     || (text.includes("원가통계비목") && (text.includes("장관항목") || text.includes("정책단위세부")));
 }
 
@@ -89,10 +90,11 @@ export function parseFoundationCsv(fileName: string, bytes: ArrayBuffer): Founda
     if (!section || isRepeatedHeader(row)) return;
 
     const hierarchy = section === "revenue" ? revenueHierarchy : expenseHierarchy;
-    const deepest = Array.from({ length: 5 }, (_, index) => index)
-      .find((index) => Boolean(clean(row[index]))) ?? -1;
+    const populatedHierarchy = Array.from({ length: 5 }, (_, index) => index)
+      .filter((index) => Boolean(clean(row[index])));
+    const deepest = populatedHierarchy.at(-1) ?? -1;
     if (deepest >= 0) {
-      hierarchy[deepest] = label(row[deepest]);
+      populatedHierarchy.forEach((index) => { hierarchy[index] = label(row[index]); });
       for (let child = deepest + 1; child < 5; child += 1) hierarchy[child] = "";
     }
 
