@@ -62,6 +62,14 @@ describe("집행실적으로 추경자료 만들기 화면", () => {
     expect(screen.getByRole("button", { name: "파일 선택" })).toBeVisible();
   });
 
+  it("에듀파인 경로 단계의 한글 단어를 중간에서 나누지 않는다", () => {
+    render(<SupplementaryPage />);
+
+    const stepLabel = screen.getByText("학교회계");
+    expect(getComputedStyle(stepLabel).wordBreak).toBe("keep-all");
+    expect(getComputedStyle(stepLabel).fontSize).toBe("16px");
+  });
+
   it("일반 Excel만 다운로드한다", async () => {
     mockedDownload.mockResolvedValue();
     render(<SupplementaryPage />);

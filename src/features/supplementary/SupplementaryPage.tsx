@@ -263,10 +263,10 @@ export function SupplementaryPage() {
       <div className="supplementary-guide-copy">
         <b id="supplementary-download-guide-title">에듀파인에서 파일 받는 경로</b>
         <ol className="edu-finance-steps">
-          <li><span>1</span><strong>학교회계</strong></li>
-          <li><span>2</span><strong>사업관리</strong></li>
-          <li><span>3</span><strong>사업관리 카드</strong></li>
-          <li><span>4</span><strong>집행실적 엑셀저장(실시간)</strong></li>
+          <li><span>1</span><strong style={{ fontSize: "16px", wordBreak: "keep-all" }}>학교회계</strong></li>
+          <li><span>2</span><strong style={{ fontSize: "16px", wordBreak: "keep-all" }}>사업관리</strong></li>
+          <li><span>3</span><strong style={{ fontSize: "16px", wordBreak: "keep-all" }}>사업관리 카드</strong></li>
+          <li><span>4</span><strong style={{ fontSize: "16px", wordBreak: "keep-all" }}>집행실적 엑셀저장(실시간)</strong></li>
         </ol>
         <p className="edu-finance-highlight">자료코드 <strong>102-2</strong>를 선택한 후 엑셀로 내려받아 주세요.</p>
       </div>
