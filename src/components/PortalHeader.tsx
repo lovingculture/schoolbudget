@@ -1,5 +1,6 @@
 import { useState } from "react";
 import {
+  BookOpen,
   ChevronDown,
   CircleUserRound,
   FolderOpen,
@@ -23,7 +24,8 @@ export type PortalHeaderView =
   | "guide"
   | "resources"
   | "reference-sites"
-  | "videos";
+  | "videos"
+  | "webtoon";
 
 type PortalHeaderProps = {
   activeView: PortalHeaderView;
@@ -152,6 +154,15 @@ export function PortalHeader({
           >
             <Video size={17} aria-hidden="true" />
             동영상 안내
+          </button>
+          <button
+            type="button"
+            className={activeView === "webtoon" ? "active" : undefined}
+            aria-current={activeView === "webtoon" ? "page" : undefined}
+            onClick={() => navigate("webtoon")}
+          >
+            <BookOpen size={17} aria-hidden="true" />
+            예산 웹툰
           </button>
           {onLogout && (
             <button

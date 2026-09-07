@@ -31,6 +31,7 @@ describe("PortalHeader", () => {
       "참고사이트",
       "예산 업무",
       "동영상 안내",
+      "예산 웹툰",
     ]) {
       expect(screen.getByRole("button", { name: label })).toBeVisible();
     }
@@ -45,6 +46,9 @@ describe("PortalHeader", () => {
 
     await user.click(screen.getByRole("button", { name: "참고사이트" }));
     expect(onNavigate).toHaveBeenCalledWith("reference-sites");
+
+    await user.click(screen.getByRole("button", { name: "예산 웹툰" }));
+    expect(onNavigate).toHaveBeenCalledWith("webtoon");
   });
 
   it("로그인한 사용자에게만 담당자 정보를 표시한다", () => {

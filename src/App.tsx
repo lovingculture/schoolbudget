@@ -29,6 +29,7 @@ import { PortalHeader, type PortalHeaderView } from "./components/PortalHeader";
 import { HomePage } from "./features/home/HomePage";
 import { BudgetResourceLibraryPage } from "./features/resources/BudgetResourceLibraryPage";
 import { VideoGuidePage } from "./features/videos/VideoGuidePage";
+import { BudgetWebtoonPage } from "./features/webtoon/BudgetWebtoonPage";
 import { UsageGuidePage } from "./features/guide/UsageGuidePage";
 import { ReferenceSitesPage } from "./features/referenceSites/ReferenceSitesPage";
 import "./features/portal/portalWorkspace.css";
@@ -419,6 +420,7 @@ export function Portal({
         {view === "main-budget-foundation" && <MainBudgetFoundationPage />}
         {view === "resources" && <BudgetResourceLibraryPage isAdmin={isAdmin} userId={userId ?? ""} onAdminLogin={onAdminLogin} />}
         {view === "videos" && <VideoGuidePage />}
+        {view === "webtoon" && <BudgetWebtoonPage />}
         {view === "guide" && <UsageGuidePage onNavigate={go} />}
         {view === "reference-sites" && <ReferenceSitesPage />}
       </main>
