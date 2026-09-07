@@ -53,7 +53,8 @@ describe("집행실적으로 추경자료 만들기 화면", () => {
     expect(screen.getByText("사업관리")).toBeVisible();
     expect(screen.getByText("사업관리 카드")).toBeVisible();
     expect(screen.getByText("집행실적 엑셀저장(실시간)")).toBeVisible();
-    expect(screen.getByText(/자료코드 102-2를 선택/)).toBeVisible();
+    expect(screen.getByRole("list", { name: "에듀파인 집행실적 메뉴 이동 경로" }).children).toHaveLength(4);
+    expect(screen.getByText("자료코드 102-2를 선택한 후 Excel로 내려받아 주세요.")).toBeVisible();
     expect(screen.getByRole("img", { name: "에듀파인 집행실적 엑셀저장 화면에서 자료코드 102-2를 선택하는 위치" })).toHaveAttribute(
       "src",
       "/guides/edu-finance-execution-102-2.png",
