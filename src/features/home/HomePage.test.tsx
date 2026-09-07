@@ -34,7 +34,7 @@ describe("승인된 포털 홈", () => {
       const sectionInners = container.querySelectorAll<HTMLElement>(
         ".home-section-inner",
       );
-      expect(sectionInners).toHaveLength(4);
+      expect(sectionInners).toHaveLength(5);
       const innerRule = rules.find(
         (rule) => rule.selectorText === ".home-section-inner",
       );
@@ -58,9 +58,14 @@ describe("승인된 포털 홈", () => {
 
     expect(
       screen.getByRole("heading", {
-        name: "복잡한 학교예산 업무, 한눈에 쉽고 빠르게",
+        name: "복잡하고 반복적인 학교 예산 업무를 더 빠르고 편리하게.",
       }),
     ).toBeVisible();
+    expect(screen.getByText("학교예산 한눈에")).toBeVisible();
+    expect(screen.getByText(/교직원이 예산 업무에 필요한 정보를 한곳에서 쉽고 빠르게 확인하고/)).toBeVisible();
+    expect(screen.getByRole("region", { name: "학교예산 한눈에 구축 목적" })).toBeVisible();
+    expect(screen.getByText(/학교 공사가 집중되는 겨울방학 중 예산 편성 업무에 소요되는 시간을 줄이고/)).toBeVisible();
+    expect(screen.getByText("업무 시간은 줄이고, 예산 업무는 더 정확하게.")).toBeVisible();
     expect(screen.queryByRole("button", { name: "업무 시작하기" })).not.toBeInTheDocument();
     expect(screen.getByRole("button", { name: "예산 지침 보기" })).toBeVisible();
     expect(

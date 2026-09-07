@@ -46,9 +46,11 @@
 }
 
 .home-hero-eyebrow {
-  display: flex;
+  display: inline-flex;
   align-items: center;
-  gap: 10px;
+  padding: 7px 12px;
+  border-radius: 999px;
+  background: #dff4f1;
   color: #117aa6;
   font-size: 14px;
   font-weight: 800;
@@ -263,6 +265,55 @@
 .home-quick-icon.green {
   background: #e7f7f1;
   color: #149875;
+}
+
+.home-intro {
+  padding: 76px 0 82px;
+  background: #fff;
+}
+
+.home-intro-layout {
+  display: grid;
+  grid-template-columns: minmax(240px, .72fr) minmax(0, 1.28fr);
+  gap: 72px;
+}
+
+.home-intro-heading span {
+  color: var(--home-teal);
+  font-size: 11px;
+  font-weight: 900;
+  letter-spacing: .13em;
+}
+
+.home-intro-heading h2 {
+  margin: 13px 0 0;
+  color: var(--home-navy);
+  font-size: clamp(28px, 3vw, 38px);
+  line-height: 1.42;
+  letter-spacing: -.04em;
+  font-weight: 600;
+}
+
+.home-intro-body {
+  max-width: 760px;
+}
+
+.home-intro-body p {
+  margin: 0 0 15px;
+  color: #60788c;
+  font-size: 16px;
+  line-height: 1.9;
+}
+
+.home-intro-body strong {
+  display: block;
+  margin-top: 26px;
+  padding: 19px 22px;
+  border-left: 4px solid var(--home-teal);
+  background: #edf9f7;
+  color: var(--home-navy);
+  font-size: 20px;
+  line-height: 1.55;
 }
 
 .home-work {
@@ -559,6 +610,15 @@
     border-top: 1px solid #e4eaee;
   }
 
+  .home-intro {
+    padding: 58px 0 62px;
+  }
+
+  .home-intro-layout {
+    grid-template-columns: 1fr;
+    gap: 26px;
+  }
+
   .home-work {
     padding-block: 68px;
   }
@@ -608,5 +668,24 @@
   .home-hero-benefits {
     display: grid;
     gap: 8px;
+  }
+
+  .home-intro {
+    padding: 46px 0 50px;
+  }
+
+  .home-intro-heading h2 {
+    font-size: 27px;
+  }
+
+  .home-intro-body p {
+    font-size: 15px;
+    line-height: 1.8;
+  }
+
+  .home-intro-body strong {
+    margin-top: 22px;
+    padding: 16px 18px;
+    font-size: 17px;
   }
 }

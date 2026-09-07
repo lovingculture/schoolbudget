@@ -90,14 +90,14 @@ export function HomePage({ onNavigate }: HomePageProps) {
       <section className="home-hero" aria-labelledby="home-hero-title">
         <div className="home-section-inner home-hero-layout">
           <div className="home-hero-copy">
+            <span className="home-hero-eyebrow">학교예산 한눈에</span>
             <h1 id="home-hero-title">
-              복잡한 학교예산 업무,
-              <strong>한눈에 쉽고 빠르게</strong>
+              복잡하고 반복적인 학교 예산 업무를
+              <strong>더 빠르고 편리하게.</strong>
             </h1>
             <p>
-              지침 확인부터 예산편성·안건설명서·결산·추경자료까지
-              <br />
-              현재 제공 중인 학교회계 업무를 한곳에서 처리하세요.
+              교직원이 예산 업무에 필요한 정보를 한곳에서 쉽고 빠르게 확인하고,
+              반복적인 확인·조회 업무를 줄일 수 있도록 만든 예산 업무지원 서비스입니다.
             </p>
             <div className="home-hero-actions">
               <button type="button" onClick={() => onNavigate("resources")}>
@@ -156,6 +156,27 @@ export function HomePage({ onNavigate }: HomePageProps) {
           </span>
           <ArrowRight aria-hidden="true" />
         </button>
+      </section>
+
+      <section className="home-intro" aria-label="학교예산 한눈에 구축 목적">
+        <div className="home-section-inner home-intro-layout">
+          <div className="home-intro-heading">
+            <span>WHY WE BUILT IT</span>
+            <h2>바쁜 예산 시기의<br />업무 부담을 줄입니다</h2>
+          </div>
+          <div className="home-intro-body">
+            <p>
+              특히 학교 공사가 집중되는 겨울방학 중 예산 편성 업무에 소요되는 시간을 줄이고,
+              학기 초 성립전예산 편성이 몰리는 시기에 사업담당자와 예산업무담당자 간 반복적으로
+              발생하는 확인과 불필요한 소통을 최소화하고자 구축했습니다.
+            </p>
+            <p>
+              예산 편성에 필요한 정보를 한곳에서 빠르게 찾아볼 수 있도록 하여 바쁜 시기의 업무 부담을 줄이고,
+              보다 정확하고 효율적인 예산 업무를 지원하는 것을 목표로 합니다.
+            </p>
+            <strong>업무 시간은 줄이고, 예산 업무는 더 정확하게.</strong>
+          </div>
+        </div>
       </section>
 
       <section className="home-work" aria-labelledby="home-work-title">
