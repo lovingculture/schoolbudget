@@ -68,7 +68,7 @@ describe("예산 자료실", () => {
     const performanceWorkbook = screen.getByRole("link", { name: "집행실적 정리(추경예산 만들기)용 엑셀파일 다운로드" });
     expect(performanceWorkbook).toHaveAttribute(
       "href",
-      "/resources/expenditure-performance-budget-revision.xlsm",
+      "/download/expenditure-performance-budget-revision.xlsm",
     );
     expect(performanceWorkbook).toHaveAttribute("download", "★집행실적정리용엑셀_버튼캐릭터추가.xlsm");
     expect(screen.queryByRole("button", { name: "자료 등록" })).not.toBeInTheDocument();

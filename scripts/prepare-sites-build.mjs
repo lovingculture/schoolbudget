@@ -14,9 +14,13 @@ await writeFile(
   `export default {
   async fetch(request, env) {
     const url = new URL(request.url);
-    const response = await env.ASSETS.fetch(request);
+    const isWorkbookDownload = url.pathname === "/download/expenditure-performance-budget-revision.xlsm";
+    const assetRequest = isWorkbookDownload
+      ? new Request(new URL("/resources/expenditure-performance-budget-revision.xlsm", request.url), request)
+      : request;
+    const response = await env.ASSETS.fetch(assetRequest);
     if (response.status !== 404) {
-      if (url.pathname === "/resources/expenditure-performance-budget-revision.xlsm") {
+      if (isWorkbookDownload) {
         const headers = new Headers(response.headers);
         headers.set("Content-Type", "application/vnd.ms-excel.sheet.macroEnabled.12");
         headers.set(
