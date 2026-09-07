@@ -97,9 +97,6 @@ function resultFor(format: "pdf" | "xls" | "xlsx", fileName = `budget.${format}`
   return {
     source: { fileName, format },
     identity: { schoolName: "가람초등학교", accountingYear: 2026, budgetType: "본예산" },
-    totalRevenue: { label: "세입예산총액", amount: 1_000 },
-    purposeRevenue: { label: "목적사업비전입금", amount: 0 },
-    beneficiaryRevenue: { label: "수익자부담수입", amount: 0 },
     revenueBaseline: 1_000,
     verificationRevenue: { facts: [], isComplete: true },
     verificationRevenueTotal: 1_000,
@@ -107,7 +104,6 @@ function resultFor(format: "pdf" | "xls" | "xlsx", fileName = `budget.${format}`
     generalBusinessExpenseFacts: { facts: [], isComplete: true },
     generalBusinessExpenseTotal: 0,
     ratio: 0,
-    comparison: { status: "match", revenueBaseline: 1_000, verificationRevenueTotal: 1_000, difference: 0 },
     warnings: [],
   };
 }
@@ -185,9 +181,6 @@ describe("analyzeBudgetFile", () => {
     expect(parserMocks.analyzeMainBudget).toHaveBeenCalledWith(expect.objectContaining({
       source: { fileName: name, format },
       identity: summary.identity,
-      totalRevenue: summary.totalRevenue,
-      purposeRevenue: revenue.purposeRevenue,
-      beneficiaryRevenue: revenue.beneficiaryRevenue,
       verificationRevenue: revenue.verificationRevenue,
       generalBusinessExpenses: { facts: [], isComplete: true },
     }));
@@ -391,7 +384,7 @@ describe("analyzeBudgetFile", () => {
     expect(extraction.cleanup).toHaveBeenCalledTimes(1);
   });
 
-  it("normalizes explicit won sections to thousand-won values but does not guess when a section has no unit", async () => {
+  it("normalizes explicit won detail sections to thousand-won values", async () => {
     const summaryHeading = { cells: ["세입세출예산총괄"] };
     const wonUnit = { cells: ["(단위:", "원)"] };
     const summaryRow = { cells: ["세입예산총액", 1_000_000] };
@@ -431,8 +424,6 @@ describe("analyzeBudgetFile", () => {
     });
 
     expect(parserMocks.analyzeMainBudget).toHaveBeenCalledWith(expect.objectContaining({
-      totalRevenue: expect.objectContaining({ amount: 1_000 }),
-      purposeRevenue: expect.objectContaining({ amount: 200_000 }),
       verificationRevenue: expect.objectContaining({ facts: [expect.objectContaining({ amount: 1_000 })] }),
       generalBusinessExpenses: expect.objectContaining({ facts: [expect.objectContaining({ amount: 30_000 })] }),
     }));

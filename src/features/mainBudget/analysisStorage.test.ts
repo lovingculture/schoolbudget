@@ -23,11 +23,8 @@ function validResult(): MainBudgetAnalysisResult {
     costItem: "일반업무추진비", amount: 23_020, row: expenseRow,
   };
   return {
-    source: { fileName: "budget.pdf", format: "pdf", pageCount: 22 },
+    source: { fileName: "budget.xlsx", format: "xlsx", sheetCount: 1 },
     identity: { schoolName: "가람초등학교", accountingYear: 2026, budgetType: "본예산" },
-    totalRevenue: { label: "세입예산총액", amount: 1_010_749, row: revenueRow },
-    purposeRevenue: { label: "목적사업비전입금", amount: 0, row: revenueRow },
-    beneficiaryRevenue: { label: "수익자부담수입", amount: 207_176, row: revenueRow },
     revenueBaseline: 803_573,
     verificationRevenue: { facts: verificationFacts, isComplete: true },
     verificationRevenueTotal: 803_573,
@@ -35,7 +32,6 @@ function validResult(): MainBudgetAnalysisResult {
     generalBusinessExpenseFacts: { facts: [expense], isComplete: true },
     generalBusinessExpenseTotal: 23_020,
     ratio: 23_020 / 803_573 * 100,
-    comparison: { status: "match", revenueBaseline: 803_573, verificationRevenueTotal: 803_573, difference: 0 },
     warnings: [{ code: "CHECK", message: "원본 확인", severity: "warning", row: revenueRow }],
   };
 }
@@ -46,7 +42,7 @@ describe("mainBudgetAnalysisStorage", () => {
 
   it("restores a valid versioned result with fact provenance and confidence", () => {
     const result = validResult();
-    localStorage.setItem(KEY, JSON.stringify({ schemaVersion: 3, result }));
+    localStorage.setItem(KEY, JSON.stringify({ schemaVersion: 4, result }));
 
     expect(mainBudgetAnalysisStorage.load()).toEqual(result);
   });
@@ -76,7 +72,7 @@ describe("mainBudgetAnalysisStorage", () => {
   ])("removes a result with an invalid %s", (_label, mutate) => {
     const stored = validResult() as unknown as Record<string, unknown>;
     mutate(stored);
-    localStorage.setItem(KEY, JSON.stringify({ schemaVersion: 3, result: stored }));
+    localStorage.setItem(KEY, JSON.stringify({ schemaVersion: 4, result: stored }));
 
     expect(mainBudgetAnalysisStorage.load()).toBeNull();
     expect(localStorage.getItem(KEY)).toBeNull();
@@ -88,17 +84,16 @@ describe("mainBudgetAnalysisStorage", () => {
     unsafe.sourceBytes = new Uint8Array([1, 2, 3]);
     unsafe.pdfDocument = { fingerprint: "secret-pdf-handle" };
     unsafe.canvas = document.createElement("canvas");
-    (unsafe.totalRevenue as unknown as Record<string, unknown>).rawFile = unsafe.sourceFile;
 
     mainBudgetAnalysisStorage.save(unsafe);
 
     const raw = localStorage.getItem(KEY)!;
     expect(raw).not.toMatch(/sourceFile|sourceBytes|pdfDocument|canvas|private-budget|secret-pdf-handle/);
-    expect(JSON.parse(raw)).toEqual({ schemaVersion: 3, result: validResult() });
+    expect(JSON.parse(raw)).toEqual({ schemaVersion: 4, result: validResult() });
   });
 
   it("removes both legacy keys idempotently while preserving the new result and unrelated data", () => {
-    localStorage.setItem(KEY, JSON.stringify({ schemaVersion: 3, result: validResult() }));
+    localStorage.setItem(KEY, JSON.stringify({ schemaVersion: 4, result: validResult() }));
     localStorage.setItem(OLD_EXPENDITURE_KEY, "legacy workbook state");
     localStorage.setItem(OLD_PDF_KEY, "legacy pdf state");
     localStorage.setItem("school-budget:unrelated", "kept");
@@ -122,17 +117,17 @@ describe("mainBudgetAnalysisStorage", () => {
     expect(localStorage.getItem("school-budget:unrelated")).toBe("kept");
   });
 
-  it("round-trips inferred-absent revenue metadata and its provenance", () => {
+  it("round-trips inferred-absent verification revenue metadata and its provenance", () => {
     const result = validResult();
-    result.purposeRevenue = {
-      label: "목적사업비전입금",
+    result.verificationRevenue.facts[1] = {
+      label: "사용료",
       amount: 0,
       inferredAbsent: true,
       row: { cells: ["세입예산명세서"], sourcePage: 3, sourceRow: 1 },
     };
 
     expect(mainBudgetAnalysisStorage.save(result)).toBe(true);
-    expect(mainBudgetAnalysisStorage.load()?.purposeRevenue).toEqual(result.purposeRevenue);
+    expect(mainBudgetAnalysisStorage.load()?.verificationRevenue.facts[1]).toEqual(result.verificationRevenue.facts[1]);
   });
 
   it("treats blocked get and cleanup operations as an empty nonfatal restore", () => {

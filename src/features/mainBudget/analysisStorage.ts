@@ -7,13 +7,12 @@ import type {
   GeneralBusinessExpense,
   GeneralBusinessExpenseCollection,
   MainBudgetAnalysisResult,
-  MainBudgetComparison,
   RevenueFact,
   RevenueFactCollection,
 } from "./analysisTypes";
 
 const STORAGE_KEY = "school-budget:main-budget:file-analysis:v1";
-const SCHEMA_VERSION = 3;
+const SCHEMA_VERSION = 4;
 const LEGACY_KEYS = [
   "school-budget:main-budget:expenditures:v1",
   "school-budget:main-budget:pdf-analysis:v1",
@@ -95,11 +94,9 @@ function optionalRow(value: unknown): BudgetLogicalRow | undefined | null {
 
 function source(value: unknown): BudgetSource | null {
   const item = record(value);
-  if (!item || typeof item.fileName !== "string" || !["pdf", "xls", "xlsx"].includes(String(item.format))
+  if (!item || typeof item.fileName !== "string" || !["xls", "xlsx"].includes(String(item.format))
     || !optionalInteger(item.pageCount) || !optionalInteger(item.sheetCount)) return null;
-  if ((item.format === "pdf" && (!Number.isInteger(item.pageCount) || (item.pageCount as number) < 1))
-    || ((item.format === "xls" || item.format === "xlsx")
-      && (!Number.isInteger(item.sheetCount) || (item.sheetCount as number) < 1))) return null;
+  if (!Number.isInteger(item.sheetCount) || (item.sheetCount as number) < 1) return null;
   return {
     fileName: item.fileName,
     format: item.format as BudgetSource["format"],
@@ -193,20 +190,6 @@ function warningArray(value: unknown): AnalysisWarning[] | null {
   return warnings.some((candidate) => candidate === null) ? null : warnings as AnalysisWarning[];
 }
 
-function comparison(value: unknown): MainBudgetComparison | null {
-  const item = record(value);
-  if (!item || !["match", "mismatch", "needs-review"].includes(String(item.status))
-    || !nullableNumber(item.revenueBaseline)
-    || !nullableNumber(item.verificationRevenueTotal)
-    || !nullableNumber(item.difference)) return null;
-  return {
-    status: item.status as MainBudgetComparison["status"],
-    revenueBaseline: item.revenueBaseline,
-    verificationRevenueTotal: item.verificationRevenueTotal,
-    difference: item.difference,
-  };
-}
-
 function analysisResult(value: unknown): MainBudgetAnalysisResult | null {
   const item = record(value);
   if (!item || !nullableNumber(item.revenueBaseline)
@@ -216,23 +199,16 @@ function analysisResult(value: unknown): MainBudgetAnalysisResult | null {
 
   const safeSource = source(item.source);
   const safeIdentity = identity(item.identity);
-  const totalRevenue = revenueFact(item.totalRevenue);
-  const purposeRevenue = revenueFact(item.purposeRevenue);
-  const beneficiaryRevenue = revenueFact(item.beneficiaryRevenue);
   const verificationRevenue = revenueCollection(item.verificationRevenue);
   const generalBusinessExpenses = expenseArray(item.generalBusinessExpenses);
   const generalBusinessExpenseFacts = expenseCollection(item.generalBusinessExpenseFacts);
-  const safeComparison = comparison(item.comparison);
   const warnings = warningArray(item.warnings);
-  if (!safeSource || !safeIdentity || !totalRevenue || !purposeRevenue || !beneficiaryRevenue || !verificationRevenue
-    || !generalBusinessExpenses || !generalBusinessExpenseFacts || !safeComparison || !warnings) return null;
+  if (!safeSource || !safeIdentity || !verificationRevenue
+    || !generalBusinessExpenses || !generalBusinessExpenseFacts || !warnings) return null;
 
   return {
     source: safeSource,
     identity: safeIdentity,
-    totalRevenue,
-    purposeRevenue,
-    beneficiaryRevenue,
     revenueBaseline: item.revenueBaseline,
     verificationRevenue,
     verificationRevenueTotal: item.verificationRevenueTotal,
@@ -240,7 +216,6 @@ function analysisResult(value: unknown): MainBudgetAnalysisResult | null {
     generalBusinessExpenseFacts,
     generalBusinessExpenseTotal: item.generalBusinessExpenseTotal,
     ratio: item.ratio,
-    comparison: safeComparison,
     warnings,
   };
 }

@@ -67,27 +67,14 @@ export type GeneralBusinessExpenseCollection = {
 export type ParsedMainBudgetInput = {
   source: BudgetSource;
   identity: BudgetDocumentIdentity;
-  totalRevenue: RevenueFact;
-  purposeRevenue: RevenueFact;
-  beneficiaryRevenue: RevenueFact;
   verificationRevenue: RevenueFactCollection;
   generalBusinessExpenses: GeneralBusinessExpenseCollection;
   warnings: AnalysisWarning[];
 };
 
-export type MainBudgetComparison = {
-  status: "match" | "mismatch" | "needs-review";
-  revenueBaseline: number | null;
-  verificationRevenueTotal: number | null;
-  difference: number | null;
-};
-
 export type MainBudgetAnalysisResult = {
   source: BudgetSource;
   identity: BudgetDocumentIdentity;
-  totalRevenue: RevenueFact;
-  purposeRevenue: RevenueFact;
-  beneficiaryRevenue: RevenueFact;
   revenueBaseline: number | null;
   verificationRevenue: RevenueFactCollection;
   verificationRevenueTotal: number | null;
@@ -95,6 +82,5 @@ export type MainBudgetAnalysisResult = {
   generalBusinessExpenseFacts: GeneralBusinessExpenseCollection;
   generalBusinessExpenseTotal: number | null;
   ratio: number | null;
-  comparison: MainBudgetComparison;
   warnings: AnalysisWarning[];
 };

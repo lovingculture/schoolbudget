@@ -297,9 +297,6 @@ function parsedInput(
   return {
     source,
     identity,
-    totalRevenue: scaledRevenueFact(summary.totalRevenue, units.summary),
-    purposeRevenue: scaledRevenueFact(revenue.purposeRevenue, units.revenue),
-    beneficiaryRevenue: scaledRevenueFact(revenue.beneficiaryRevenue, units.revenue),
     verificationRevenue: scaledRevenueCollection(revenue.verificationRevenue, units.revenue),
     generalBusinessExpenses: {
       facts: expenditure.expenses.map((expense) => scaledExpense(expense, units.expenditure)),
