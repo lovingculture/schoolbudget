@@ -183,6 +183,10 @@ function identityCandidates(rows: BudgetLogicalRow[], end: number): IdentityCand
 function schoolIdentity(candidates: IdentityCandidate[]): { value: string; row: BudgetLogicalRow } | null {
   const suffix = "(?:유치원|초등학교|중학교|고등학교|특수학교|학교)";
   for (const candidate of candidates) {
+    const labeled = new RegExp(`학교명([가-힣A-Za-z0-9]{2,40}${suffix})$`).exec(candidate.label);
+    if (labeled) return { value: labeled[1], row: candidate.row };
+  }
+  for (const candidate of candidates) {
     const withoutYear = candidate.label.replace(/^(?:19|20)\d{2}(?:학년도|회계연도)/, "");
     const exact = new RegExp(`^[가-힣A-Za-z0-9]{2,40}${suffix}$`).exec(withoutYear);
     if (exact) return { value: exact[0], row: candidate.row };

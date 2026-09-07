@@ -71,6 +71,18 @@ describe("본예산 공통 구역 파서", () => {
     expect(summary.warnings).toEqual([]);
   });
 
+  it("한 셀에 붙은 문서 머리글에서 학교명 값만 분리한다", () => {
+    const rows = logicalBudgetRows.map((row, index) => index === 0
+      ? { ...row, cells: ["회계연도2026예산구분본예산학교명서울옥정초등학교"] }
+      : row);
+
+    expect(parseBudgetSummary(rows).identity).toEqual({
+      schoolName: "서울옥정초등학교",
+      accountingYear: 2026,
+      budgetType: "본예산",
+    });
+  });
+
   it("추가경정·추경·성립전·결산 표시는 본예산 정체성으로 허용하지 않는다", () => {
     for (const marker of ["제1회 추가경정예산", "추경예산", "성립전예산", "2026학년도 결산서"]) {
       const rows = logicalBudgetRows.map((row, index) => index === 0

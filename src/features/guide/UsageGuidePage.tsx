@@ -159,7 +159,7 @@ export function UsageGuidePage({ onNavigate }: UsageGuidePageProps) {
           <h2 id="usage-guide-faq-title">자주 묻는 질문</h2>
         </div>
         <details>
-          <summary>예시는 그대로 복사해서 사용해도 되나요?</summary>
+          <summary>성립전예산 예시는 그대로 복사해서 사용해도 되나요?</summary>
           <p>예시는 작성 방향을 보여주는 참고자료입니다. 교부공문, 실제 사업계획, 단가와 인원·횟수를 확인하여 학교 상황에 맞게 수정하세요.</p>
         </details>
         <details>
