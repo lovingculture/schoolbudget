@@ -45,6 +45,13 @@ describe("동영상 안내", () => {
     expect(chapterTwo.querySelectorAll("span")).toHaveLength(2);
     expect(chapterTwo.querySelectorAll("span")[0]).toHaveTextContent("[학교회계 - 예산관리]");
     expect(chapterTwo.querySelectorAll("span")[1]).toHaveTextContent("2장 예산편성 사전작업");
+
+    const chapterThree = screen.getByRole("heading", {
+      name: "[학교회계 - 예산관리] 3장 본예산관리",
+    });
+    expect(chapterThree.querySelectorAll("span")).toHaveLength(2);
+    expect(chapterThree.querySelectorAll("span")[0]).toHaveTextContent("[학교회계 - 예산관리]");
+    expect(chapterThree.querySelectorAll("span")[1]).toHaveTextContent("3장 본예산관리");
   });
 
   it("분류와 제목 검색을 제공하고 아직 등록되지 않은 영상은 솔직하게 안내한다", () => {

@@ -41,7 +41,7 @@ export function VideoGuidePage() {
               {guide.thumbnailUrl ? <img src={guide.thumbnailUrl} alt="" /> : <span className="video-guide-placeholder" aria-hidden="true"><Video /></span>}
               <div>
                 <span>{guide.category}</span>
-                {["k-edufine-budget-management-chapter-1", "k-edufine-budget-management-chapter-2"].includes(guide.id) ? (
+                {["k-edufine-budget-management-chapter-1", "k-edufine-budget-management-chapter-2", "k-edufine-budget-management-chapter-3"].includes(guide.id) ? (
                   <h2 aria-label={guide.title}>
                     <span className="video-guide-title-line">[학교회계 - 예산관리]</span>
                     <span className="video-guide-title-line">{guide.title.replace("[학교회계 - 예산관리] ", "")}</span>
