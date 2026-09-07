@@ -15,7 +15,9 @@ describe("학교예산 한눈에 이용 안내", () => {
     expect(screen.getByRole("heading", { name: "추경예산자료 만들기 이용 방법" })).toBeVisible();
     expect(screen.getByRole("heading", { name: "예산 편성 확인 (업무추진비 3% 편성 확인)" })).toBeVisible();
     expect(screen.getByRole("heading", { name: "본예산 편성 기초자료 만들기" })).toBeVisible();
-    expect(screen.getAllByText(/세입·세출 통합 CSV/).length).toBeGreaterThan(0);
+    expect(screen.getAllByText(/세입·세출예산서 Excel/).length).toBeGreaterThan(0);
+    await user.click(screen.getByText("본예산 편성 기초자료는 어떻게 만드나요?"));
+    expect(screen.getByText(/\.xls 또는 \.xlsx/)).toBeVisible();
     expect(screen.getByText("본예산서를 불러오면 세입 기준금액과 일반업무추진비 편성 비율을 자동으로 계산합니다.")).toBeVisible();
     await user.click(screen.getByText("본예산 파일은 어떻게 분석하나요?"));
     expect(screen.getByText(/K-에듀파인 본예산 Excel 파일/)).toBeVisible();

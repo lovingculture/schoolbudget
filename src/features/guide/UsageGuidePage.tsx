@@ -47,7 +47,7 @@ const workflows: Array<{
   {
     view: "main-budget-foundation",
     title: "본예산 편성 기초자료 만들기",
-    description: "K-에듀파인 세입·세출 통합 CSV를 불러오면 기초자료를 자동 정리하고 Excel로 내려받을 수 있습니다.",
+    description: "K-에듀파인 세입·세출예산서 Excel을 불러오면 기초자료를 자동 정리하고 미리본 뒤 내려받을 수 있습니다.",
     buttonLabel: "본예산 편성 기초자료 만들기로 이동",
     icon: Download,
   },
@@ -176,7 +176,7 @@ export function UsageGuidePage({ onNavigate }: UsageGuidePageProps) {
         </details>
         <details>
           <summary>본예산 편성 기초자료는 어떻게 만드나요?</summary>
-          <p>K-에듀파인에서 내려받은 세입·세출 통합 CSV 파일 1개를 선택하세요. 학교마다 행 수가 달라도 제목과 합계 위치를 찾아 세입·세출, 조정안, 업무추진비 자료를 만들며 검증을 통과하면 Excel로 내려받을 수 있습니다. 작업 결과는 같은 브라우저에 임시저장됩니다.</p>
+          <p>K-에듀파인 예산서현황에서 세입·세출예산서 Excel(.xls 또는 .xlsx)을 내려받아 선택하세요. 학교마다 행 수가 달라도 제목과 합계 위치를 찾아 세입, 세출(원안), 세출(조정안), 업무추진비 자료를 만들며 검증을 통과하면 결과 Excel로 내려받을 수 있습니다. 기존 CSV 파일도 계속 사용할 수 있고 작업 결과는 같은 브라우저에 임시저장됩니다.</p>
         </details>
       </section>
     </div>

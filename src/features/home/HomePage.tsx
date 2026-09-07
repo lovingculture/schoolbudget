@@ -39,7 +39,7 @@ const workCards: WorkCard[] = [
     tone: "blue",
     badge: "기초자료",
     title: "본예산 편성 기초자료 만들기",
-    description: "세입·세출 통합 CSV를 불러오면 편성 기초자료를 정리해 Excel로 내려받을 수 있습니다.",
+    description: "세입·세출예산서 Excel을 불러오면 편성 기초자료를 정리하고 미리본 뒤 내려받을 수 있습니다.",
     actionLabel: "본예산 편성 기초자료 만들기 시작하기",
   },
   {

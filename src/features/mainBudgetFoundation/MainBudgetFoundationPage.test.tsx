@@ -57,7 +57,7 @@ describe("MainBudgetFoundationPage", () => {
   it("shows workbook-style sheet tabs after analysis", async () => {
     const user = userEvent.setup();
     render(<MainBudgetFoundationPage />);
-    await user.upload(screen.getByLabelText("세입·세출예산서 Excel 파일 선택"), csvFile(), { applyAccept: false });
+    await user.upload(screen.getByLabelText("세입·세출예산서 Excel 파일 선택"), csvFile());
     await screen.findByText("세입·세출 일치");
     await user.click(screen.getByRole("tab", { name: "세출(원안)" }));
     expect(screen.getByRole("tabpanel", { name: "세출(원안)" })).toHaveTextContent("일반업무추진비");
@@ -78,7 +78,7 @@ describe("MainBudgetFoundationPage", () => {
   it("shows a blocking validation error for mismatched totals", async () => {
     const user = userEvent.setup();
     render(<MainBudgetFoundationPage />);
-    await user.upload(screen.getByLabelText("세입·세출예산서 Excel 파일 선택"), csvFile(validCsv.replace("세출합계,100", "세출합계,90")), { applyAccept: false });
+    await user.upload(screen.getByLabelText("세입·세출예산서 Excel 파일 선택"), csvFile(validCsv.replace("세출합계,100", "세출합계,90")));
     expect(await screen.findByText(/세입합계와 세출합계가 10천원 차이/)).toBeVisible();
     await user.click(screen.getByRole("button", { name: "엑셀 자료 내려받기" }));
     expect(screen.getByRole("button", { name: "분석 결과 Excel 내려받기" })).toBeDisabled();
