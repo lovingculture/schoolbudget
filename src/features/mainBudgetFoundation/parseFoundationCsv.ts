@@ -91,7 +91,7 @@ export function parseFoundationCsv(fileName: string, bytes: ArrayBuffer): Founda
 
     const hierarchy = section === "revenue" ? revenueHierarchy : expenseHierarchy;
     const populatedHierarchy = Array.from({ length: 5 }, (_, index) => index)
-      .filter((index) => Boolean(clean(row[index])));
+      .filter((index) => /^\d+\.\s*\D/.test(clean(row[index])));
     const deepest = populatedHierarchy.at(-1) ?? -1;
     if (deepest >= 0) {
       populatedHierarchy.forEach((index) => { hierarchy[index] = label(row[index]); });

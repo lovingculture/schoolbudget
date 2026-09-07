@@ -21,12 +21,14 @@ describe("parseFoundationCsv", () => {
       costItem: "학교운영비전입금",
       currentAmount: 721_573,
     }));
+    expect(result.revenueRows).toHaveLength(1);
     expect(result.expenseRows).toContainEqual(expect.objectContaining({
       policy: "인적자원 운용",
       detail: "교직원연수",
       costItem: "일반업무추진비",
       currentAmount: 640,
     }));
+    expect(result.expenseRows).toHaveLength(2);
     expect(result.expenseRows.some((row) => row.costItem.includes("세출예산명세서"))).toBe(false);
   });
 

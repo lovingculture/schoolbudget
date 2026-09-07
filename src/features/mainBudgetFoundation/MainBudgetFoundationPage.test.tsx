@@ -53,18 +53,13 @@ describe("MainBudgetFoundationPage", () => {
     expect(screen.getByRole("button", { name: "Excel 내려받기" })).toBeEnabled();
   });
 
-  it("supports select all, clear all, and text filtering", async () => {
+  it("shows workbook-style sheet tabs after analysis", async () => {
     const user = userEvent.setup();
     render(<MainBudgetFoundationPage />);
     await user.upload(screen.getByLabelText("세입·세출예산서 Excel 파일 선택"), csvFile(), { applyAccept: false });
     await screen.findByText("세입·세출 일치");
-    await user.click(screen.getByRole("button", { name: "세출 보기" }));
-    await user.click(screen.getByRole("button", { name: "전체 선택 해제" }));
-    expect(screen.queryAllByRole("checkbox", { checked: true })).toHaveLength(0);
-    await user.click(screen.getByRole("button", { name: "전체 선택" }));
-    expect(screen.getAllByRole("checkbox", { checked: true })).toHaveLength(1);
-    await user.type(screen.getByLabelText("항목 검색"), "업무추진비");
-    expect(screen.getByRole("table", { name: "세출 기초자료" })).toHaveTextContent("일반업무추진비");
+    await user.click(screen.getByRole("tab", { name: "세출(원안)" }));
+    expect(screen.getByRole("tabpanel", { name: "세출(원안)" })).toHaveTextContent("일반업무추진비");
   });
 
   it("restores a saved result and clears it for a new file", async () => {
