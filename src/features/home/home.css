@@ -242,6 +242,13 @@
   color: #8897a6;
 }
 
+.home-quick-services > :is(button, a) .home-quick-login-note {
+  margin-top: 7px;
+  color: #157d75;
+  font-size: 11px;
+  font-weight: 800;
+}
+
 .home-quick-services > :is(button, a) > svg {
   width: 16px;
   color: #91a5b4;

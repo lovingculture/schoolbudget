@@ -268,6 +268,7 @@ describe("승인된 포털 홈", () => {
     expect(link).toHaveAttribute("rel", expect.stringContaining("noreferrer"));
     expect(screen.getByText("학교예산 질의응답 (노트북엘앰기반)")).toBeVisible();
     expect(screen.getByText("학교예산 업무와 관련해 궁금한 내용을 질문하고 답변을 확인해 보세요.")).toBeVisible();
+    expect(screen.getByText("Google 로그인 후 이용할 수 있습니다.")).toBeVisible();
     expect(within(screen.getByRole("region", { name: "자주 찾는 서비스" })).getByRole(
       "link", { name: "학교예산 질의응답 질문하러 가기" },
     )).toBe(link);

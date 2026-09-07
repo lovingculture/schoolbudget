@@ -149,6 +149,7 @@ export function HomePage({ onNavigate }: HomePageProps) {
           <span>
             <strong>학교예산 질의응답 (노트북엘앰기반)</strong>
             <small>학교예산 업무와 관련해 궁금한 내용을 질문하고 답변을 확인해 보세요.</small>
+            <small className="home-quick-login-note">Google 로그인 후 이용할 수 있습니다.</small>
           </span>
           <ArrowRight aria-hidden="true" />
         </a>
