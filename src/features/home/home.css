@@ -422,7 +422,8 @@
 }
 
 .home-work-card > button,
-.home-news-grid article button {
+.home-news-grid article button,
+.home-news-grid article > a {
   margin-top: auto;
   padding: 16px 0 0;
   display: inline-flex;
@@ -434,10 +435,12 @@
   color: #29516e;
   font-size: 13px;
   font-weight: 800;
+  text-decoration: none;
 }
 
 .home-work-card button svg,
-.home-news-grid article button svg {
+.home-news-grid article button svg,
+.home-news-grid article > a svg {
   width: 14px;
   color: #0989ad;
 }
@@ -448,7 +451,7 @@
 
 .home-news-grid {
   display: grid;
-  grid-template-columns: 1fr 1fr .9fr;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 18px;
 }
 
@@ -459,6 +462,11 @@
   border: 1px solid #dce5eb;
   border-radius: 18px;
   background: #fff;
+}
+
+.home-news-grid > article {
+  display: flex;
+  flex-direction: column;
 }
 
 .home-news-grid article > small {
@@ -482,6 +490,11 @@
 .home-news-grid article > small.site {
   background: #fff2e8;
   color: #c9662f;
+}
+
+.home-news-grid article > small.question {
+  background: #f0ecff;
+  color: #6d50bd;
 }
 
 .home-news-grid h3 {

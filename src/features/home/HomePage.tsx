@@ -270,6 +270,19 @@ export function HomePage({ onNavigate }: HomePageProps) {
               확인하기 <ArrowRight aria-hidden="true" />
             </button>
           </article>
+          <article>
+            <small className="question">질의응답</small>
+            <h3>학교예산 질의응답</h3>
+            <p>학교예산 업무와 관련해 궁금한 내용을 질문하고 답변을 확인해 보세요.</p>
+            <a
+              href="https://notebook.google.com/notebook/db7666d9-8e19-4d43-8f3e-b8f1345e7d08/preview"
+              target="_blank"
+              rel="noreferrer"
+              aria-label="학교예산 질의응답 질문하러 가기"
+            >
+              질문하러 가기 <ArrowRight aria-hidden="true" />
+            </a>
+          </article>
         </div>
       </section>
     </div>

@@ -255,4 +255,17 @@ describe("승인된 포털 홈", () => {
       );
     }
   }, 15_000);
+
+  it("학교예산 질의응답 서비스를 새 창으로 연다", () => {
+    render(<Portal displayName="김담당" schoolName="서울한빛초등학교" />);
+
+    const link = screen.getByRole("link", { name: "학교예산 질의응답 질문하러 가기" });
+    expect(link).toHaveAttribute(
+      "href",
+      "https://notebook.google.com/notebook/db7666d9-8e19-4d43-8f3e-b8f1345e7d08/preview",
+    );
+    expect(link).toHaveAttribute("target", "_blank");
+    expect(link).toHaveAttribute("rel", expect.stringContaining("noreferrer"));
+    expect(screen.getByText("학교예산 업무와 관련해 궁금한 내용을 질문하고 답변을 확인해 보세요.")).toBeVisible();
+  });
 });
