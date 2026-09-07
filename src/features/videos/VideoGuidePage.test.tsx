@@ -20,7 +20,7 @@ describe("동영상 안내", () => {
       ["(25.11.20.) K-에듀파인 학교회계 예산관리(본예산편성) 대표강사 교육영상", "https://www.youtube.com/watch?v=4eQjyipBuEM&t=1s"],
       ["(26.02.12) K-에듀파인 학교회계 예산결산 사용자 교육", "https://www.youtube.com/watch?v=J9wdZZCYYVk"],
       ["('25.03.20.) K-에듀파인 학교회계 예산관리(성립전예산 및 추가경정예산) 대표강사 교육", "https://www.youtube.com/watch?v=q73d3QkwmP4"],
-      ["[학교회계 - 예산관리] 1장 예산관리개요", "https://www.youtube.com/watch?v=dr-dxp9UCLE&list=PLnNTGUWLwu1sBH5y4_WZV05q5U_UD7wB1"],
+      ["[학교회계 - 예산관리] 1장 예산관리 개요", "https://www.youtube.com/watch?v=dr-dxp9UCLE&list=PLnNTGUWLwu1sBH5y4_WZV05q5U_UD7wB1"],
       ["[학교회계 - 예산관리] 2장 예산편성 사전작업", "https://www.youtube.com/watch?v=a5VfrWqDcNo&t=20s"],
       ["[학교회계 - 예산관리] 3장 본예산관리", "https://www.youtube.com/watch?v=zaMVS8WLWTo&t=16s"],
       ["[직무콕] 한눈에 쏙 들어오는 본예산 조정회의 자료 만들기", "https://www.youtube.com/watch?v=5epYRQu4Ov4"],
@@ -31,6 +31,13 @@ describe("동영상 안내", () => {
       expect(link).toHaveAttribute("href", url);
       expect(link).toHaveAttribute("target", "_blank");
     });
+
+    const chapterOne = screen.getByRole("heading", {
+      name: "[학교회계 - 예산관리] 1장 예산관리 개요",
+    });
+    expect(chapterOne.querySelectorAll("span")).toHaveLength(2);
+    expect(chapterOne.querySelectorAll("span")[0]).toHaveTextContent("[학교회계 - 예산관리]");
+    expect(chapterOne.querySelectorAll("span")[1]).toHaveTextContent("1장 예산관리 개요");
   });
 
   it("분류와 제목 검색을 제공하고 아직 등록되지 않은 영상은 솔직하게 안내한다", () => {

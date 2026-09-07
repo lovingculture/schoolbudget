@@ -41,7 +41,14 @@ export function VideoGuidePage() {
               {guide.thumbnailUrl ? <img src={guide.thumbnailUrl} alt="" /> : <span className="video-guide-placeholder" aria-hidden="true"><Video /></span>}
               <div>
                 <span>{guide.category}</span>
-                <h2>{guide.title}</h2>
+                {guide.id === "k-edufine-budget-management-chapter-1" ? (
+                  <h2 aria-label={guide.title}>
+                    <span className="video-guide-title-line">[학교회계 - 예산관리]</span>
+                    <span className="video-guide-title-line">1장 예산관리 개요</span>
+                  </h2>
+                ) : (
+                  <h2>{guide.title}</h2>
+                )}
                 <p>{guide.description}</p>
                 {guide.videoUrl && <a href={guide.videoUrl} target="_blank" rel="noreferrer" aria-label={`${guide.title} 유튜브에서 보기`}>유튜브에서 보기</a>}
               </div>

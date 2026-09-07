@@ -185,6 +185,10 @@
   color: #245b54;
 }
 
+.video-guide-title-line {
+  display: block;
+}
+
 @media (max-width: 1040px) {
   .portal-nav > a {
     padding: 9px 8px;

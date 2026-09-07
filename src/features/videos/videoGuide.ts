@@ -38,7 +38,7 @@ export const videoGuides: readonly VideoGuide[] = [
   },
   {
     id: "k-edufine-budget-management-chapter-1",
-    title: "[학교회계 - 예산관리] 1장 예산관리개요",
+    title: "[학교회계 - 예산관리] 1장 예산관리 개요",
     category: "예산편성",
     description: "K-에듀파인 학교회계 예산관리의 기본 개념과 업무 흐름을 안내하는 교육영상입니다.",
     thumbnailUrl: "https://i.ytimg.com/vi/dr-dxp9UCLE/hqdefault.jpg",
