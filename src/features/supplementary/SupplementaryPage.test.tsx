@@ -49,9 +49,26 @@ describe("집행실적으로 추경자료 만들기 화면", () => {
       "src",
       "/characters/cards/main-budget-good.png",
     );
-    expect(screen.getByText(/학교회계 → 사업관리 → 사업관리카드/)).toBeVisible();
+    expect(screen.getByText("학교회계")).toBeVisible();
+    expect(screen.getByText("사업관리")).toBeVisible();
+    expect(screen.getByText("사업관리 카드")).toBeVisible();
+    expect(screen.getByText("집행실적 엑셀저장(실시간)")).toBeVisible();
+    expect(screen.getByRole("list", { name: "에듀파인 집행실적 메뉴 이동 경로" }).children).toHaveLength(4);
+    expect(screen.getByText("자료코드 102-2를 선택한 후 Excel로 내려받아 주세요.")).toBeVisible();
+    expect(screen.getByRole("img", { name: "에듀파인 집행실적 엑셀저장 화면에서 자료코드 102-2를 선택하는 위치" })).toHaveAttribute(
+      "src",
+      "/guides/edu-finance-execution-102-2.png",
+    );
     expect(screen.getByText(/102-2 파일을 여기에 끌어다 놓으세요/)).toBeVisible();
     expect(screen.getByRole("button", { name: "파일 선택" })).toBeVisible();
+  });
+
+  it("에듀파인 경로 단계의 한글 단어를 중간에서 나누지 않는다", () => {
+    render(<SupplementaryPage />);
+
+    const stepLabel = screen.getByText("학교회계");
+    expect(getComputedStyle(stepLabel).wordBreak).toBe("keep-all");
+    expect(getComputedStyle(stepLabel).fontSize).toBe("16px");
   });
 
   it("일반 Excel만 다운로드한다", async () => {

@@ -8,6 +8,16 @@ describe("예산 안건설명서 화면", () => {
     render(<BudgetAgendaPage />);
     expect(screen.getByRole("heading", { level: 1 }).closest(".portal-workspace")).not.toBeNull();
     expect(screen.getByText(/에듀파인 예산현황의 세입세출총괄표를 다운로드한 후/)).toBeInTheDocument();
+    expect(screen.getByText("학교회계")).toBeVisible();
+    expect(screen.getByText("예산관리")).toBeVisible();
+    expect(screen.getByText("예산현황(학교)")).toBeVisible();
+    expect(screen.getByText("예산서현황")).toBeVisible();
+    expect(screen.getByText("세입세출예산 총괄표")).toBeVisible();
+    expect(screen.getByText(".xls(엑셀)")).toBeVisible();
+    expect(screen.getByRole("img", { name: "에듀파인 예산서현황에서 세입세출예산 총괄표를 선택하는 위치" })).toHaveAttribute(
+      "src",
+      "/guides/edu-finance-budget-summary.png",
+    );
     expect(screen.getByText(/자동으로 만들어지는 입력 화면에서 안건번호/)).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "세입세출총괄표 불러오기" })).toBeInTheDocument();
   });

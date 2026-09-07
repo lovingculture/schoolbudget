@@ -44,8 +44,21 @@ export function BudgetAgendaPage() {
     </div>
     <section className="budget-agenda-guide">
       <div className="budget-agenda-guide-icon"><FileSpreadsheet /></div>
-      <div>
+      <div className="budget-agenda-guide-content">
         <h2>사용 방법</h2>
+        <div className="budget-agenda-download-guide">
+          <ol className="edu-finance-steps">
+            <li><span>1</span><strong>학교회계</strong></li>
+            <li><span>2</span><strong>예산관리</strong></li>
+            <li><span>3</span><strong>예산현황(학교)</strong></li>
+            <li><span>4</span><strong>예산서현황</strong></li>
+          </ol>
+          <p className="edu-finance-highlight"><strong>세입세출예산 총괄표</strong>를 선택하여 <strong>.xls(엑셀)</strong> 문서로 내려받아 주세요.</p>
+          <figure className="edu-finance-guide-figure">
+            <img src="/guides/edu-finance-budget-summary.png" alt="에듀파인 예산서현황에서 세입세출예산 총괄표를 선택하는 위치" />
+            <figcaption>세입세출예산 총괄표를 선택한 뒤 .xls 형식으로 저장하세요.</figcaption>
+          </figure>
+        </div>
         <ol>
           <li>에듀파인 예산현황의 세입세출총괄표를 다운로드한 후 <b>세입세출총괄표 불러오기</b> 버튼을 눌러 원본 파일을 선택하세요.</li>
           <li>자동으로 만들어지는 입력 화면에서 안건번호, 제안이유, 근거, 주요내용 등을 수정하세요.</li>

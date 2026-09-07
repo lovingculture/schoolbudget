@@ -1,3 +1,4 @@
+import { Lightbulb } from "lucide-react";
 import { PREBUDGET_COPY } from "./prebudgetCopy";
 
 export function PrebudgetHeader({ documentReady, onOpenExamples }: { documentReady: boolean; onOpenExamples(): void }) {
@@ -9,9 +10,10 @@ export function PrebudgetHeader({ documentReady, onOpenExamples }: { documentRea
     <ol className="prebudget-steps" aria-label="성립전예산 작성 단계">
       {PREBUDGET_COPY.steps.map((step, index) => <li key={step} data-status={index < 2 || documentReady ? "complete" : "pending"}><b>{index + 1}</b><span>{step}</span></li>)}
     </ol>
-    <section className="prebudget-example-start" aria-label="예시 작성 안내">
+    <section className="prebudget-example-start prebudget-example-start-highlighted" aria-label="예시 작성 안내">
+      <span className="prebudget-example-start-icon" aria-hidden="true"><Lightbulb /></span>
       <div><strong>{PREBUDGET_COPY.exampleTitle}</strong><p>{PREBUDGET_COPY.exampleDescription}</p></div>
-      <button type="button" className="secondary" onClick={onOpenExamples}>예시에서 시작하기</button>
+      <button type="button" className="prebudget-example-start-button" onClick={onOpenExamples}>예시에서 시작하기</button>
     </section>
   </>;
 }

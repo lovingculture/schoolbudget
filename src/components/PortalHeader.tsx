@@ -1,6 +1,8 @@
 import { useState } from "react";
 import {
+  BookOpen,
   ChevronDown,
+  CircleHelp,
   CircleUserRound,
   FolderOpen,
   Home,
@@ -16,13 +18,15 @@ export type PortalHeaderView =
   | "guidelines"
   | "prebudget"
   | "budget"
+  | "main-budget-foundation"
   | "agenda"
   | "closing"
   | "supplementary"
   | "guide"
   | "resources"
   | "reference-sites"
-  | "videos";
+  | "videos"
+  | "webtoon";
 
 type PortalHeaderProps = {
   activeView: PortalHeaderView;
@@ -33,11 +37,12 @@ type PortalHeaderProps = {
 };
 
 const workItems: ReadonlyArray<[PortalHeaderView, string]> = [
-  ["prebudget", "성립전예산"],
-  ["budget", "본예산"],
-  ["agenda", "예산안건 설명서"],
-  ["closing", "결산설명서"],
-  ["supplementary", "집행실적으로 추경자료 만들기"],
+  ["prebudget", "성립전예산요구서작성(사업담당자용)"],
+  ["main-budget-foundation", "본예산 편성 기초자료 만들기"],
+  ["budget", "예산 편성 확인 (업무추진비 3% 편성 확인)"],
+  ["supplementary", "추경예산자료 만들기"],
+  ["agenda", "안건설명서 만들기"],
+  ["closing", "결산 설명서 만들기"],
 ];
 
 export function PortalHeader({
@@ -151,6 +156,24 @@ export function PortalHeader({
             <Video size={17} aria-hidden="true" />
             동영상 안내
           </button>
+          <button
+            type="button"
+            className={activeView === "webtoon" ? "active" : undefined}
+            aria-current={activeView === "webtoon" ? "page" : undefined}
+            onClick={() => navigate("webtoon")}
+          >
+            <BookOpen size={17} aria-hidden="true" />
+            예산 웹툰
+          </button>
+          <a
+            href="https://notebook.google.com/notebook/db7666d9-8e19-4d43-8f3e-b8f1345e7d08/preview"
+            target="_blank"
+            rel="noreferrer"
+            aria-label="학교예산 질의응답 (노트북엘앰기반)"
+          >
+            <CircleHelp size={17} aria-hidden="true" />
+            학교예산 질의응답
+          </a>
           {onLogout && (
             <button
               type="button"

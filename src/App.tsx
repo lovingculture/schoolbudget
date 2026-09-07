@@ -24,10 +24,12 @@ import { SupplementaryPage } from "./features/supplementary/SupplementaryPage";
 import { BudgetAgendaPage } from "./features/budgetAgenda/BudgetAgendaPage";
 import { PrebudgetPage } from "./features/prebudget/PrebudgetPage";
 import { MainBudgetPage } from "./features/mainBudget/MainBudgetPage";
+import { MainBudgetFoundationPage } from "./features/mainBudgetFoundation/MainBudgetFoundationPage";
 import { PortalHeader, type PortalHeaderView } from "./components/PortalHeader";
 import { HomePage } from "./features/home/HomePage";
 import { BudgetResourceLibraryPage } from "./features/resources/BudgetResourceLibraryPage";
 import { VideoGuidePage } from "./features/videos/VideoGuidePage";
+import { BudgetWebtoonPage } from "./features/webtoon/BudgetWebtoonPage";
 import { UsageGuidePage } from "./features/guide/UsageGuidePage";
 import { ReferenceSitesPage } from "./features/referenceSites/ReferenceSitesPage";
 import "./features/portal/portalWorkspace.css";
@@ -38,6 +40,7 @@ const GUIDE_DESTINATIONS = new Set<View>([
   "resources",
   "prebudget",
   "budget",
+  "main-budget-foundation",
   "agenda",
   "closing",
   "supplementary",
@@ -414,8 +417,10 @@ export function Portal({
         {view === "agenda" && <BudgetAgendaPage />}
         {view === "supplementary" && <SupplementaryPage />}
         {view === "budget" && <MainBudgetPage />}
+        {view === "main-budget-foundation" && <MainBudgetFoundationPage />}
         {view === "resources" && <BudgetResourceLibraryPage isAdmin={isAdmin} userId={userId ?? ""} onAdminLogin={onAdminLogin} />}
         {view === "videos" && <VideoGuidePage />}
+        {view === "webtoon" && <BudgetWebtoonPage />}
         {view === "guide" && <UsageGuidePage onNavigate={go} />}
         {view === "reference-sites" && <ReferenceSitesPage />}
       </main>
@@ -428,7 +433,15 @@ export function Portal({
 }
 
 function PortalPageNavigation({ children }: { children: ReactNode }) {
-  return <nav className="portal-page-navigation" aria-label="페이지 이동">{children}</nav>;
+  return (
+    <nav
+      className="portal-page-navigation"
+      aria-label="페이지 이동"
+      style={{ position: "static", justifyContent: "flex-start" }}
+    >
+      {children}
+    </nav>
+  );
 }
 
 function Prebudget({

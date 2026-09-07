@@ -34,7 +34,7 @@ describe("승인된 포털 홈", () => {
       const sectionInners = container.querySelectorAll<HTMLElement>(
         ".home-section-inner",
       );
-      expect(sectionInners).toHaveLength(4);
+      expect(sectionInners).toHaveLength(5);
       const innerRule = rules.find(
         (rule) => rule.selectorText === ".home-section-inner",
       );
@@ -58,11 +58,16 @@ describe("승인된 포털 홈", () => {
 
     expect(
       screen.getByRole("heading", {
-        name: "복잡한 학교예산 업무, 한눈에 쉽고 빠르게",
+        name: "복잡하고 반복적인 학교 예산 업무를 더 빠르고 편리하게.",
       }),
     ).toBeVisible();
+    expect(screen.getByText("학교예산 한눈에")).toBeVisible();
+    expect(screen.getByText(/교직원이 예산 업무에 필요한 정보를 한곳에서 쉽고 빠르게 확인하고/)).toBeVisible();
+    expect(screen.getByRole("region", { name: "학교예산 한눈에 구축 목적" })).toBeVisible();
+    expect(screen.getByText(/학교 공사가 집중되는 겨울방학 중 예산 편성 업무에 소요되는 시간을 줄이고/)).toBeVisible();
+    expect(screen.getByText("업무 시간은 줄이고, 예산 업무는 더 정확하게.")).toBeVisible();
     expect(screen.queryByRole("button", { name: "업무 시작하기" })).not.toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "예산 지침 보기" })).toBeVisible();
+    expect(screen.queryByRole("button", { name: "예산 지침 보기" })).not.toBeInTheDocument();
     expect(
       screen.getByRole("img", {
         name: "환영 인사를 건네는 서울교육 캐릭터 자라나와 열리미",
@@ -77,16 +82,19 @@ describe("승인된 포털 홈", () => {
         name: "예산업무, 흐름부터 문서까지 한곳에서",
       }),
     ).getAllByRole("article");
-    expect(workCards).toHaveLength(5);
+    expect(workCards).toHaveLength(6);
     expect(
       workCards.map((card) => within(card).getByRole("heading").textContent),
     ).toEqual([
       "성립전예산요구서작성(사업담당자용)",
+      "본예산 편성 기초자료 만들기",
+      "예산 편성 확인 (업무추진비 3% 편성 확인)",
       "추경예산자료 만들기",
-      "본예산",
       "안건설명서 만들기",
       "결산 설명서 만들기",
     ]);
+    expect(screen.getByText("본예산서를 불러오면 세입 기준금액과 일반업무추진비 편성 비율을 자동으로 계산합니다.")).toBeVisible();
+    expect(screen.getByText("반복적인 확인·조회 업무를")).toHaveClass("home-hero-nowrap");
 
     expect(screen.getByRole("region", { name: "자주 찾는 서비스" })).toBeVisible();
     expect(
@@ -104,7 +112,7 @@ describe("승인된 포털 홈", () => {
     expect(screen.queryByRole("searchbox")).not.toBeInTheDocument();
   });
 
-  it("핵심 예산업무 3개와 설명서 업무 2개를 두 줄로 구분한다", () => {
+  it("예산업무 6개를 화면당 세 항목씩 배치한다", () => {
     const style = document.createElement("style");
     style.textContent = `${homeStyles}\n.primary { background: #f07450; color: white; }\n.secondary { background: white; }`;
     document.head.append(style);
@@ -118,8 +126,7 @@ describe("승인된 포털 홈", () => {
         />,
       );
       const cards = Array.from(container.querySelectorAll<HTMLElement>(".home-work-card"));
-      expect(cards.slice(0, 3).every((card) => card.classList.contains("home-work-primary"))).toBe(true);
-      expect(cards.slice(3).every((card) => card.classList.contains("home-work-secondary"))).toBe(true);
+      expect(cards.every((card) => card.classList.contains("home-work-primary"))).toBe(true);
       expect(cards.every((card) => !card.classList.contains("primary") && !card.classList.contains("secondary"))).toBe(true);
       expect(getComputedStyle(cards[0]).backgroundColor).toBe("rgb(255, 255, 255)");
 
@@ -130,7 +137,6 @@ describe("승인된 포털 홈", () => {
         "repeat(6, minmax(0, 1fr))",
       );
       expect(rules.find((rule) => rule.selectorText === ".home-work-card.home-work-primary")?.style.getPropertyValue("grid-column")).toBe("span 2");
-      expect(rules.find((rule) => rule.selectorText === ".home-work-card.home-work-secondary")?.style.getPropertyValue("grid-column")).toBe("span 3");
     } finally {
       style.remove();
     }
@@ -228,9 +234,9 @@ describe("승인된 포털 홈", () => {
     render(<Portal displayName="김담당" schoolName="서울한빛초등학교" />);
 
     const destinations = [
-      ["예산 지침 보기", "예산 자료실"],
       ["성립전예산 새로 작성", "성립전예산 요구서 작성"],
-      ["본예산 시작하기", "본예산 편성·검토"],
+      ["본예산 시작하기", "예산 편성 확인 (업무추진비 3% 편성 확인)"],
+      ["본예산 편성 기초자료 만들기 시작하기", "본예산 편성 기초자료 만들기"],
       ["안건설명서 만들기 시작하기", "예산 안건설명서 자동작성"],
       ["결산 설명서 만들기 시작하기", "결산 안건설명서 자동작성"],
       ["추경예산자료 만들기 시작하기", "집행실적으로 추경자료 만들기"],
@@ -249,4 +255,38 @@ describe("승인된 포털 홈", () => {
       );
     }
   }, 15_000);
+
+  it("학교예산 질의응답 서비스를 새 창으로 연다", () => {
+    render(<Portal displayName="김담당" schoolName="서울한빛초등학교" />);
+
+    const link = screen.getByRole("link", { name: "학교예산 질의응답 질문하러 가기" });
+    expect(link).toHaveAttribute(
+      "href",
+      "https://notebook.google.com/notebook/db7666d9-8e19-4d43-8f3e-b8f1345e7d08/preview",
+    );
+    expect(link).toHaveAttribute("target", "_blank");
+    expect(link).toHaveAttribute("rel", expect.stringContaining("noreferrer"));
+    expect(screen.getByText("학교예산 질의응답 (노트북엘앰기반)")).toBeVisible();
+    expect(screen.getByText("학교예산 업무와 관련해 궁금한 내용을 질문하고 답변을 확인해 보세요.")).toBeVisible();
+    expect(screen.getByText("Google 로그인 후 이용할 수 있습니다.")).toBeVisible();
+    expect(within(screen.getByRole("region", { name: "자주 찾는 서비스" })).getByRole(
+      "link", { name: "학교예산 질의응답 질문하러 가기" },
+    )).toBe(link);
+    expect(within(screen.getByRole("region", { name: "새로운 소식을 확인하세요" })).queryByText(
+      "학교예산 질의응답",
+    )).not.toBeInTheDocument();
+  });
+
+  it("서울시교육청 열린 재정을 홈 하단에서 새 창으로 연다", () => {
+    render(<HomePage displayName="김담당" schoolName="서울한빛초등학교" onNavigate={() => {}} />);
+
+    const news = screen.getByRole("region", { name: "새로운 소식을 확인하세요" });
+    const link = within(news).getByRole("link", { name: "서울시교육청 열린 재정 바로가기" });
+    expect(link).toHaveAttribute(
+      "href",
+      "https://open.sen.go.kr/fus/MI000000000000000509/html/cont0010v.do",
+    );
+    expect(link).toHaveAttribute("target", "_blank");
+    expect(within(news).getByText("서울교육 재정정보와 예산·결산 자료를 확인할 수 있습니다.")).toBeVisible();
+  });
 });

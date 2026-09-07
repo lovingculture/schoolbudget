@@ -31,20 +31,48 @@ describe("PortalHeader", () => {
       "참고사이트",
       "예산 업무",
       "동영상 안내",
+      "예산 웹툰",
     ]) {
       expect(screen.getByRole("button", { name: label })).toBeVisible();
     }
+    const webtoon = screen.getByRole("button", { name: "예산 웹툰" });
+    const questionAndAnswer = screen.getByRole("link", {
+      name: "학교예산 질의응답 (노트북엘앰기반)",
+    });
+    expect(questionAndAnswer).toHaveAttribute(
+      "href",
+      "https://notebook.google.com/notebook/db7666d9-8e19-4d43-8f3e-b8f1345e7d08/preview",
+    );
+    expect(questionAndAnswer).toHaveAttribute("target", "_blank");
+    expect(webtoon.compareDocumentPosition(questionAndAnswer) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
     expect(screen.queryByRole("button", { name: "통합검색 준비 중" })).not.toBeInTheDocument();
 
     await user.click(screen.getByRole("button", { name: "예산 업무" }));
     expect(screen.queryByRole("menu")).not.toBeInTheDocument();
     expect(screen.queryByRole("menuitem")).not.toBeInTheDocument();
-    await user.click(screen.getByRole("button", { name: "성립전예산" }));
+    const workflowMenu = document.getElementById("portal-workflow-menu");
+    expect(workflowMenu).not.toBeNull();
+    expect(
+      within(workflowMenu!).getAllByRole("button").map((button) => button.textContent),
+    ).toEqual([
+      "성립전예산요구서작성(사업담당자용)",
+      "본예산 편성 기초자료 만들기",
+      "예산 편성 확인 (업무추진비 3% 편성 확인)",
+      "추경예산자료 만들기",
+      "안건설명서 만들기",
+      "결산 설명서 만들기",
+    ]);
+    await user.click(
+      screen.getByRole("button", { name: "성립전예산요구서작성(사업담당자용)" }),
+    );
 
     expect(onNavigate).toHaveBeenCalledWith("prebudget");
 
     await user.click(screen.getByRole("button", { name: "참고사이트" }));
     expect(onNavigate).toHaveBeenCalledWith("reference-sites");
+
+    await user.click(screen.getByRole("button", { name: "예산 웹툰" }));
+    expect(onNavigate).toHaveBeenCalledWith("webtoon");
   });
 
   it("로그인한 사용자에게만 담당자 정보를 표시한다", () => {

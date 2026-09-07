@@ -35,7 +35,7 @@
   min-height: 520px;
   padding-block: 68px;
   display: grid;
-  grid-template-columns: minmax(0, 1.05fr) minmax(360px, .95fr);
+  grid-template-columns: minmax(0, 1.12fr) minmax(360px, .88fr);
   align-items: center;
   gap: 42px;
 }
@@ -46,9 +46,11 @@
 }
 
 .home-hero-eyebrow {
-  display: flex;
+  display: inline-flex;
   align-items: center;
-  gap: 10px;
+  padding: 7px 12px;
+  border-radius: 999px;
+  background: #dff4f1;
   color: #117aa6;
   font-size: 14px;
   font-weight: 800;
@@ -81,6 +83,10 @@
   color: #60788c;
   font-size: 17px;
   line-height: 1.8;
+}
+
+.home-hero-nowrap {
+  white-space: nowrap;
 }
 
 .home-hero-actions {
@@ -172,7 +178,7 @@
   min-height: 126px;
   padding: 20px 26px;
   display: grid;
-  grid-template-columns: 1.05fr 1fr 1fr;
+  grid-template-columns: 1.05fr repeat(3, 1fr);
   align-items: stretch;
   border-radius: 18px;
   background: #fff;
@@ -180,7 +186,7 @@
 }
 
 .home-quick-intro,
-.home-quick-services > button {
+.home-quick-services > :is(button, a) {
   padding: 0 25px;
 }
 
@@ -203,7 +209,7 @@
   font-size: 14px;
 }
 
-.home-quick-services > button {
+.home-quick-services > :is(button, a) {
   display: grid;
   grid-template-columns: 48px 1fr 20px;
   align-items: center;
@@ -213,28 +219,37 @@
   background: transparent;
   color: var(--home-navy);
   text-align: left;
+  text-decoration: none;
 }
 
-.home-quick-services > button:hover {
+.home-quick-services > :is(button, a):hover {
   background: #f8fbfc;
 }
 
-.home-quick-services > button > span:nth-child(2) strong,
-.home-quick-services > button > span:nth-child(2) small {
+.home-quick-services > :is(button, a) > span:nth-child(2) strong,
+.home-quick-services > :is(button, a) > span:nth-child(2) small {
   display: block;
 }
 
-.home-quick-services > button strong {
+.home-quick-services > :is(button, a) strong {
   font-size: 14px;
   line-height: 1.55;
+  word-break: keep-all;
 }
 
-.home-quick-services > button small {
+.home-quick-services > :is(button, a) small {
   margin-top: 5px;
   color: #8897a6;
 }
 
-.home-quick-services > button > svg {
+.home-quick-services > :is(button, a) .home-quick-login-note {
+  margin-top: 7px;
+  color: #157d75;
+  font-size: 11px;
+  font-weight: 800;
+}
+
+.home-quick-services > :is(button, a) > svg {
   width: 16px;
   color: #91a5b4;
 }
@@ -263,6 +278,66 @@
 .home-quick-icon.green {
   background: #e7f7f1;
   color: #149875;
+}
+
+.home-quick-icon.question {
+  background: #f0ecff;
+  color: #6d50bd;
+}
+
+.home-intro {
+  padding: 76px 0 82px;
+  background: #fff;
+}
+
+.home-intro-layout {
+  display: grid;
+  grid-template-columns: minmax(240px, .72fr) minmax(0, 1.28fr);
+  gap: 72px;
+  padding: 48px 52px;
+  border: 1px solid #dce9e7;
+  border-radius: 30px;
+  background: linear-gradient(135deg, #f7fcfb 0%, #ffffff 62%, #f2f8ff 100%);
+  box-shadow: 0 18px 45px rgba(32, 76, 72, .08);
+  box-sizing: border-box;
+}
+
+.home-intro-heading span {
+  color: var(--home-teal);
+  font-size: 11px;
+  font-weight: 900;
+  letter-spacing: .13em;
+}
+
+.home-intro-heading h2 {
+  margin: 13px 0 0;
+  color: var(--home-navy);
+  font-size: clamp(28px, 3vw, 38px);
+  line-height: 1.42;
+  letter-spacing: -.04em;
+  font-weight: 600;
+}
+
+.home-intro-body {
+  max-width: 760px;
+}
+
+.home-intro-body p {
+  margin: 0 0 15px;
+  color: #60788c;
+  font-size: 16px;
+  line-height: 1.9;
+}
+
+.home-intro-body strong {
+  display: block;
+  margin-top: 26px;
+  padding: 19px 22px;
+  border-left: 4px solid var(--home-teal);
+  background: #edf9f7;
+  color: var(--home-navy);
+  font-size: 20px;
+  line-height: 1.55;
 }
 
 .home-work {
@@ -371,7 +446,8 @@
 }
 
 .home-work-card > button,
-.home-news-grid article button {
+.home-news-grid article button,
+.home-news-grid article > a {
   margin-top: auto;
   padding: 16px 0 0;
   display: inline-flex;
@@ -383,10 +459,12 @@
   color: #29516e;
   font-size: 13px;
   font-weight: 800;
+  text-decoration: none;
 }
 
 .home-work-card button svg,
-.home-news-grid article button svg {
+.home-news-grid article button svg,
+.home-news-grid article > a svg {
   width: 14px;
   color: #0989ad;
 }
@@ -397,7 +475,7 @@
 
 .home-news-grid {
   display: grid;
-  grid-template-columns: 1fr 1fr .9fr;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 18px;
 }
 
@@ -408,6 +486,11 @@
   border: 1px solid #dce5eb;
   border-radius: 18px;
   background: #fff;
+}
+
+.home-news-grid > article {
+  display: flex;
+  flex-direction: column;
 }
 
 .home-news-grid article > small {
@@ -431,6 +514,11 @@
 .home-news-grid article > small.site {
   background: #fff2e8;
   color: #c9662f;
+}
+
+.home-news-grid article > small.question {
+  background: #f0ecff;
+  color: #6d50bd;
 }
 
 .home-news-grid h3 {
@@ -485,6 +573,15 @@
 
   .home-work-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .home-quick-services {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .home-quick-intro {
+    grid-column: 1 / -1;
+    min-height: 84px;
   }
 
   .home-work-card.home-work-primary,
@@ -548,15 +645,33 @@
     grid-template-columns: 1fr;
   }
 
+  .home-quick-intro {
+    grid-column: auto;
+  }
+
+  .home-hero-nowrap {
+    white-space: normal;
+  }
+
   .home-quick-intro,
-  .home-quick-services > button {
+  .home-quick-services > :is(button, a) {
     min-height: 100px;
     padding: 18px 22px;
   }
 
-  .home-quick-services > button {
+  .home-quick-services > :is(button, a) {
     border-left: 0;
     border-top: 1px solid #e4eaee;
+  }
+
+  .home-intro {
+    padding: 58px 0 62px;
+  }
+
+  .home-intro-layout {
+    grid-template-columns: 1fr;
+    gap: 26px;
+    padding: 36px;
   }
 
   .home-work {
@@ -579,6 +694,24 @@
 }
 
 @media (max-width: 420px) {
+  .home-work-card {
+    min-height: auto;
+    padding: 22px;
+  }
+
+  .home-work-card h3 {
+    font-size: 20px;
+  }
+
+  .home-work-card p,
+  .home-work-card button {
+    font-size: 14px;
+  }
+
+  .home-work-card button {
+    min-height: 44px;
+  }
+
   .home-hero h1 {
     font-size: 31px;
   }
@@ -590,5 +723,29 @@
   .home-hero-benefits {
     display: grid;
     gap: 8px;
+  }
+
+  .home-intro {
+    padding: 46px 0 50px;
+  }
+
+  .home-intro-heading h2 {
+    font-size: 27px;
+  }
+
+  .home-intro-layout {
+    padding: 28px 22px;
+    border-radius: 22px;
+  }
+
+  .home-intro-body p {
+    font-size: 15px;
+    line-height: 1.8;
+  }
+
+  .home-intro-body strong {
+    margin-top: 22px;
+    padding: 16px 18px;
+    font-size: 17px;
   }
 }

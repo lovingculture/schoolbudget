@@ -39,10 +39,17 @@ const workflows: Array<{
   },
   {
     view: "budget",
-    title: "본예산 자료 확인",
-    description: "부서별 예산 요구자료를 모으고 편성 내역을 검토해 본예산 작업을 진행하세요.",
-    buttonLabel: "본예산으로 이동",
+    title: "예산 편성 확인 (업무추진비 3% 편성 확인)",
+    description: "본예산서를 불러오면 세입 기준금액과 일반업무추진비 편성 비율을 자동으로 계산합니다.",
+    buttonLabel: "예산 편성 확인 (업무추진비 3% 편성 확인)으로 이동",
     icon: WalletCards,
+  },
+  {
+    view: "main-budget-foundation",
+    title: "본예산 편성 기초자료 만들기",
+    description: "K-에듀파인 세입·세출예산서 Excel을 불러오면 기초자료를 자동 정리하고 미리본 뒤 내려받을 수 있습니다.",
+    buttonLabel: "본예산 편성 기초자료 만들기로 이동",
+    icon: Download,
   },
   {
     view: "agenda",
@@ -152,7 +159,7 @@ export function UsageGuidePage({ onNavigate }: UsageGuidePageProps) {
           <h2 id="usage-guide-faq-title">자주 묻는 질문</h2>
         </div>
         <details>
-          <summary>예시는 그대로 복사해서 사용해도 되나요?</summary>
+          <summary>성립전예산 예시는 그대로 복사해서 사용해도 되나요?</summary>
           <p>예시는 작성 방향을 보여주는 참고자료입니다. 교부공문, 실제 사업계획, 단가와 인원·횟수를 확인하여 학교 상황에 맞게 수정하세요.</p>
         </details>
         <details>
@@ -162,6 +169,14 @@ export function UsageGuidePage({ onNavigate }: UsageGuidePageProps) {
         <details>
           <summary>파일이 서버에 저장되나요?</summary>
           <p>아니요. 선택한 파일은 현재 브라우저 안에서만 처리하며 사이트 서버에 업로드하거나 저장하지 않습니다.</p>
+        </details>
+        <details>
+          <summary>본예산 파일은 어떻게 분석하나요?</summary>
+          <p>K-에듀파인 본예산 Excel 파일을 선택하면 세입 기준금액과 일반업무추진비 편성 비율을 확인할 수 있습니다. .xls, .xlsx 파일을 선택할 수 있으며 파일은 이 브라우저에서만 처리합니다. 분석 결과는 현재 브라우저에만 복원됩니다.</p>
+        </details>
+        <details>
+          <summary>본예산 편성 기초자료는 어떻게 만드나요?</summary>
+          <p>K-에듀파인 예산서현황에서 세입·세출예산서 Excel(.xls 또는 .xlsx)을 내려받아 선택하세요. 학교마다 행 수가 달라도 제목과 합계 위치를 찾아 세입, 세출(원안), 세출(조정안), 업무추진비 자료를 만들며 검증을 통과하면 결과 Excel로 내려받을 수 있습니다. 기존 CSV 파일도 계속 사용할 수 있고 작업 결과는 같은 브라우저에 임시저장됩니다.</p>
         </details>
       </section>
     </div>

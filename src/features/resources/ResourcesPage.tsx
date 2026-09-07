@@ -35,7 +35,7 @@ export function ResourcesPage({ onGuidelines }: ResourcesPageProps) {
           <div>
             <span className="resource-card-type">TEMPLATE</span>
             <h2 id="resource-template-title">부서별 본예산 세출 요구자료 양식</h2>
-            <p>본예산 편성·검토에 바로 올릴 수 있는 빈 양식입니다. 매크로 없이 XLS와 XLSX 형식을 제공합니다.</p>
+            <p>부서별 본예산 세출 요구자료 작성용 양식입니다. 매크로 없이 XLS와 XLSX 형식을 제공합니다.</p>
           </div>
           <div className="resource-card-actions">
             <button type="button" onClick={() => downloadExpenditureTemplate("xls")}><Download size={17} /> 구형 Excel 양식(XLS) 다운로드</button>

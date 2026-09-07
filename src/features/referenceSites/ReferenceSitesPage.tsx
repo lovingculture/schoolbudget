@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { ExternalLink, Link2, Play, Search } from "lucide-react";
+import { ExternalLink, Link2, Search } from "lucide-react";
 import "./referenceSites.css";
 
 export type ReferenceSiteCategory = "교육청" | "학교회계" | "업무지원" | "기타";
@@ -42,6 +42,27 @@ export const REFERENCE_SITES: ReferenceSite[] = [
     url: "https://www.ssem.or.kr/api/intergrated/tutHpDta/metaSearch/apiBbs/apiBbsList.do?bbsSn=1216",
   },
   {
+    id: "sen-electronic-library",
+    title: "서울시교육청 전자도서관",
+    category: "교육청",
+    description: "전자책·오디오북·온라인 강좌 등 서울시교육청의 디지털 자료를 이용할 수 있는 전자도서관입니다.",
+    url: "https://e-lib.sen.go.kr/",
+  },
+  {
+    id: "sen-contract-guide",
+    title: "서울시교육청 계약길잡이",
+    category: "교육청",
+    description: "서울시교육청의 계약 업무 지침과 관련 자료를 확인할 수 있습니다.",
+    url: "https://contract.sen.go.kr/",
+  },
+  {
+    id: "sen-open-finance",
+    title: "서울시교육청 열린 재정",
+    category: "교육청",
+    description: "서울교육 재정정보와 예산·결산 자료를 확인할 수 있습니다.",
+    url: "https://open.sen.go.kr/fus/MI000000000000000509/html/cont0010v.do",
+  },
+  {
     id: "sen-school",
     title: "센스쿨",
     category: "업무지원",
@@ -49,69 +70,22 @@ export const REFERENCE_SITES: ReferenceSite[] = [
     url: "https://senedu.kr/",
   },
   {
-    id: "k-edufine-main-budget-training-2025-11-20",
-    title: "(25.11.20.) K-에듀파인 학교회계 예산관리(본예산편성) 대표강사 교육영상",
-    category: "학교회계",
-    description: "K-에듀파인 학교회계 본예산 편성 절차를 안내하는 대표강사 교육영상입니다.",
-    url: "https://www.youtube.com/watch?v=4eQjyipBuEM&t=1s",
+    id: "government-employees-pension-service",
+    title: "공무원연금공단",
+    category: "업무지원",
+    description: "공무원 연금·퇴직급여·재해보상·복지서비스와 관련 민원 정보를 확인할 수 있는 공식 사이트입니다.",
+    url: "https://www.geps.or.kr/",
   },
   {
-    id: "k-edufine-budget-closing-training-2026-02-12",
-    title: "(26.02.12) K-에듀파인 학교회계 예산결산 사용자 교육",
-    category: "학교회계",
-    description: "K-에듀파인 학교회계 예산·결산 업무를 안내하는 사용자 교육영상입니다.",
-    url: "https://www.youtube.com/watch?v=J9wdZZCYYVk",
-  },
-  {
-    id: "k-edufine-supplementary-budget-training-2025-03-20",
-    title: "('25.03.20.) K-에듀파인 학교회계 예산관리(성립전예산 및 추가경정예산) 대표강사 교육",
-    category: "학교회계",
-    description: "성립전예산과 추가경정예산의 편성·관리 절차를 안내하는 대표강사 교육영상입니다.",
-    url: "https://www.youtube.com/watch?v=q73d3QkwmP4",
-  },
-  {
-    id: "k-edufine-budget-management-chapter-1",
-    title: "[학교회계 - 예산관리] 1장 예산관리개요",
-    category: "학교회계",
-    description: "K-에듀파인 학교회계 예산관리의 기본 개념과 업무 흐름을 안내하는 교육영상입니다.",
-    url: "https://www.youtube.com/watch?v=dr-dxp9UCLE&list=PLnNTGUWLwu1sBH5y4_WZV05q5U_UD7wB1",
-  },
-  {
-    id: "k-edufine-budget-management-chapter-2",
-    title: "[학교회계 - 예산관리] 2장 예산편성 사전작업",
-    category: "학교회계",
-    description: "K-에듀파인에서 예산을 편성하기 전에 필요한 사전작업을 안내하는 교육영상입니다.",
-    url: "https://www.youtube.com/watch?v=a5VfrWqDcNo&t=20s",
-  },
-  {
-    id: "k-edufine-budget-management-chapter-3",
-    title: "[학교회계 - 예산관리] 3장 본예산관리",
-    category: "학교회계",
-    description: "K-에듀파인 학교회계 본예산 편성과 관리 방법을 안내하는 교육영상입니다.",
-    url: "https://www.youtube.com/watch?v=zaMVS8WLWTo&t=16s",
-  },
-  {
-    id: "job-cock-main-budget-adjustment-meeting",
-    title: "[직무콕] 한눈에 쏙 들어오는 본예산 조정회의 자료 만들기",
-    category: "학교회계",
-    description: "본예산 조정회의에 필요한 자료를 한눈에 보기 좋게 정리하는 방법을 안내하는 교육영상입니다.",
-    url: "https://www.youtube.com/watch?v=5epYRQu4Ov4",
+    id: "sen-evpn",
+    title: "서울시교육청 원격업무지원시스템(EVPN)",
+    category: "업무지원",
+    description: "서울시교육청 교직원이 외부에서 업무포털·나이스·K-에듀파인 등에 안전하게 접속할 수 있는 원격업무지원시스템입니다.",
+    url: "https://evpn.sen.go.kr/",
   },
 ];
 
 const CATEGORIES = ["전체", "교육청", "학교회계", "업무지원", "기타"] as const;
-
-function getYouTubeDetails(url: string) {
-  try {
-    const parsed = new URL(url);
-    const isYouTube = parsed.hostname === "youtube.com" || parsed.hostname.endsWith(".youtube.com");
-    const videoId = isYouTube ? parsed.searchParams.get("v") : parsed.hostname === "youtu.be" ? parsed.pathname.slice(1) : null;
-    if (!videoId) return null;
-    return { thumbnailUrl: `https://i.ytimg.com/vi/${videoId}/hqdefault.jpg` };
-  } catch {
-    return null;
-  }
-}
 
 export function ReferenceSitesPage({ sites = REFERENCE_SITES }: { sites?: ReferenceSite[] }) {
   const [query, setQuery] = useState("");
@@ -142,19 +116,14 @@ export function ReferenceSitesPage({ sites = REFERENCE_SITES }: { sites?: Refere
     </section>
 
     {filtered.length ? <section className="reference-sites-grid" aria-label="참고사이트 목록">
-      {filtered.map((site) => {
-        const youtube = getYouTubeDetails(site.url);
-        return <article key={site.id}>
-          {youtube && <a className="reference-video-preview" href={site.url} target="_blank" rel="noreferrer" aria-label={`${site.title} 미리보기에서 유튜브로 이동`}>
-            <img src={youtube.thumbnailUrl} alt={`${site.title} 미리보기`} loading="lazy"/>
-            <span aria-hidden="true"><Play fill="currentColor"/></span>
-          </a>}
+      {filtered.map((site) => (
+        <article key={site.id}>
           <small>{site.category}</small>
           <h2>{site.title}</h2>
           <p>{site.description}</p>
-          <a href={site.url} target="_blank" rel="noreferrer" aria-label={`${site.title} 바로가기`}>{youtube ? "유튜브에서 보기" : "사이트 바로가기"} <ExternalLink aria-hidden="true"/></a>
-        </article>;
-      })}
+          <a href={site.url} target="_blank" rel="noreferrer" aria-label={`${site.title} 바로가기`}>사이트 바로가기 <ExternalLink aria-hidden="true"/></a>
+        </article>
+      ))}
     </section> : <section className="reference-sites-empty" aria-live="polite">
       <span aria-hidden="true"><Link2 /></span>
       <h2>등록된 참고사이트가 없습니다.</h2>

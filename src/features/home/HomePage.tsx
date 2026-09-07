@@ -33,6 +33,26 @@ const workCards: WorkCard[] = [
     actionLabel: "성립전예산 새로 작성",
   },
   {
+    view: "main-budget-foundation",
+    imageSrc: "/characters/cards/main-budget-good.png",
+    imageAlt: "본예산 기초자료 정리를 돕는 서울교육 캐릭터 자라나",
+    tone: "blue",
+    badge: "기초자료",
+    title: "본예산 편성 기초자료 만들기",
+    description: "세입·세출예산서 Excel을 불러오면 편성 기초자료를 정리하고 미리본 뒤 내려받을 수 있습니다.",
+    actionLabel: "본예산 편성 기초자료 만들기 시작하기",
+  },
+  {
+    view: "budget",
+    imageSrc: "/characters/cards/main-budget-good.png",
+    imageAlt: "본예산 편성을 응원하는 서울교육 캐릭터 자라나",
+    tone: "blue",
+    badge: "예산 편성",
+    title: "예산 편성 확인 (업무추진비 3% 편성 확인)",
+    description: "본예산서를 불러오면 세입 기준금액과 일반업무추진비 편성 비율을 자동으로 계산합니다.",
+    actionLabel: "본예산 시작하기",
+  },
+  {
     view: "supplementary",
     imageSrc: "/characters/cards/main-budget-good.png",
     imageAlt: "추경예산 자료 정리를 돕는 서울시교육청 캐릭터",
@@ -41,16 +61,6 @@ const workCards: WorkCard[] = [
     title: "추경예산자료 만들기",
     description: "집행실적을 분석해 감액 가능액과 추경 검토자료를 만드세요.",
     actionLabel: "추경예산자료 만들기 시작하기",
-  },
-  {
-    view: "budget",
-    imageSrc: "/characters/cards/main-budget-good.png",
-    imageAlt: "본예산 편성을 응원하는 서울교육 캐릭터 자라나",
-    tone: "blue",
-    badge: "예산 편성",
-    title: "본예산",
-    description: "부서별 세출 요구자료를 한 흐름으로 통합하고 오류를 검토하세요.",
-    actionLabel: "본예산 시작하기",
   },
   {
     view: "agenda",
@@ -80,20 +90,16 @@ export function HomePage({ onNavigate }: HomePageProps) {
       <section className="home-hero" aria-labelledby="home-hero-title">
         <div className="home-section-inner home-hero-layout">
           <div className="home-hero-copy">
+            <span className="home-hero-eyebrow">학교예산 한눈에</span>
             <h1 id="home-hero-title">
-              복잡한 학교예산 업무,
-              <strong>한눈에 쉽고 빠르게</strong>
+              복잡하고 반복적인 학교 예산 업무를
+              <strong>더 빠르고 편리하게.</strong>
             </h1>
             <p>
-              지침 확인부터 예산편성·안건설명서·결산·추경자료까지
-              <br />
-              현재 제공 중인 학교회계 업무를 한곳에서 처리하세요.
+              교직원이 예산 업무에 필요한 정보를 한곳에서 쉽고 빠르게 확인하고,{
+              " "}<span className="home-hero-nowrap">반복적인 확인·조회 업무를</span>{" "}
+              줄일 수 있도록 만든 예산 업무지원 서비스입니다.
             </p>
-            <div className="home-hero-actions">
-              <button type="button" onClick={() => onNavigate("resources")}>
-                예산 지침 보기
-              </button>
-            </div>
             <ul className="home-hero-benefits" aria-label="서비스 특징">
               <li>별도 설치 없이</li>
               <li>예산 파일 그대로</li>
@@ -126,11 +132,27 @@ export function HomePage({ onNavigate }: HomePageProps) {
             <BookOpen />
           </span>
           <span>
-            <strong>2026 학교회계<br />예산편성 기본지침</strong>
+            <strong>2026 학교회계 예산편성 기본지침</strong>
             <small>PDF 검색·열람</small>
           </span>
           <ArrowRight aria-hidden="true" />
         </button>
+        <a
+          href="https://notebook.google.com/notebook/db7666d9-8e19-4d43-8f3e-b8f1345e7d08/preview"
+          target="_blank"
+          rel="noreferrer"
+          aria-label="학교예산 질의응답 질문하러 가기"
+        >
+          <span className="home-quick-icon question" aria-hidden="true">
+            <CircleHelp />
+          </span>
+          <span>
+            <strong>학교예산 질의응답 (노트북엘앰기반)</strong>
+            <small>학교예산 업무와 관련해 궁금한 내용을 질문하고 답변을 확인해 보세요.</small>
+            <small className="home-quick-login-note">Google 로그인 후 이용할 수 있습니다.</small>
+          </span>
+          <ArrowRight aria-hidden="true" />
+        </a>
         <button
           type="button"
           data-testid="budget-step"
@@ -146,6 +168,27 @@ export function HomePage({ onNavigate }: HomePageProps) {
           </span>
           <ArrowRight aria-hidden="true" />
         </button>
+      </section>
+
+      <section className="home-intro" aria-label="학교예산 한눈에 구축 목적">
+        <div className="home-section-inner home-intro-layout">
+          <div className="home-intro-heading">
+            <span>WHY WE BUILT IT</span>
+            <h2>바쁜 예산 시기의<br />업무 부담을 줄입니다</h2>
+          </div>
+          <div className="home-intro-body">
+            <p>
+              특히 학교 공사가 집중되는 겨울방학 중 예산 편성 업무에 소요되는 시간을 줄이고,
+              학기 초 성립전예산 편성이 몰리는 시기에 사업담당자와 예산업무담당자 간 반복적으로
+              발생하는 확인과 불필요한 소통을 최소화하고자 구축했습니다.
+            </p>
+            <p>
+              예산 편성에 필요한 정보를 한곳에서 빠르게 찾아볼 수 있도록 하여 바쁜 시기의 업무 부담을 줄이고,
+              보다 정확하고 효율적인 예산 업무를 지원하는 것을 목표로 합니다.
+            </p>
+            <strong>업무 시간은 줄이고, 예산 업무는 더 정확하게.</strong>
+          </div>
+        </div>
       </section>
 
       <section className="home-work" aria-labelledby="home-work-title">
@@ -165,7 +208,7 @@ export function HomePage({ onNavigate }: HomePageProps) {
           <div className="home-work-grid">
             {workCards.map((card) => (
               <article
-                className={`home-work-card ${["prebudget", "supplementary", "budget"].includes(card.view) ? "home-work-primary" : "home-work-secondary"}`}
+                className="home-work-card home-work-primary"
                 data-testid="budget-step"
                 data-view={card.view}
                 key={card.view}
@@ -238,6 +281,19 @@ export function HomePage({ onNavigate }: HomePageProps) {
             >
               확인하기 <ArrowRight aria-hidden="true" />
             </button>
+          </article>
+          <article>
+            <small className="site">교육청</small>
+            <h3>서울시교육청 열린 재정</h3>
+            <p>서울교육 재정정보와 예산·결산 자료를 확인할 수 있습니다.</p>
+            <a
+              href="https://open.sen.go.kr/fus/MI000000000000000509/html/cont0010v.do"
+              target="_blank"
+              rel="noreferrer"
+              aria-label="서울시교육청 열린 재정 바로가기"
+            >
+              사이트 바로가기 <ArrowRight aria-hidden="true" />
+            </a>
           </article>
         </div>
       </section>

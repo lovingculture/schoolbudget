@@ -35,10 +35,18 @@ function fileWithArrayBuffer(name: string, data: ArrayBuffer) {
 describe("결산설명서 업로드 화면", () => {
   it("에듀파인 다운로드 경로와 두 가지 업로드 방법을 안내한다", () => {
     render(<ClosingPage />);
+    expect(screen.getByRole("heading", { name: "세입세출결산총괄표 내려받는 경로" })).toBeVisible();
+    expect(screen.getByRole("list", { name: "에듀파인 결산 메뉴 이동 경로" }).children).toHaveLength(4);
+    expect(screen.getByText("세입세출결산총괄표를 선택하여 Excel로 내려받아 주세요.")).toBeVisible();
+    expect(screen.getByRole("img", { name: "학교명이 가려진 에듀파인 결산서 일괄출력 화면" })).toHaveAttribute(
+      "src", "/guides/edu-finance-closing-summary.png",
+    );
     expect(screen.getByText(/세입세출결산총괄표.*끌어다 놓으세요/)).toBeVisible();
-    expect(screen.getByText(/학교회계 → 예산결산 → 결산서 → 결산서 일괄 출력/)).toBeVisible();
     expect(screen.getByRole("button", { name: "파일 선택" })).toBeVisible();
     expect(screen.getByText(/지원 파일.*\.xls.*\.xlsx/)).toBeVisible();
+    const guide = screen.getByRole("region", { name: "세입세출결산총괄표 내려받는 경로" });
+    const upload = screen.getByTestId("closing-upload");
+    expect(guide.compareDocumentPosition(upload) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
   });
 
   it("지원하지 않는 파일은 에듀파인 원본 안내와 함께 거절한다", async () => {

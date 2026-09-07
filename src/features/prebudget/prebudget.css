@@ -24,7 +24,11 @@
 .prebudget-page .prebudget-steps li { display: flex; align-items: center; gap: 10px; min-height: 58px; padding: 10px 14px; border: 1px solid var(--prebudget-border); border-radius: 15px; background: #fff; }
 .prebudget-page .prebudget-steps li b { display: grid; place-items: center; width: 30px; height: 30px; border-radius: 50%; background: #edf2f5; color: #61788a; }
 .prebudget-page .prebudget-steps li[data-status="complete"] b { background: var(--prebudget-teal-text); color: white; }
-.prebudget-page .prebudget-example-start { display: flex; align-items: center; justify-content: space-between; gap: 18px; margin-bottom: 22px; padding: 20px 22px; border: 1px solid var(--prebudget-border); border-radius: 18px; background: white; }
+.prebudget-page .prebudget-example-start { display: flex; align-items: center; justify-content: space-between; gap: 18px; margin-bottom: 22px; padding: 20px 22px; border: 2px solid #eda744; border-radius: 18px; background: linear-gradient(135deg, #fff9e9, #fff4d1); box-shadow: 0 8px 22px rgb(220 144 34 / 12%); }
+.prebudget-page .prebudget-example-start-icon { display: grid; place-items: center; flex: 0 0 46px; height: 46px; border-radius: 14px; background: #fff; color: #dc7e16; box-shadow: 0 5px 14px rgb(220 126 22 / 14%); }
+.prebudget-page .prebudget-example-start-icon svg { width: 23px; height: 23px; }
+.prebudget-page .prebudget-example-start-button { flex: 0 0 auto; min-height: 48px; padding: 11px 20px; border: 1px solid #d97310; border-radius: 12px; background: linear-gradient(135deg, #ed8d22, #db6811); color: #fff; font: inherit; font-weight: 800; box-shadow: 0 7px 16px rgb(217 115 16 / 22%); cursor: pointer; transition: transform .2s ease, box-shadow .2s ease; }
+.prebudget-page .prebudget-example-start-button:hover,.prebudget-page .prebudget-example-start-button:focus-visible { transform: translateY(-1px); box-shadow: 0 10px 20px rgb(217 115 16 / 28%); }
 .prebudget-page .prebudget-example-start strong { font-size: 18px; }
 .prebudget-page .prebudget-example-start p { margin: 5px 0 0; color: #5b7182; }
 .prebudget-page.prebudget-guide,
@@ -137,6 +141,8 @@
   .prebudget-page .prebudget-hero img { width: 120px; max-height: 130px; margin: 8px auto 0; }
   .prebudget-page .prebudget-steps { grid-template-columns: 1fr 1fr; }
   .prebudget-page .prebudget-example-start { align-items: stretch; flex-direction: column; }
+  .prebudget-page .prebudget-example-start-icon { align-self: flex-start; }
+  .prebudget-page .prebudget-example-start-button { width: 100%; }
   .prebudget-page .prebudget-guide-grid { grid-template-columns: 1fr; }
   .prebudget-page .form-grid,
   .prebudget-page .item-fields { grid-template-columns: 1fr; }

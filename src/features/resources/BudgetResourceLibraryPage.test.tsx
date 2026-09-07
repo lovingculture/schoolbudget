@@ -61,12 +61,16 @@ describe("예산 자료실", () => {
     );
     expect(screen.getByRole("searchbox", { name: "예산편성지침 검색" })).toBeVisible();
     expect(screen.queryByRole("combobox", { name: "연도" })).not.toBeInTheDocument();
+    expect(screen.getByText("부서별 본예산 세출 요구자료 작성용 양식 · 매크로 없음 · XLS·XLSX 호환")).toBeVisible();
+    expect(screen.queryByText(/부서별 세출자료 수합용/)).not.toBeInTheDocument();
     expect(screen.getByRole("button", { name: "미리보기" })).toBeVisible();
     expect(screen.getByRole("button", { name: "구형 Excel 양식(XLS) 다운로드" })).toBeVisible();
-    expect(screen.getByRole("link", { name: "집행실적 정리(추경예산 만들기)용 엑셀파일 다운로드" })).toHaveAttribute(
+    const performanceWorkbook = screen.getByRole("link", { name: "집행실적 정리(추경예산 만들기)용 엑셀파일 다운로드" });
+    expect(performanceWorkbook).toHaveAttribute(
       "href",
-      "/resources/expenditure-performance-budget-revision.xlsm",
+      "/download/expenditure-performance-budget-revision.xlsm",
     );
+    expect(performanceWorkbook).toHaveAttribute("download", "★집행실적정리용엑셀_버튼캐릭터추가.xlsm");
     expect(screen.queryByRole("button", { name: "자료 등록" })).not.toBeInTheDocument();
   });
 

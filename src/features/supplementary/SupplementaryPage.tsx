@@ -259,7 +259,22 @@ export function SupplementaryPage() {
       <div><span>SUPPLEMENTARY BUDGET</span><h1>집행실적으로 추경자료 만들기</h1><p>에듀파인 102-2 자료를 올리면 추경 검토자료를 자동으로 정리합니다.</p></div>
       <img src="/characters/cards/main-budget-good.png" alt="추경예산 자료 정리를 돕는 서울시교육청 캐릭터" />
     </div>
-    <section className="supplementary-guide"><b>에듀파인에서 파일 받는 경로</b><p>학교회계 → 사업관리 → 사업관리카드 → 집행실적 엑셀저장(실시간)</p><span>자료코드 <strong>102-2</strong>를 선택한 후 엑셀로 내려받아 주세요.</span></section>
+    <section className="supplementary-guide" aria-labelledby="supplementary-download-guide-title">
+      <div className="supplementary-guide-copy">
+        <b id="supplementary-download-guide-title">에듀파인에서 파일 받는 경로</b>
+        <ol className="edu-finance-steps" aria-label="에듀파인 집행실적 메뉴 이동 경로">
+          <li><span>1</span><strong style={{ fontSize: "16px", wordBreak: "keep-all" }}>학교회계</strong></li>
+          <li><span>2</span><strong style={{ fontSize: "16px", wordBreak: "keep-all" }}>사업관리</strong></li>
+          <li><span>3</span><strong style={{ fontSize: "16px", wordBreak: "keep-all" }}>사업관리 카드</strong></li>
+          <li><span>4</span><strong style={{ fontSize: "16px", wordBreak: "keep-all" }}>집행실적 엑셀저장(실시간)</strong></li>
+        </ol>
+        <p className="edu-finance-highlight">자료코드 102-2를 선택한 후 Excel로 내려받아 주세요.</p>
+      </div>
+      <figure className="edu-finance-guide-figure">
+        <img src="/guides/edu-finance-execution-102-2.png" alt="에듀파인 집행실적 엑셀저장 화면에서 자료코드 102-2를 선택하는 위치" />
+        <figcaption>자료코드 102-2를 선택하고 엑셀저장을 진행하세요.</figcaption>
+      </figure>
+    </section>
     {draft && <section className="supplementary-draft-card" aria-label="임시저장 자료">
       <span className="icon green"><FolderOpen/></span>
       <div><strong>{draft.source.schoolName} 임시저장 자료</strong><small>{draft.source.fiscalYear}회계연도 · {new Date(draft.savedAt).toLocaleString("ko-KR")} 저장</small></div>

@@ -37,7 +37,7 @@ describe("예산업무 포털", () => {
   it("홈에서 예산업무 흐름과 성립전예산 바로가기를 제공한다", () => {
     render(<Portal displayName="김담당" schoolName="서울한빛초등학교" onLogout={() => {}} />);
     expect(screen.getByRole("heading", { name: "예산업무, 흐름부터 문서까지 한곳에서" })).toBeVisible();
-    expect(screen.getAllByTestId("budget-step")).toHaveLength(7);
+    expect(screen.getAllByTestId("budget-step")).toHaveLength(8);
     expect(screen.getByRole("button", { name: "성립전예산 새로 작성" })).toBeVisible();
   });
 
@@ -182,26 +182,35 @@ describe("예산업무 포털", () => {
     expect(helps.at(-1)).toHaveTextContent("학교 운영에 소요되는 일반적인 경비");
   });
 
-  it("본예산 메뉴에서 세출 통합 화면을 연다", async () => {
+  it("본예산 메뉴에서 업무추진비 3% 편성 확인 화면을 연다", async () => {
     const user = userEvent.setup();
     render(<Portal displayName="김담당" schoolName="서울한빛초등학교" />);
     await user.click(screen.getByRole("button", { name: "예산 업무" }));
-    expect(screen.getByRole("button", { name: "예산안건 설명서" })).toBeVisible();
-    expect(screen.getByRole("button", { name: "결산설명서" })).toBeVisible();
+    expect(screen.getByRole("button", { name: "안건설명서 만들기" })).toBeVisible();
+    expect(screen.getByRole("button", { name: "결산 설명서 만들기" })).toBeVisible();
     expect(
-      screen.getByRole("button", { name: "집행실적으로 추경자료 만들기" }),
+      screen.getByRole("button", { name: "추경예산자료 만들기" }),
     ).toBeVisible();
-    await user.click(screen.getByRole("button", { name: "본예산" }));
-    expect(screen.getByRole("heading", { name: "본예산 편성·검토" })).toBeVisible();
-    expect(screen.getByRole("tab", { name: "세출자료 통합·검토" })).toBeVisible();
+    await user.click(screen.getByRole("button", { name: "예산 편성 확인 (업무추진비 3% 편성 확인)" }));
+    expect(screen.getByRole("heading", { name: "예산 편성 확인 (업무추진비 3% 편성 확인)" })).toBeVisible();
+    expect(screen.getByText("본예산서를 불러오면 세입 기준금액과 일반업무추진비 편성 비율을 자동으로 계산합니다.")).toBeVisible();
   });
 
   it("예산안건 설명서 메뉴에서 총괄표 불러오기 기능을 연다", async () => {
     const user = userEvent.setup();
     render(<Portal displayName="김담당" schoolName="서울한빛초등학교" />);
     await user.click(screen.getByRole("button", { name: "예산 업무" }));
-    await user.click(screen.getByRole("button", { name: "예산안건 설명서" }));
+    await user.click(screen.getByRole("button", { name: "안건설명서 만들기" }));
     expect(screen.getByRole("button", { name: "세입세출총괄표 불러오기" })).toBeVisible();
+  });
+
+  it("예산 업무 메뉴에서 본예산 편성 기초자료 만들기를 연다", async () => {
+    const user = userEvent.setup();
+    render(<Portal displayName="김담당" schoolName="서울한빛초등학교" />);
+    await user.click(screen.getByRole("button", { name: "예산 업무" }));
+    await user.click(screen.getByRole("button", { name: "본예산 편성 기초자료 만들기" }));
+    expect(screen.getByRole("heading", { name: "본예산 편성 기초자료 만들기" })).toBeVisible();
+    expect(screen.getByLabelText("세입·세출예산서 Excel 파일 선택")).toBeVisible();
   });
 
   it("예산 업무 메뉴가 모든 기존 업무 화면으로 이동한다", async () => {
@@ -209,11 +218,11 @@ describe("예산업무 포털", () => {
     render(<Portal displayName="김담당" schoolName="서울한빛초등학교" />);
 
     const destinations = [
-      ["성립전예산", "성립전예산 요구서 작성"],
-      ["본예산", "본예산 편성·검토"],
-      ["예산안건 설명서", "예산 안건설명서 자동작성"],
-      ["결산설명서", "결산 안건설명서 자동작성"],
-      ["집행실적으로 추경자료 만들기", "집행실적으로 추경자료 만들기"],
+      ["성립전예산요구서작성(사업담당자용)", "성립전예산 요구서 작성"],
+      ["예산 편성 확인 (업무추진비 3% 편성 확인)", "예산 편성 확인 (업무추진비 3% 편성 확인)"],
+      ["안건설명서 만들기", "예산 안건설명서 자동작성"],
+      ["결산 설명서 만들기", "결산 안건설명서 자동작성"],
+      ["추경예산자료 만들기", "집행실적으로 추경자료 만들기"],
     ] as const;
 
     for (const [label, heading] of destinations) {
@@ -259,7 +268,17 @@ describe("예산업무 포털", () => {
     await user.click(screen.getByRole("button", { name: "동영상 안내" }));
 
     expect(screen.getByRole("heading", { name: "동영상 안내" })).toBeVisible();
-    expect(screen.getByText("안내 동영상을 준비하고 있습니다.")).toBeVisible();
+    expect(screen.getByRole("link", { name: /본예산편성.*유튜브에서 보기/ })).toBeVisible();
+  });
+
+  it("예산 웹툰 상단 메뉴에서 여섯 회차의 목록을 연다", async () => {
+    const user = userEvent.setup();
+    render(<Portal displayName="김담당" schoolName="서울한빛초등학교" />);
+
+    await user.click(screen.getByRole("button", { name: "예산 웹툰" }));
+
+    expect(screen.getByRole("heading", { name: "예산 웹툰" })).toBeVisible();
+    expect(screen.getAllByRole("button", { name: /화 .* 읽어보기/ })).toHaveLength(6);
   });
 
   it("이용안내에서 연 모든 업무 화면은 이용안내 목록으로 돌아갈 수 있다", async () => {
@@ -270,7 +289,8 @@ describe("예산업무 포털", () => {
     const destinations = [
       "예산 자료실로 이동",
       "성립전예산 작성으로 이동",
-      "본예산으로 이동",
+      "예산 편성 확인 (업무추진비 3% 편성 확인)으로 이동",
+      "본예산 편성 기초자료 만들기로 이동",
       "예산안건 설명서로 이동",
       "결산 설명서로 이동",
       "추경예산자료로 이동",
@@ -294,6 +314,17 @@ describe("예산업무 포털", () => {
     await user.click(screen.getByRole("button", { name: "이전 화면" }));
 
     expect(screen.getByRole("heading", { name: "학교예산 한눈에 이용 안내" })).toBeVisible();
+  });
+
+  it("업무 화면 이동 버튼은 왼쪽에 배치되고 스크롤을 따라오지 않는다", async () => {
+    const user = userEvent.setup();
+    render(<Portal displayName="김담당" schoolName="서울한빛초등학교" />);
+    await user.click(screen.getByRole("button", { name: "학교예산 한눈에 이용 안내 확인" }));
+    await user.click(screen.getByRole("button", { name: "결산 설명서로 이동" }));
+
+    const navigation = screen.getByRole("navigation", { name: "페이지 이동" });
+    expect(getComputedStyle(navigation).position).toBe("static");
+    expect(getComputedStyle(navigation).justifyContent).toBe("flex-start");
   });
 
   it("통합검색 준비 중 메뉴를 표시하지 않는다", () => {

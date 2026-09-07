@@ -40,7 +40,7 @@ function StaticResourceCards() {
         </span>
         <div className="guideline-document-info">
           <h2>부서별 본예산 세출 요구자료 양식</h2>
-          <p>부서별 세출자료 수합용 · 매크로 없음 · XLS·XLSX 호환</p>
+          <p>부서별 본예산 세출 요구자료 작성용 양식 · 매크로 없음 · XLS·XLSX 호환</p>
         </div>
         <div className="guideline-document-actions">
           <button type="button" onClick={() => downloadExpenditureTemplate("xls")}>
@@ -61,8 +61,8 @@ function StaticResourceCards() {
         </div>
         <div className="guideline-document-actions">
           <a
-            href="/resources/expenditure-performance-budget-revision.xlsm"
-            download="집행실적정리용엑셀 확정본.xlsm"
+            href="/download/expenditure-performance-budget-revision.xlsm"
+            download="★집행실적정리용엑셀_버튼캐릭터추가.xlsm"
           >
             <Download size={18} /> 집행실적 정리(추경예산 만들기)용 엑셀파일 다운로드
           </a>
