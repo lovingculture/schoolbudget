@@ -50,7 +50,21 @@ describe("PortalHeader", () => {
     await user.click(screen.getByRole("button", { name: "예산 업무" }));
     expect(screen.queryByRole("menu")).not.toBeInTheDocument();
     expect(screen.queryByRole("menuitem")).not.toBeInTheDocument();
-    await user.click(screen.getByRole("button", { name: "성립전예산" }));
+    const workflowMenu = document.getElementById("portal-workflow-menu");
+    expect(workflowMenu).not.toBeNull();
+    expect(
+      within(workflowMenu!).getAllByRole("button").map((button) => button.textContent),
+    ).toEqual([
+      "성립전예산요구서작성(사업담당자용)",
+      "본예산 편성 기초자료 만들기",
+      "예산 편성 확인 (업무추진비 3% 편성 확인)",
+      "추경예산자료 만들기",
+      "안건설명서 만들기",
+      "결산 설명서 만들기",
+    ]);
+    await user.click(
+      screen.getByRole("button", { name: "성립전예산요구서작성(사업담당자용)" }),
+    );
 
     expect(onNavigate).toHaveBeenCalledWith("prebudget");
 

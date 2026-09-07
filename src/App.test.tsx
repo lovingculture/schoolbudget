@@ -186,12 +186,12 @@ describe("예산업무 포털", () => {
     const user = userEvent.setup();
     render(<Portal displayName="김담당" schoolName="서울한빛초등학교" />);
     await user.click(screen.getByRole("button", { name: "예산 업무" }));
-    expect(screen.getByRole("button", { name: "예산안건 설명서" })).toBeVisible();
-    expect(screen.getByRole("button", { name: "결산설명서" })).toBeVisible();
+    expect(screen.getByRole("button", { name: "안건설명서 만들기" })).toBeVisible();
+    expect(screen.getByRole("button", { name: "결산 설명서 만들기" })).toBeVisible();
     expect(
-      screen.getByRole("button", { name: "집행실적으로 추경자료 만들기" }),
+      screen.getByRole("button", { name: "추경예산자료 만들기" }),
     ).toBeVisible();
-    await user.click(screen.getByRole("button", { name: "본예산" }));
+    await user.click(screen.getByRole("button", { name: "예산 편성 확인 (업무추진비 3% 편성 확인)" }));
     expect(screen.getByRole("heading", { name: "예산 편성 확인 (업무추진비 3% 편성 확인)" })).toBeVisible();
     expect(screen.getByText("본예산서를 불러오면 세입 기준금액과 일반업무추진비 편성 비율을 자동으로 계산합니다.")).toBeVisible();
   });
@@ -200,7 +200,7 @@ describe("예산업무 포털", () => {
     const user = userEvent.setup();
     render(<Portal displayName="김담당" schoolName="서울한빛초등학교" />);
     await user.click(screen.getByRole("button", { name: "예산 업무" }));
-    await user.click(screen.getByRole("button", { name: "예산안건 설명서" }));
+    await user.click(screen.getByRole("button", { name: "안건설명서 만들기" }));
     expect(screen.getByRole("button", { name: "세입세출총괄표 불러오기" })).toBeVisible();
   });
 
@@ -218,11 +218,11 @@ describe("예산업무 포털", () => {
     render(<Portal displayName="김담당" schoolName="서울한빛초등학교" />);
 
     const destinations = [
-      ["성립전예산", "성립전예산 요구서 작성"],
-      ["본예산", "예산 편성 확인 (업무추진비 3% 편성 확인)"],
-      ["예산안건 설명서", "예산 안건설명서 자동작성"],
-      ["결산설명서", "결산 안건설명서 자동작성"],
-      ["집행실적으로 추경자료 만들기", "집행실적으로 추경자료 만들기"],
+      ["성립전예산요구서작성(사업담당자용)", "성립전예산 요구서 작성"],
+      ["예산 편성 확인 (업무추진비 3% 편성 확인)", "예산 편성 확인 (업무추진비 3% 편성 확인)"],
+      ["안건설명서 만들기", "예산 안건설명서 자동작성"],
+      ["결산 설명서 만들기", "결산 안건설명서 자동작성"],
+      ["추경예산자료 만들기", "집행실적으로 추경자료 만들기"],
     ] as const;
 
     for (const [label, heading] of destinations) {

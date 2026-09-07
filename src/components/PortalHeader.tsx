@@ -37,12 +37,12 @@ type PortalHeaderProps = {
 };
 
 const workItems: ReadonlyArray<[PortalHeaderView, string]> = [
-  ["prebudget", "성립전예산"],
-  ["budget", "본예산"],
+  ["prebudget", "성립전예산요구서작성(사업담당자용)"],
   ["main-budget-foundation", "본예산 편성 기초자료 만들기"],
-  ["agenda", "예산안건 설명서"],
-  ["closing", "결산설명서"],
-  ["supplementary", "집행실적으로 추경자료 만들기"],
+  ["budget", "예산 편성 확인 (업무추진비 3% 편성 확인)"],
+  ["supplementary", "추경예산자료 만들기"],
+  ["agenda", "안건설명서 만들기"],
+  ["closing", "결산 설명서 만들기"],
 ];
 
 export function PortalHeader({
