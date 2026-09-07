@@ -210,7 +210,7 @@ describe("예산업무 포털", () => {
     await user.click(screen.getByRole("button", { name: "예산 업무" }));
     await user.click(screen.getByRole("button", { name: "본예산 편성 기초자료 만들기" }));
     expect(screen.getByRole("heading", { name: "본예산 편성 기초자료 만들기" })).toBeVisible();
-    expect(screen.getByLabelText("세입·세출 CSV 파일 선택")).toBeVisible();
+    expect(screen.getByLabelText("세입·세출예산서 Excel 파일 선택")).toBeVisible();
   });
 
   it("예산 업무 메뉴가 모든 기존 업무 화면으로 이동한다", async () => {
