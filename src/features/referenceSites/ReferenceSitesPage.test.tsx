@@ -84,6 +84,24 @@ describe("참고사이트 게시판", () => {
     expect(within(card).getByText("서울시교육청 교직원이 외부에서 업무포털·나이스·K-에듀파인 등에 안전하게 접속할 수 있는 원격업무지원시스템입니다.")).toBeVisible();
   });
 
+  it("서울시교육청 계약길잡이와 열린 재정을 교육청 링크로 제공한다", () => {
+    render(<ReferenceSitesPage />);
+
+    const contractLink = screen.getByRole("link", { name: "서울시교육청 계약길잡이 바로가기" });
+    const contractCard = contractLink.closest("article")!;
+    expect(contractLink).toHaveAttribute("href", "https://contract.sen.go.kr/");
+    expect(contractLink).toHaveAttribute("target", "_blank");
+    expect(within(contractCard).getByText("교육청")).toBeVisible();
+    expect(within(contractCard).getByText("서울시교육청의 계약 업무 지침과 관련 자료를 확인할 수 있습니다.")).toBeVisible();
+
+    const financeLink = screen.getByRole("link", { name: "서울시교육청 열린 재정 바로가기" });
+    const financeCard = financeLink.closest("article")!;
+    expect(financeLink).toHaveAttribute("href", "https://open.sen.go.kr/fus/MI000000000000000509/html/cont0010v.do");
+    expect(financeLink).toHaveAttribute("target", "_blank");
+    expect(within(financeCard).getByText("교육청")).toBeVisible();
+    expect(within(financeCard).getByText("서울교육 재정정보와 예산·결산 자료를 확인할 수 있습니다.")).toBeVisible();
+  });
+
   it("서울교육포털 SSEM 연계자료실을 교육청 링크로 제공한다", () => {
     render(<ReferenceSitesPage />);
     const link = screen.getByRole("link", { name: "서울교육포털(SSEM) 바로가기" });

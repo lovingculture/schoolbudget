@@ -49,6 +49,20 @@ export const REFERENCE_SITES: ReferenceSite[] = [
     url: "https://e-lib.sen.go.kr/",
   },
   {
+    id: "sen-contract-guide",
+    title: "서울시교육청 계약길잡이",
+    category: "교육청",
+    description: "서울시교육청의 계약 업무 지침과 관련 자료를 확인할 수 있습니다.",
+    url: "https://contract.sen.go.kr/",
+  },
+  {
+    id: "sen-open-finance",
+    title: "서울시교육청 열린 재정",
+    category: "교육청",
+    description: "서울교육 재정정보와 예산·결산 자료를 확인할 수 있습니다.",
+    url: "https://open.sen.go.kr/fus/MI000000000000000509/html/cont0010v.do",
+  },
+  {
     id: "sen-school",
     title: "센스쿨",
     category: "업무지원",
