@@ -12,6 +12,7 @@ const parserMocks = vi.hoisted(() => ({
   parseBudgetSummary: vi.fn(),
   parseRevenueStatement: vi.fn(),
   parseExpenditureStatement: vi.fn(),
+  parseDetailWorkbookIdentity: vi.fn(),
   analyzeMainBudget: vi.fn(),
 }));
 
@@ -21,6 +22,7 @@ vi.mock("./ocrPdfPages", () => ({ ocrPdfPages: adapterMocks.ocrPdfPages }));
 vi.mock("./parseBudgetSummary", () => ({ parseBudgetSummary: parserMocks.parseBudgetSummary }));
 vi.mock("./parseRevenueStatement", () => ({ parseRevenueStatement: parserMocks.parseRevenueStatement }));
 vi.mock("./parseExpenditureStatement", () => ({ parseExpenditureStatement: parserMocks.parseExpenditureStatement }));
+vi.mock("./parseDetailWorkbookIdentity", () => ({ parseDetailWorkbookIdentity: parserMocks.parseDetailWorkbookIdentity }));
 vi.mock("./analyzeMainBudget", () => ({ analyzeMainBudget: parserMocks.analyzeMainBudget }));
 
 import { analyzeBudgetFile } from "./analyzeBudgetFile";
@@ -131,6 +133,12 @@ function installSuccessfulParsers(result: MainBudgetAnalysisResult) {
   parserMocks.parseBudgetSummary.mockReturnValue(summary);
   parserMocks.parseRevenueStatement.mockReturnValue(revenue);
   parserMocks.parseExpenditureStatement.mockReturnValue(expenditure);
+  parserMocks.parseDetailWorkbookIdentity.mockReturnValue({
+    identity: summary.identity,
+    hasRevenueSection: true,
+    hasExpenditureSection: true,
+    warnings: [],
+  });
   parserMocks.analyzeMainBudget.mockReturnValue(result);
 }
 
@@ -464,7 +472,6 @@ describe("analyzeBudgetFile", () => {
   });
 
   it.each([
-    ["summary", { summary: false, revenue: true, expenditure: true }, "세입세출예산총괄"],
     ["revenue", { summary: true, revenue: false, expenditure: true }, "세입예산명세서"],
     ["expenditure", { summary: true, revenue: true, expenditure: false }, "세출예산명세서"],
   ])("rejects a workbook with an invalid %s section before analysis", async (_label, validity, expectedSection) => {
@@ -483,6 +490,36 @@ describe("analyzeBudgetFile", () => {
       onProgress: vi.fn(),
     })).rejects.toThrow(expectedSection);
     expect(parserMocks.analyzeMainBudget).not.toHaveBeenCalled();
+  });
+
+  it("analyzes a combined detail workbook without a summary section", async () => {
+    const file = budgetFile("옥정.xls", xlsMagic);
+    const rows = [{ cells: ["2026학년도 세입예산명세서"] }, { cells: ["세출예산명세서"] }];
+    const analyzed = resultFor("xls", file.name);
+    adapterMocks.extractWorkbookRows.mockResolvedValue({
+      source: { fileName: file.name, format: "xls", sheetCount: 1 },
+      rows,
+    });
+    installSuccessfulParsers(analyzed);
+    parserMocks.parseBudgetSummary.mockReturnValue({
+      ...summary,
+      identity: null,
+      hasValidStructure: false,
+      isReviewable: false,
+      warnings: [{ code: "BUDGET_SUMMARY_SECTION", message: "총괄표 없음", severity: "error" }],
+    });
+
+    await expect(analyzeBudgetFile(file, {
+      signal: new AbortController().signal,
+      onProgress: vi.fn(),
+    })).resolves.toBe(analyzed);
+
+    expect(parserMocks.analyzeMainBudget).toHaveBeenCalledWith(expect.objectContaining({
+      identity: summary.identity,
+      verificationRevenue: revenue.verificationRevenue,
+      generalBusinessExpenses: { facts: [], isComplete: true },
+      warnings: [],
+    }));
   });
 
   it("rejects a zero-sheet workbook before parsing or persistence can treat it as complete", async () => {

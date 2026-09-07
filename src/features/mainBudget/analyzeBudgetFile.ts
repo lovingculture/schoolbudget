@@ -15,6 +15,7 @@ import { ocrPdfPages, type OcrProgress, type OcrPageDiagnostic } from "./ocrPdfP
 import { parseBudgetSummary } from "./parseBudgetSummary";
 import { parseExpenditureStatement } from "./parseExpenditureStatement";
 import { parseRevenueStatement } from "./parseRevenueStatement";
+import { parseDetailWorkbookIdentity } from "./parseDetailWorkbookIdentity";
 
 export type AnalysisProgress = PdfExtractionProgress | OcrProgress | {
   phase: "reading" | "parsing" | "complete";
@@ -275,30 +276,27 @@ function parsedInput(
   const summary = parseBudgetSummary(rows);
   const revenue = parseRevenueStatement(rows);
   const expenditure = parseExpenditureStatement(rows);
+  const detail = parseDetailWorkbookIdentity(rows, source.fileName);
   onDiagnostic?.({ kind: "parser", summary, revenue, expenditure });
   const missingSections = [
-    [summary.hasValidStructure || summary.isReviewable, "세입세출예산총괄"],
     [revenue.hasValidStructure || revenue.isReviewable, "세입예산명세서"],
     [expenditure.hasValidStructure || expenditure.isReviewable, "세출예산명세서"],
   ].filter(([valid]) => !valid).map(([, label]) => label);
   if (missingSections.length > 0) {
     throw new Error(`${source.fileName}: 필수 예산 구역의 구조를 확인할 수 없습니다 (${missingSections.join(", ")}).`);
   }
-  if (!summary.identity) {
+  const identity = summary.identity ?? detail.identity;
+  if (!identity) {
     const rejectedType = summary.warnings.some((warning) => warning.code === "NON_MAIN_BUDGET_MARKER");
     throw new Error(rejectedType
       ? `${source.fileName}: 본예산이 아닌 문서입니다. 본예산 파일을 선택해 주세요.`
       : `${source.fileName}: 학교명, 회계연도, 본예산 구분을 확인할 수 없습니다.`);
   }
-  if (summary.budgetTypeEvidence === "generic"
-    && (!(revenue.hasValidStructure || revenue.isReviewable)
-      || !(expenditure.hasValidStructure || expenditure.isReviewable))) {
-    throw new Error(`${source.fileName}: 예산안의 본예산 세입·세출 구조를 확인할 수 없습니다.`);
-  }
   const units = sectionUnits(rows);
+  const summaryWarnings = summary.hasValidStructure || summary.isReviewable ? summary.warnings : [];
   return {
     source,
-    identity: summary.identity,
+    identity,
     totalRevenue: scaledRevenueFact(summary.totalRevenue, units.summary),
     purposeRevenue: scaledRevenueFact(revenue.purposeRevenue, units.revenue),
     beneficiaryRevenue: scaledRevenueFact(revenue.beneficiaryRevenue, units.revenue),
@@ -307,7 +305,7 @@ function parsedInput(
       facts: expenditure.expenses.map((expense) => scaledExpense(expense, units.expenditure)),
       isComplete: expenditure.isComplete,
     },
-    warnings: [...summary.warnings, ...revenue.warnings, ...expenditure.warnings],
+    warnings: [...summaryWarnings, ...detail.warnings, ...revenue.warnings, ...expenditure.warnings],
   };
 }
 
