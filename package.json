@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "tsc -b && vite build && node scripts/prepare-sites-build.mjs",
+    "build": "tsc -b && vite build --config vite.config.ts && node scripts/prepare-sites-build.mjs",
     "test": "vitest",
     "test:run": "vitest run"
   },
