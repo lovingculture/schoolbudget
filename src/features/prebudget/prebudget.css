@@ -159,3 +159,4 @@
   .prebudget-page .prebudget-downloads { align-items: stretch; flex-direction: column; }
   .prebudget-page .prebudget-downloads > div:last-child { display: grid; grid-template-columns: 1fr; }
 }
+.prebudget-required{color:#d9342b;font-weight:900}

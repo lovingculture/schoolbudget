@@ -44,6 +44,16 @@ async function renderValidPreview() {
   return user;
 }
 
+it("문서 제목과 부서명 및 관련 공문을 빨간 별표로 필수 안내한다", () => {
+  render(<PrebudgetPage initialSchoolName="서울우리학교" storage={storage} />);
+
+  for (const name of ["문서 제목", "부서명", "관련 공문"]) {
+    const label = screen.getByLabelText(name).closest("label");
+    expect(label).not.toBeNull();
+    expect(within(label!).getByText("*")).toHaveClass("prebudget-required");
+  }
+});
+
 describe("성립전예산 예시 통합", () => {
   it("처음에는 빈 서식으로 시작하고 사용자가 선택할 때만 임시저장본을 불러온다", async () => {
     const savedDraft = validDraft();
@@ -146,7 +156,7 @@ describe("성립전예산 예시 통합", () => {
       "예: 안전인력 봉사활동비",
     );
     expect(screen.getAllByLabelText("단가")[0]).toHaveAttribute("placeholder", "예: 40,000");
-    expect(screen.getAllByLabelText("수량")[0]).toHaveAttribute("placeholder", "예: 1");
+    expect(screen.getAllByLabelText("수량(명)")[0]).toHaveAttribute("placeholder", "예: 1");
     expect(screen.getAllByLabelText("횟수")[0]).toHaveAttribute("placeholder", "예: 20");
     expect(screen.getAllByLabelText("단가")[0]).toHaveValue("");
   });
@@ -159,7 +169,7 @@ describe("성립전예산 예시 통합", () => {
     await userEvent.setup().click(screen.getByRole("button", { name: "임시저장 불러오기" }));
 
     const unitPrice = screen.getAllByLabelText("단가")[0] as HTMLInputElement;
-    const quantity = screen.getAllByLabelText("수량")[0] as HTMLInputElement;
+    const quantity = screen.getAllByLabelText("수량(명)")[0] as HTMLInputElement;
     expect(unitPrice).toHaveValue("20,000");
     expect(quantity).toHaveValue("1,000");
 

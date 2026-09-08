@@ -6,6 +6,7 @@ import {
   convertWon,
   getAccountCategoryDescription,
   getDetailBusinesses,
+  getUnitBusinessForDetail,
   validatePrebudgetDraft,
 } from "./prebudget";
 
@@ -64,27 +65,33 @@ describe("성립전예산 계산", () => {
     expect(getDetailBusinesses(unit)).toContain(detail);
   });
 
+  it("세부사업으로 연결된 단위사업을 찾는다", () => {
+    expect(getUnitBusinessForDetail("학교급식운영")).toBe("급식 관리");
+    expect(getUnitBusinessForDetail("교육환경개선")).toBe("교육여건 개선");
+    expect(getUnitBusinessForDetail("없는 세부사업")).toBe("");
+  });
+
   it("원가통계비목 20개를 지정된 순서로 제공한다", () => {
     expect(DEFAULT_ACCOUNT_CATEGORIES.map(([name]) => name)).toEqual([
+      "교육운영비",
+      "일반수용비",
+      "목적사업업무추진비",
+      "비품구입비",
       "공무직인건비",
       "기간제교원인건비",
       "기간제근로자인건비",
       "기타수당",
-      "일반수용비",
       "운영수당",
       "급식용식재료비",
       "우유급식비",
       "여비",
       "맞춤형복지비",
       "교직원복지비",
-      "교육운영비",
       "학습준비물",
       "학생복지비",
       "기간제교원법정부담금",
       "기간제근로자법정부담금",
       "공무직법정부담금",
-      "목적사업업무추진비",
-      "비품구입비",
       "도서구입비",
     ]);
   });

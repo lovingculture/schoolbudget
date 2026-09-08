@@ -6,6 +6,7 @@ import {
   calculateRequestedAmount,
   getAccountCategoryDescription,
   getDetailBusinesses,
+  getUnitBusinessForDetail,
 } from "../../domain/prebudget";
 import type { DraftItem } from "../../domain/prebudget";
 import {
@@ -156,6 +157,16 @@ export const PrebudgetPage = forwardRef<PrebudgetPageHandle, {
         return { ...item, [key]: value };
       }),
     }));
+  const selectDetailBusiness = (indices: number[], business: string) => {
+    const unitBusiness = getUnitBusinessForDetail(business);
+    if (!unitBusiness) return;
+    setDraft((current) => ({
+      ...current,
+      items: current.items.map((item, index) =>
+        indices.includes(index) ? { ...item, unitBusiness, business } : item
+      ),
+    }));
+  };
   const addCalculationRow = (indices: number[]) =>
     setDraft((current) => {
       const first = current.items[indices[0]];
@@ -337,16 +348,18 @@ export const PrebudgetPage = forwardRef<PrebudgetPageHandle, {
             </select>
           </label>
           <label className="wide">
-            문서 제목
+            문서 제목 <span className="prebudget-required" aria-hidden="true">*</span>
             <input
+              aria-label="문서 제목"
               value={draft.title}
               placeholder="안전인력봉사비 성립전예산 편성 요청"
               onChange={(e) => field("title", e.target.value)}
             />
           </label>
           <label>
-            부서명
+            부서명 <span className="prebudget-required" aria-hidden="true">*</span>
             <input
+              aria-label="부서명"
               value={draft.department}
               placeholder="예: 체육안전교육부"
               onChange={(e) => field("department", e.target.value)}
@@ -368,8 +381,9 @@ export const PrebudgetPage = forwardRef<PrebudgetPageHandle, {
             />
           </label>
           <label className="wide">
-            관련 공문
+            관련 공문 <span className="prebudget-required" aria-hidden="true">*</span>
             <input
+              aria-label="관련 공문"
               value={draft.officialDocument}
               onChange={(e) => field("officialDocument", e.target.value)}
               placeholder="예: 교육지원과-1234(2026. 8. 1.)"
@@ -420,6 +434,19 @@ export const PrebudgetPage = forwardRef<PrebudgetPageHandle, {
                       <option key={v}>{v}</option>
                     ))}
                   </select>
+                </label>
+                <label>
+                  세부사업 검색
+                  <input
+                    list={`prebudget-detail-businesses-${groupIndex}`}
+                    placeholder="세부사업명을 입력하세요"
+                    onChange={(e) => selectDetailBusiness(group.indices, e.target.value)}
+                  />
+                  <datalist id={`prebudget-detail-businesses-${groupIndex}`}>
+                    {PREBUDGET_BUSINESS_OPTIONS.flatMap(([, details]) => details).map((detail) => (
+                      <option key={detail} value={detail} />
+                    ))}
+                  </datalist>
                 </label>
                 <label>
                   세부사업
@@ -486,9 +513,9 @@ export const PrebudgetPage = forwardRef<PrebudgetPageHandle, {
                   {(["unitPrice", "quantity", "count"] as const).map(
                     (key, n) => (
                       <label key={key}>
-                        {["단가", "수량", "횟수"][n]}
+                        {["단가", "수량(명)", "횟수"][n]}
                         <input
-                          aria-label={["단가", "수량", "횟수"][n]}
+                          aria-label={["단가", "수량(명)", "횟수"][n]}
                           type="text"
                           inputMode="numeric"
                           placeholder={["예: 40,000", "예: 1", "예: 20"][n]}

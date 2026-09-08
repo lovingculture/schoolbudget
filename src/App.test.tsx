@@ -105,7 +105,7 @@ describe("예산업무 포털", () => {
     render(<Portal displayName="김담당" schoolName="서울한빛초등학교" onLogout={() => {}} />);
     await user.click(screen.getByRole("button", { name: "성립전예산 새로 작성" }));
     const prices = screen.getAllByLabelText("단가");
-    const quantities = screen.getAllByLabelText("수량");
+    const quantities = screen.getAllByLabelText("수량(명)");
     const counts = screen.getAllByLabelText("횟수");
     await user.clear(prices[0]); await user.type(prices[0], "30000");
     await user.clear(quantities[0]); await user.type(quantities[0], "10");
@@ -133,6 +133,18 @@ describe("예산업무 포털", () => {
     expect(screen.getAllByLabelText("세부사업")[0]).toHaveValue("");
     expect(screen.getAllByRole("option", { name: "학교급식운영" })).toHaveLength(1);
     expect(screen.queryByRole("option", { name: "수학 교과활동" })).not.toBeInTheDocument();
+  });
+
+  it("검색한 세부사업을 선택하면 연결된 단위사업을 자동으로 설정한다", async () => {
+    const user = userEvent.setup();
+    render(<Portal displayName="김담당" schoolName="서울한빛초등학교" />);
+    await user.click(screen.getByRole("button", { name: "성립전예산 새로 작성" }));
+
+    const business = screen.getAllByLabelText("세부사업 검색")[0];
+    await user.type(business, "학교급식운영");
+
+    expect(screen.getAllByLabelText("단위사업")[0]).toHaveValue("급식 관리");
+    expect(business).toHaveValue("학교급식운영");
   });
 
   it("재원구분 세 항목을 지정된 순서로 표시하고 목적사업비를 기본 선택한다", async () => {
