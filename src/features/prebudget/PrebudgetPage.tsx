@@ -459,7 +459,7 @@ export const PrebudgetPage = forwardRef<PrebudgetPageHandle, {
                     <option value="">
                       {sharedItem.unitBusiness
                         ? "선택하세요"
-                        : "단위사업을 먼저 선택하세요"}
+                        : "세부사업 검색하기에서 먼저 선택해주세요"}
                     </option>
                     {getDetailBusinesses(sharedItem.unitBusiness).map((v) => (
                       <option key={v}>{v}</option>

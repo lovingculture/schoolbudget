@@ -162,6 +162,7 @@ describe("집행실적으로 추경자료 만들기 화면", () => {
 
     expect(screen.getByRole("button", { name: "원인행위·지출 불일치" })).toBeVisible();
     expect(screen.queryByRole("button", { name: "불일치 있음" })).not.toBeInTheDocument();
+    expect(screen.getByRole("columnheader", { name: "원인행위·지출 불일치" })).toBeVisible();
   });
 
   it("작업 상태를 브라우저에 임시저장하고 다음 접속에서 복원한다", async () => {

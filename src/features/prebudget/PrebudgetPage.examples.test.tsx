@@ -55,6 +55,14 @@ it("문서 제목과 부서명 및 관련 공문을 빨간 별표로 필수 안�
 });
 
 describe("성립전예산 예시 통합", () => {
+  it("세부사업 선택 전에는 검색하기에서 먼저 선택하도록 안내한다", () => {
+    render(<PrebudgetPage initialSchoolName="서울우리학교" storage={storage} />);
+
+    expect(screen.getByLabelText("세부사업")).toHaveDisplayValue(
+      "세부사업 검색하기에서 먼저 선택해주세요",
+    );
+  });
+
   it("처음에는 빈 서식으로 시작하고 사용자가 선택할 때만 임시저장본을 불러온다", async () => {
     const savedDraft = validDraft();
     const loadedStorage: DraftStorage = {

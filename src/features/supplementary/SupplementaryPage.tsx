@@ -377,7 +377,7 @@ function ExecutionResults({ tab, rows, summaries, changeEdit, columnOptions, col
   return <div className="execution-table-wrap"><table className="execution-table"><thead><tr>
     {TEXT_COLUMNS.map(([column, label]) => <ExcelFilterHeader key={column} column={column} label={label} options={headerProps.columnOptions[column]} selected={headerProps.columnFilters[column]} isOpen={headerProps.openFilter === column} sort={headerProps.sort} onOpen={headerProps.onOpenFilter} onToggle={headerProps.onToggleColumnValue} onToggleAll={headerProps.onToggleAllColumnValues} onSort={headerProps.onSort}/>)}
     <th>{editable ? "예산액" : "예산액(4)"}</th><th>{editable ? "원인행위금액" : "원인행위"}</th><th>{editable ? "지출금액" : "지출"}</th><th>집행잔액</th>
-    {tab === "status" && <><th>불일치</th><th>집행률</th></>}
+    {tab === "status" && <><th>원인행위·지출 불일치</th><th>집행률</th></>}
     {editable && <><th>부서별집행예정액</th><th>추경감액가능금액</th><th>추경(안)</th></>}
   </tr></thead><tbody>{rows.map(row => <tr key={row.id}>
     <td>{row.policy}</td><td>{row.unitBusiness}</td><td>{row.detailBusiness}</td><td>{row.detailItem}</td><td>{row.account}</td><td>{row.subAccount}</td><td>{row.costCategory}</td><td>{row.description}</td>
