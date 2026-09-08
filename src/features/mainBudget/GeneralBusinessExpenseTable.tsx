@@ -21,16 +21,15 @@ export function GeneralBusinessExpenseTable({ expenses, total }: { expenses: Gen
       </div>
       <div className="main-budget-table-scroll expense-table-scroll">
         <table aria-label="일반업무추진비 세부 내역">
-          <thead><tr><th scope="col">정책사업</th><th scope="col">단위사업</th><th scope="col">세부사업</th><th scope="col">세부항목</th><th scope="col">예산액</th><th scope="col">출처</th><th scope="col">신뢰도</th></tr></thead>
+          <thead><tr><th scope="col">정책사업</th><th scope="col">단위사업</th><th scope="col">세부사업</th><th scope="col">세부항목</th><th scope="col">예산액</th><th scope="col">출처</th></tr></thead>
           <tbody>
             {expenses.length === 0 ? (
-              <tr><td colSpan={7} className="main-budget-empty-row">확인 가능한 내역이 없습니다.</td></tr>
+              <tr><td colSpan={6} className="main-budget-empty-row">확인 가능한 내역이 없습니다.</td></tr>
             ) : expenses.map((expense) => (
               <tr key={expense.id}>
                 <td>{expense.policy || "-"}</td><td>{expense.unit || "-"}</td><td>{expense.business || "-"}</td><td>{expense.detail || "-"}</td>
                 <td className="main-budget-money">{expense.amount === null ? "확인 필요" : `${formatThousandWon(expense.amount)} / ${formatWon(expense.amount)}`}</td>
                 <td>{provenance(expense)}</td>
-                <td>{expense.row?.confidence === undefined ? "확인 필요" : `${Math.round(expense.row.confidence * 100)}%`}</td>
               </tr>
             ))}
           </tbody>
@@ -38,7 +37,7 @@ export function GeneralBusinessExpenseTable({ expenses, total }: { expenses: Gen
             <tr>
               <th scope="row" colSpan={4}>일반업무추진비 합계</th>
               <td className="main-budget-money">{total === null ? "확인 필요" : `${formatThousandWon(total)} / ${formatWon(total)}`}</td>
-              <td colSpan={2}>전체 내역 합계</td>
+              <td>전체 내역 합계</td>
             </tr>
           </tfoot>
         </table>

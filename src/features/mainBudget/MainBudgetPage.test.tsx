@@ -163,7 +163,11 @@ describe("예산 편성 확인 화면", () => {
     const expenseTable = screen.getByRole("table", { name: "일반업무추진비 세부 내역" });
     expect(within(expenseTable).getByRole("row", { name: /일반업무추진비 합계/ })).toBeVisible();
     expect(within(expenseTable).getByText("표지 시트 · 71행")).toBeVisible();
-    expect(within(expenseTable).getByText("92%")).toBeVisible();
+    expect(within(expenseTable).getAllByRole("columnheader").map((cell) => cell.textContent)).toEqual([
+      "정책사업", "단위사업", "세부사업", "세부항목", "예산액", "출처",
+    ]);
+    expect(within(expenseTable).queryByText("신뢰도")).not.toBeInTheDocument();
+    expect(within(expenseTable).queryByText("92%")).not.toBeInTheDocument();
     expect(storageMocks.save).toHaveBeenCalledWith(analyzed);
     await user.click(screen.getByRole("button", { name: "다른 파일 분석" }));
     expect(storageMocks.clear).toHaveBeenCalledTimes(1);
