@@ -136,4 +136,26 @@ describe("PortalHeader", () => {
       "false",
     );
   });
+
+  it("사이트 전체 검색 결과를 선택하면 해당 업무 화면으로 이동한다", async () => {
+    const user = userEvent.setup();
+    const onNavigate = vi.fn();
+
+    render(
+      <PortalHeader
+        activeView="home"
+        displayName="김담당"
+        onNavigate={onNavigate}
+        schoolName="서울한빛초등학교"
+      />,
+    );
+
+    await user.click(screen.getByRole("button", { name: "사이트 검색 열기" }));
+    const search = screen.getByRole("searchbox", { name: "사이트 전체 검색" });
+    await user.type(search, "추경");
+    await user.click(screen.getByRole("button", { name: "추경예산자료 만들기로 이동" }));
+
+    expect(onNavigate).toHaveBeenCalledWith("supplementary");
+    expect(screen.queryByRole("searchbox", { name: "사이트 전체 검색" })).not.toBeInTheDocument();
+  });
 });

@@ -41,6 +41,20 @@ describe("예산업무 포털", () => {
     expect(screen.getByRole("button", { name: "성립전예산 새로 작성" })).toBeVisible();
   });
 
+  it("성립전예산의 이전 화면은 홈이 아니라 바로 앞 작성 단계로 돌아간다", async () => {
+    const user = userEvent.setup();
+    render(<Portal displayName="김담당" schoolName="서울한빛초등학교" />);
+
+    await user.click(screen.getByRole("button", { name: "성립전예산 새로 작성" }));
+    await user.click(screen.getByRole("button", { name: "예시에서 시작하기" }));
+    expect(screen.getByRole("heading", { name: "이 사업비는 어디에서 받았나요?" })).toBeVisible();
+
+    await user.click(screen.getByRole("button", { name: "이전 화면" }));
+
+    expect(screen.getByRole("heading", { name: "기본정보" })).toBeVisible();
+    expect(screen.queryByRole("heading", { name: "예산업무, 흐름부터 문서까지 한곳에서" })).not.toBeInTheDocument();
+  });
+
   it("홈에서 성립전예산의 Word와 PDF 출력만 안내한다", () => {
     render(<Portal displayName="김담당" schoolName="서울한빛초등학교" onLogout={() => {}} />);
     const guidance = screen.getByText((_, element) => element?.tagName === "P" && element.textContent === "지침을 확인하고 성립전예산 요구서를 작성하면 기안문과 Word·PDF가 자동으로 완성됩니다.");

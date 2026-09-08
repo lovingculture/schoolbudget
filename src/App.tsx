@@ -1,4 +1,4 @@
-import { FormEvent, useEffect, useMemo, useState, type ReactNode } from "react";
+import { FormEvent, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import type { User } from "@supabase/supabase-js";
 import {
   ArrowLeft,
@@ -22,7 +22,7 @@ import { supabase } from "./lib/supabase";
 import { ClosingPage } from "./features/closing/ClosingPage";
 import { SupplementaryPage } from "./features/supplementary/SupplementaryPage";
 import { BudgetAgendaPage } from "./features/budgetAgenda/BudgetAgendaPage";
-import { PrebudgetPage } from "./features/prebudget/PrebudgetPage";
+import { PrebudgetPage, type PrebudgetPageHandle } from "./features/prebudget/PrebudgetPage";
 import { MainBudgetPage } from "./features/mainBudget/MainBudgetPage";
 import { MainBudgetFoundationPage } from "./features/mainBudgetFoundation/MainBudgetFoundationPage";
 import { PortalHeader, type PortalHeaderView } from "./components/PortalHeader";
@@ -347,6 +347,7 @@ export function Portal({
 }) {
   const [view, setView] = useState<View>("home");
   const [viewHistory, setViewHistory] = useState<View[]>([]);
+  const prebudgetPageRef = useRef<PrebudgetPageHandle>(null);
   const [items, setItems] = useState<DraftItem[]>(
     Array.from({ length: 5 }, blankItem),
   );
@@ -357,6 +358,7 @@ export function Portal({
     setView(next);
   };
   const goBack = () => {
+    if (view === "prebudget" && prebudgetPageRef.current?.goBack()) return;
     const previous = viewHistory.at(-1) ?? "home";
     setViewHistory((current) => current.slice(0, -1));
     setView(previous);
@@ -412,7 +414,7 @@ export function Portal({
           />
         )}
         {view === "guidelines" && <BudgetResourceLibraryPage isAdmin={isAdmin} userId={userId ?? ""} onAdminLogin={onAdminLogin} />}
-        {view === "prebudget" && <PrebudgetPage initialSchoolName={schoolName} />}
+        {view === "prebudget" && <PrebudgetPage ref={prebudgetPageRef} initialSchoolName={schoolName} />}
         {view === "closing" && <ClosingPage />}
         {view === "agenda" && <BudgetAgendaPage />}
         {view === "supplementary" && <SupplementaryPage />}

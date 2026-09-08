@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { forwardRef, useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState } from "react";
 import { ArrowLeft, Clipboard, Download, FileText, Plus, X } from "lucide-react";
 import {
   DEFAULT_ACCOUNT_CATEGORIES,
@@ -37,13 +37,17 @@ import type {
 import { PrebudgetHeader } from "./PrebudgetHeader";
 import "./prebudget.css";
 
-export function PrebudgetPage({
-  initialSchoolName,
-  storage = createBrowserDraftStorage(),
-}: {
+export type PrebudgetPageHandle = {
+  goBack: () => boolean;
+};
+
+export const PrebudgetPage = forwardRef<PrebudgetPageHandle, {
   initialSchoolName: string;
   storage?: DraftStorage;
-}) {
+}>(function PrebudgetPage({
+  initialSchoolName,
+  storage = createBrowserDraftStorage(),
+}, ref) {
   const [storedDraft, setStoredDraft] = useState<PrebudgetFormDraft | null>(
     () => storage.load(),
   );
@@ -60,6 +64,18 @@ export function PrebudgetPage({
   const [document, setDocument] = useState<PrebudgetDocument | null>(null);
   const [workingExport, setWorkingExport] = useState<"hwpx" | null>(null);
   const previewRef = useRef<HTMLElement>(null);
+  const goBack = useCallback(() => {
+    if (view === "examples") {
+      setView("funding-guide");
+      return true;
+    }
+    if (view === "funding-guide") {
+      setView("form");
+      return true;
+    }
+    return false;
+  }, [view]);
+  useImperativeHandle(ref, () => ({ goBack }), [goBack]);
   const total = useMemo(
     () =>
       activePrebudgetItems(draft.items).reduce(
@@ -592,4 +608,4 @@ export function PrebudgetPage({
       )}
     </div>
   );
-}
+});
