@@ -105,7 +105,7 @@ describe("예산업무 포털", () => {
     render(<Portal displayName="김담당" schoolName="서울한빛초등학교" onLogout={() => {}} />);
     await user.click(screen.getByRole("button", { name: "성립전예산 새로 작성" }));
     const prices = screen.getAllByLabelText("단가");
-    const quantities = screen.getAllByLabelText("수량(명)");
+    const quantities = screen.getAllByLabelText("수량");
     const counts = screen.getAllByLabelText("횟수");
     await user.clear(prices[0]); await user.type(prices[0], "30000");
     await user.clear(quantities[0]); await user.type(quantities[0], "10");

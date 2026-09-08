@@ -14,6 +14,7 @@ export interface DraftItem extends CalculationInput {
   detail?: string;
   category?: string;
   description?: string;
+  quantityUnit?: string;
   formulaText?: string;
   note?: string;
 }
@@ -59,6 +60,8 @@ export const PREBUDGET_BUSINESS_OPTIONS = [
 export function getDetailBusinesses(unitBusiness?: string): readonly string[] {
   return PREBUDGET_BUSINESS_OPTIONS.find(([unit]) => unit === unitBusiness)?.[1] ?? [];
 }
+
+export const PREBUDGET_QUANTITY_UNITS = ["명", "개", "식", "대", "부", "권", "학급", "실", "일", "월"] as const;
 
 export function getUnitBusinessForDetail(detailBusiness: string): string {
   return PREBUDGET_BUSINESS_OPTIONS.find(([, details]) =>

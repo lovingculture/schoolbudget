@@ -20,6 +20,16 @@ describe("성립전예산 초안", () => {
 });
 
 describe("legacy draft normalization", () => {
+  it("기존 저장 자료에 수량 단위가 없으면 명을 기본값으로 적용한다", () => {
+    const result = normalizePrebudgetDraft({ items: [{ description: "운영비", quantity: 2 }] });
+    expect(result.items[0].quantityUnit).toBe("명");
+  });
+
+  it("저장된 수량 단위를 유지한다", () => {
+    const result = normalizePrebudgetDraft({ items: [{ description: "물품", quantity: 3, quantityUnit: "개" }] });
+    expect(result.items[0].quantityUnit).toBe("개");
+  });
+
   it("collapses legacy blank starter rows to one item", () => {
     const blank = { unitBusiness: "", business: "", detail: "", category: "일반수용비", description: "", unitPrice: 0, quantity: 0, count: 0, note: "" };
     expect(normalizePrebudgetDraft({ items: Array.from({ length: 5 }, () => ({ ...blank })) }).items).toHaveLength(1);

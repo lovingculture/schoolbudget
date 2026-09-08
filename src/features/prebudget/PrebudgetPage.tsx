@@ -2,6 +2,7 @@ import { forwardRef, useCallback, useEffect, useImperativeHandle, useMemo, useRe
 import { ArrowLeft, Clipboard, Download, FileText, Plus, X } from "lucide-react";
 import {
   DEFAULT_ACCOUNT_CATEGORIES,
+  PREBUDGET_QUANTITY_UNITS,
   PREBUDGET_BUSINESS_OPTIONS,
   calculateRequestedAmount,
   getAccountCategoryDescription,
@@ -135,8 +136,8 @@ export const PrebudgetPage = forwardRef<PrebudgetPageHandle, {
         if (i !== index) return item;
         if (key === "unitBusiness")
           return { ...item, unitBusiness: String(value), business: "" };
-        if (key === "unitPrice" || key === "quantity" || key === "count") {
-          const { manualAmount: _manualAmount, ...calculatedItem } = item;
+        if (key === "unitPrice" || key === "quantity" || key === "quantityUnit" || key === "count") {
+          const { manualAmount: _manualAmount, formulaText: _formulaText, ...calculatedItem } = item;
           return { ...calculatedItem, [key]: value };
         }
         return { ...item, [key]: value };
@@ -513,9 +514,10 @@ export const PrebudgetPage = forwardRef<PrebudgetPageHandle, {
                   {(["unitPrice", "quantity", "count"] as const).map(
                     (key, n) => (
                       <label key={key}>
-                        {["단가", "수량(명)", "횟수"][n]}
+                        {["단가", "수량", "횟수"][n]}
+                        <div className={key === "quantity" ? "prebudget-quantity-with-unit" : undefined}>
                         <input
-                          aria-label={["단가", "수량(명)", "횟수"][n]}
+                          aria-label={["단가", "수량", "횟수"][n]}
                           type="text"
                           inputMode="numeric"
                           placeholder={["예: 40,000", "예: 1", "예: 20"][n]}
@@ -525,6 +527,16 @@ export const PrebudgetPage = forwardRef<PrebudgetPageHandle, {
                           }
                           onFocus={(e) => e.currentTarget.select()}
                         />
+                        {key === "quantity" && (
+                          <select
+                            aria-label="수량 단위"
+                            value={item.quantityUnit || "명"}
+                            onChange={(e) => updateItem(i, "quantityUnit", e.target.value)}
+                          >
+                            {PREBUDGET_QUANTITY_UNITS.map((unit) => <option key={unit}>{unit}</option>)}
+                          </select>
+                        )}
+                        </div>
                       </label>
                     ),
                   )}

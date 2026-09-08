@@ -116,7 +116,7 @@ describe("초보자용 성립전예산 예시", () => {
     expect(example?.items).toEqual([
       expect.objectContaining({ business: "늘봄학교운영", detail: "(목)맞춤형교실 운영비", category: "교육운영비", description: "(목)간식비", formulaText: "900,000원 × 4실", manualAmount: 3_600_000 }),
       expect.objectContaining({ category: "교육운영비", description: "(목)강사비", formulaText: "28,800,000원", manualAmount: 28_800_000 }),
-      expect.objectContaining({ category: "교육운영비", description: "(목)업체위탁보전금", formulaText: "4,740원 × 1,976", manualAmount: 9_367_000 }),
+      expect.objectContaining({ category: "교육운영비", description: "(목)업체위탁보전금", formulaText: "4,740원 × 1,976명", quantityUnit: "명", manualAmount: 9_367_000 }),
       expect.objectContaining({ category: "교육운영비", description: "(목)재료비", formulaText: "500,000원 × 1회", manualAmount: 500_000 }),
       expect.objectContaining({ category: "기간제근로자법정부담금", description: "(목)개인강사위탁학교부담보험금", formulaText: "120,000원 × 1회", manualAmount: 120_000 }),
       expect.objectContaining({ category: "목적사업업무추진비", description: "(목)업무추진비", formulaText: "40,000원 × 3명", manualAmount: 120_000 }),

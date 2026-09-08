@@ -126,6 +126,8 @@
 .prebudget-page .category-help b { color: var(--prebudget-teal-text); font-size: 16px; }
 .prebudget-page .category-help p { color: var(--prebudget-navy); font-size: 15px; }
 .prebudget-page .formula output { background: var(--prebudget-mint); color: var(--prebudget-teal-text); }
+.prebudget-page .prebudget-quantity-with-unit { display: grid; grid-template-columns: minmax(0, 1fr) 76px; gap: 7px; }
+.prebudget-page .prebudget-quantity-with-unit select { margin-top: 7px; }
 .prebudget-page .total strong { color: var(--prebudget-teal-text); font-size: 28px; }
 .prebudget-page .prebudget-errors > b { font-size: 18px; }
 .prebudget-page .prebudget-message { border-color: #b8e4d8; background: var(--prebudget-mint); color: #174f48; }

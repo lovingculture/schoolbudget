@@ -1,7 +1,7 @@
 import type { DraftItem } from "../../domain/prebudget";
 import type { PrebudgetFormDraft, PrebudgetSource } from "./types";
 
-export const createBlankPrebudgetItem = (): DraftItem => ({ id: crypto.randomUUID(), unitBusiness: "", business: "", detail: "", category: "일반수용비", description: "", unitPrice: 0, quantity: 0, count: 0, note: "" });
+export const createBlankPrebudgetItem = (): DraftItem => ({ id: crypto.randomUUID(), unitBusiness: "", business: "", detail: "", category: "일반수용비", description: "", unitPrice: 0, quantity: 0, quantityUnit: "명", count: 0, note: "" });
 
 export function createPrebudgetDraft(initialSchoolName: string): PrebudgetFormDraft {
   return { schoolName: initialSchoolName === "○○초등학교" ? "" : initialSchoolName, fiscalYear: 2026, source: "목적사업비(교육청)", title: "", department: "", requester: "", approvalGranter: "", officialDocument: "", items: [createBlankPrebudgetItem()], schoolLevel: "공통", reviewRequiredFields: [] };
@@ -16,7 +16,7 @@ const isPrebudgetSource = (value: unknown): value is PrebudgetSource => typeof v
 function normalizePrebudgetItem(value: unknown): DraftItem {
   const item = createBlankPrebudgetItem();
   if (!isRecord(value)) return item;
-  for (const key of ["id", "unitBusiness", "business", "detail", "category", "description", "note"] as const) {
+  for (const key of ["id", "unitBusiness", "business", "detail", "category", "description", "quantityUnit", "note"] as const) {
     const property = stringProperty(value, key);
     if (property !== undefined) item[key] = property;
   }

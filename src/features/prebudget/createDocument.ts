@@ -14,7 +14,7 @@ export function createPrebudgetDocument(draft: PrebudgetFormDraft) {
   const headers = ["단위사업", "세부사업", "세부항목", "원가통계비목", "산출내역", "산출식", "요구금액"];
   const rows = items.map((item) => {
     const hasFormula = (item.unitPrice ?? 0) > 0 && (item.quantity ?? 0) > 0 && (item.count ?? 0) > 0;
-    const formula = item.formulaText?.trim() || (hasFormula ? `${item.unitPrice!.toLocaleString()}원 × ${item.quantity!.toLocaleString()} × ${item.count!.toLocaleString()}회` : "-");
+    const formula = item.formulaText?.trim() || (hasFormula ? `${item.unitPrice!.toLocaleString()}원 × ${item.quantity!.toLocaleString()}${item.quantityUnit || "명"} × ${item.count!.toLocaleString()}회` : "-");
     return [item.unitBusiness ?? "", item.business ?? "", item.detail ?? "", item.category ?? "", item.description ?? "", formula, `${item.amount.toLocaleString()}원`];
   });
   const budgetTable = { headers, rows, total: `${total.toLocaleString()}원` };

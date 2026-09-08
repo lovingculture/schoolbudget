@@ -156,7 +156,8 @@ describe("성립전예산 예시 통합", () => {
       "예: 안전인력 봉사활동비",
     );
     expect(screen.getAllByLabelText("단가")[0]).toHaveAttribute("placeholder", "예: 40,000");
-    expect(screen.getAllByLabelText("수량(명)")[0]).toHaveAttribute("placeholder", "예: 1");
+    expect(screen.getAllByLabelText("수량")[0]).toHaveAttribute("placeholder", "예: 1");
+    expect(screen.getAllByLabelText("수량 단위")[0]).toHaveValue("명");
     expect(screen.getAllByLabelText("횟수")[0]).toHaveAttribute("placeholder", "예: 20");
     expect(screen.getAllByLabelText("단가")[0]).toHaveValue("");
   });
@@ -169,13 +170,31 @@ describe("성립전예산 예시 통합", () => {
     await userEvent.setup().click(screen.getByRole("button", { name: "임시저장 불러오기" }));
 
     const unitPrice = screen.getAllByLabelText("단가")[0] as HTMLInputElement;
-    const quantity = screen.getAllByLabelText("수량(명)")[0] as HTMLInputElement;
+    const quantity = screen.getAllByLabelText("수량")[0] as HTMLInputElement;
     expect(unitPrice).toHaveValue("20,000");
     expect(quantity).toHaveValue("1,000");
 
     const select = vi.spyOn(unitPrice, "select");
     fireEvent.focus(unitPrice);
     expect(select).toHaveBeenCalledOnce();
+  });
+
+  it("수량 단위를 선택해 임시저장하고 기안문 산출식에 반영한다", async () => {
+    Element.prototype.scrollIntoView = vi.fn();
+    const draft = validDraft();
+    draft.items[0] = { ...draft.items[0], unitPrice: 10_000, quantity: 3, count: 1 };
+    const save = vi.fn();
+    const loadedStorage: DraftStorage = { load: () => draft, save, clear: vi.fn() };
+    const { container } = render(<PrebudgetPage initialSchoolName="서울우리학교" storage={loadedStorage} />);
+    const user = userEvent.setup();
+    await user.click(screen.getByRole("button", { name: "임시저장 불러오기" }));
+    await user.selectOptions(screen.getAllByLabelText("수량 단위")[0], "개");
+    await user.click(screen.getByRole("button", { name: "임시저장" }));
+    expect(save).toHaveBeenCalledWith(expect.objectContaining({
+      items: [expect.objectContaining({ quantityUnit: "개" })],
+    }));
+    await user.click(screen.getByRole("button", { name: "자동점검 후 기안문 생성" }));
+    expect(container.querySelector(".prebudget-paper")).toHaveTextContent("10,000원 × 3개 × 1회");
   });
   it("필요한 담당자 입력만 표시한다", () => {
     render(<PrebudgetPage initialSchoolName="서울우리학교" storage={storage} />);

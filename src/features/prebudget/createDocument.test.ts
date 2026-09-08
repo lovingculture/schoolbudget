@@ -31,6 +31,22 @@ describe("성립전예산 기안문", () => {
     expect(createPrebudgetDocument(draft).budgetTable.rows[0][5]).toBe("2,500원 × 115명 - 1,000원");
   });
 
+  it("선택한 수량 단위를 기안문 산출식에 표시한다", () => {
+    const draft = activeDraft();
+    draft.items[0] = {
+      ...draft.items[0],
+      manualAmount: undefined,
+      unitPrice: 4_740,
+      quantity: 1_976,
+      quantityUnit: "명",
+      count: 1,
+    };
+
+    expect(createPrebudgetDocument(draft).budgetTable.rows[0][5]).toBe(
+      "4,740원 × 1,976명 × 1회",
+    );
+  });
+
   it("사업담당자와 예산(품의) 권한 부여 대상을 승인된 순서로 생성한다", () => {
     const document = createPrebudgetDocument(activeDraft());
     expect(document.bodyLines).toEqual(expect.arrayContaining([
