@@ -110,5 +110,7 @@ export function parseFoundationExcel(buffer: ArrayBuffer, fileName: string): Fou
   });
 
   const bytes = new TextEncoder().encode(combinedRows.join("\r\n"));
-  return parseFoundationCsv(fileName, bytes.buffer);
+  const document = parseFoundationCsv(fileName, bytes.buffer);
+  const fileYear = fileName.match(/(?:^|\D)(20\d{2})(?:\D|$)/);
+  return fileYear ? { ...document, fiscalYear: Number(fileYear[1]) } : document;
 }

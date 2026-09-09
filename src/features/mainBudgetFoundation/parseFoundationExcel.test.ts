@@ -95,4 +95,10 @@ describe("parseFoundationExcel", () => {
       calculationAmount: 1200000,
     });
   });
+
+  it("uses the budget year in the file name when an older year also appears inside the workbook", () => {
+    const result = parseFoundationExcel(wideEdufineWorkbookBytes(), "2026예산서.xls");
+
+    expect(result.fiscalYear).toBe(2026);
+  });
 });
