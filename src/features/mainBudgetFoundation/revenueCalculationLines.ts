@@ -1,4 +1,4 @@
-import type { FoundationRevenueRow } from "./types";
+import type { FoundationExpenseRow, FoundationRevenueRow } from "./types";
 
 export interface RevenueCalculationLine {
   basis: string;
@@ -6,15 +6,16 @@ export interface RevenueCalculationLine {
 }
 
 function amountFromBasis(basis: string): number | null {
-  const matches = [...basis.matchAll(/\d[\d,]*(?:\.\d+)?/g)]
-    .map((match) => match[0])
-    .filter((value) => value.includes(",") || Number(value.replace(/,/g, "")) >= 1_000);
-  if (!matches.length) return null;
-  const amount = Number(matches.at(-1)!.replace(/,/g, ""));
-  return Number.isFinite(amount) ? amount : null;
+  const expression = (basis.split(":", 2)[1] ?? basis).split("=", 1)[0];
+  const factors = [...expression.matchAll(/\d[\d,]*(?:\.\d+)?/g)]
+    .map((match) => Number(match[0].replace(/,/g, "")))
+    .filter(Number.isFinite);
+  if (!factors.length) return null;
+  const amount = expression.includes("*") ? factors.reduce((total, factor) => total * factor, 1) : factors[0];
+  return Math.round(amount / 1_000) * 1_000;
 }
 
-export function revenueCalculationLines(row: FoundationRevenueRow): RevenueCalculationLine[] {
+export function revenueCalculationLines(row: FoundationRevenueRow | FoundationExpenseRow): RevenueCalculationLine[] {
   const bases = row.calculationBasis.split(/\r?\n/).map((basis) => basis.trim()).filter(Boolean);
   if (!bases.length) return [{ basis: "", amount: row.priorAmount * 1_000 }];
   return bases.map((basis, index) => ({

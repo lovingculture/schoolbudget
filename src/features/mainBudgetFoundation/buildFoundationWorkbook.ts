@@ -69,9 +69,10 @@ function addGuide(workbook: ExcelJS.Workbook, document: FoundationBudgetDocument
 function addRevenue(workbook: ExcelJS.Workbook, document: FoundationBudgetDocument): void {
   const outputRows = document.revenueRows.flatMap((row) => revenueCalculationLines(row).map((line) => ({ row, line })));
   const last = 11 + outputRows.length;
+  const expenseLast = 10 + document.expenseRows.reduce((count, row) => count + revenueCalculationLines(row).length, 0);
   const sheet = baseSheet(workbook, "세입", `${document.fiscalYear}학년도 세입 편성 기초자료`, 12);
   sheet.columns = [16, 22, 24, 24, 24, 28, 32, 16, 42, 18, 12, 16].map((width) => ({ width }));
-  sheet.getRow(4).values = ["세입 예산액", { formula: `SUM(H12:H${last})` }, "세출 요구액", { formula: `SUM('세출(원안)'!G11:G${10 + document.expenseRows.length})` }, "세입-세출 차액", { formula: "B4-D4" }];
+  sheet.getRow(4).values = ["세입 예산액", { formula: `SUM(H12:H${last})` }, "세출 요구액", { formula: `SUM('세출(원안)'!G11:G${expenseLast})` }, "세입-세출 차액", { formula: "B4-D4" }];
   sheet.getRow(5).values = ["공통경상운영비", { formula: `SUMIF(K12:K${last},"공",H12:H${last})` }, "업무추진비 요구예산", { formula: `SUM('업무추진비'!G3:G${2 + Math.max(1, selectBusinessExpenses(document.expenseRows).length)})` }];
   sheet.getRow(6).values = ["통합교부비", { formula: `SUMIF(K12:K${last},"통",H12:H${last})` }, "업무추진비 편성한도", { formula: "SUM(B5:B7)*3%" }, "업무추진비 조정필요액", { formula: "D6-D5" }];
   sheet.getRow(7).values = ["일반(사용료+수수료등)", { formula: `SUMIF(K12:K${last},"일",H12:H${last})` }];
@@ -93,16 +94,17 @@ function addRevenue(workbook: ExcelJS.Workbook, document: FoundationBudgetDocume
 }
 
 function addOriginalExpense(workbook: ExcelJS.Workbook, document: FoundationBudgetDocument): void {
+  const outputRows = document.expenseRows.flatMap((row) => revenueCalculationLines(row).map((line) => ({ row, line })));
+  const last = 10 + outputRows.length;
   const sheet = baseSheet(workbook, "세출(원안)", `${document.fiscalYear}학년도 세출 원안`, 12);
   sheet.columns = [16, 22, 24, 24, 42, 28, 16, 16, 28, 16, 16, 18].map((width) => ({ width }));
-  sheet.getRow(5).values = ["", "", "", "", "", "요구금액 합계", { formula: `SUM(G11:G${10 + document.expenseRows.length})` }, "", "전년요구금액 합계", { formula: `SUM(J11:J${10 + document.expenseRows.length})` }];
+  sheet.getRow(5).values = ["", "", "", "", "", "요구금액 합계", { formula: `SUM(G11:G${last})` }, "", "전년요구금액 합계", { formula: `SUM(J11:J${last})` }];
   sheet.getRow(10).values = ["부서명", "세부사업명", "세부항목명", "원가통계비목명", "산출내역", "산출식", "요구금액", "사업담당자", "전년산출식", "전년요구금액", "증감", "비고"];
   styleHeader(sheet.getRow(10));
-  document.expenseRows.forEach((row, index) => {
+  outputRows.forEach(({ row, line }, index) => {
     const rowNumber = 11 + index;
-    sheet.getRow(rowNumber).values = [row.department, row.business, row.detail, row.costItem, row.calculationBasis, row.calculationAmount, row.currentAmount, row.manager, "", row.priorAmount, { formula: `G${rowNumber}-J${rowNumber}` }, ""];
+    sheet.getRow(rowNumber).values = [row.department, row.business, row.detail, row.costItem, null, null, null, row.manager, line.basis, line.amount, { formula: `G${rowNumber}-J${rowNumber}` }, ""];
   });
-  const last = 10 + document.expenseRows.length;
   styleData(sheet, 11, last, [6, 7, 10, 11]);
   const total = last + 1;
   sheet.getRow(total).values = ["", "", "", "", "", "합계", { formula: `SUM(G11:G${last})` }, "", "전년합계", { formula: `SUM(J11:J${last})` }, { formula: `SUM(K11:K${last})` }, ""];

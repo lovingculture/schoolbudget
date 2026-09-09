@@ -61,4 +61,26 @@ describe("buildFoundationWorkbook", () => {
     expect(revenue.getCell("I13").value).toBe("체육관사용료 : 29,660,000원 * 1건 =");
     expect(revenue.getCell("J13").value).toBe(29_660_000);
   });
+
+  it("puts each prior-year expense calculation on its own row and leaves current-year entry cells blank", async () => {
+    const document: FoundationBudgetDocument = {
+      ...validDocument,
+      expenseRows: [{
+        ...validDocument.expenseRows[0],
+        calculationBasis: "교수학습자료구매 : 1,500,000원 * 2회 =\n학습준비물구입 : 30,000원 * 600명 =",
+        calculationAmount: 21_000_000,
+      }],
+    };
+    const workbook = await load(await buildFoundationWorkbook(document));
+    const expense = workbook.getWorksheet("세출(원안)")!;
+
+    expect(expense.getCell("E11").value).toBeNull();
+    expect(expense.getCell("F11").value).toBeNull();
+    expect(expense.getCell("G11").value).toBeNull();
+    expect(expense.getCell("I11").value).toBe("교수학습자료구매 : 1,500,000원 * 2회 =");
+    expect(expense.getCell("J11").value).toBe(3_000_000);
+    expect(expense.getCell("I12").value).toBe("학습준비물구입 : 30,000원 * 600명 =");
+    expect(expense.getCell("J12").value).toBe(18_000_000);
+    expect(workbook.getWorksheet("세입")!.getCell("D4").formula).toBe("SUM('세출(원안)'!G11:G12)");
+  });
 });

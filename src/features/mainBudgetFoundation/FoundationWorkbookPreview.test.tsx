@@ -45,4 +45,24 @@ describe("FoundationWorkbookPreview", () => {
     expect(screen.getByText("667,348,000")).toBeVisible();
     expect(screen.getByText("29,660,000")).toBeVisible();
   });
+
+  it("shows prior-year expense calculations as separate rows without filling current-year cells", async () => {
+    const user = userEvent.setup();
+    const input = document();
+    const multiLine: FoundationBudgetDocument = {
+      ...input,
+      expenseRows: [{
+        ...input.expenseRows[0],
+        calculationBasis: "교수학습자료구매 : 1,500,000원 * 2회 =\n학습준비물구입 : 30,000원 * 600명 =",
+        calculationAmount: 21_000_000,
+      }],
+    };
+
+    render(<FoundationWorkbookPreview document={multiLine} />);
+    await user.click(screen.getByRole("tab", { name: "세출(원안)" }));
+    const rows = screen.getAllByRole("row");
+    expect(screen.getByText("교수학습자료구매 : 1,500,000원 * 2회 =")).toBeVisible();
+    expect(screen.getByText("학습준비물구입 : 30,000원 * 600명 =")).toBeVisible();
+    expect(rows.some((row) => row.textContent?.includes("21,000,000"))).toBe(false);
+  });
 });
