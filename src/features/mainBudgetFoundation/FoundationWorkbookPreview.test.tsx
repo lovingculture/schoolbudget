@@ -4,6 +4,7 @@ import { describe, expect, it } from "vitest";
 import { parseFoundationCsv } from "./parseFoundationCsv";
 import { combinedBudgetSampleText } from "./fixtures/combinedBudgetSample";
 import { FoundationWorkbookPreview } from "./FoundationWorkbookPreview";
+import type { FoundationBudgetDocument } from "./types";
 
 function document() {
   return parseFoundationCsv("sample.csv", new TextEncoder().encode(combinedBudgetSampleText).buffer);
@@ -15,7 +16,7 @@ describe("FoundationWorkbookPreview", () => {
     expect(screen.getAllByRole("tab").map((tab) => tab.textContent)).toEqual(["세입", "세출(원안)", "세출(조정안)", "업무추진비"]);
     expect(screen.getByRole("tabpanel", { name: "세입" })).toBeVisible();
     expect(screen.getByRole("columnheader", { name: "전년도 산출식" })).toBeVisible();
-    expect(screen.getAllByText("721,573").length).toBeGreaterThan(0);
+    expect(screen.getAllByText("721,573,000").length).toBeGreaterThan(0);
   });
 
   it("switches to the original expense sheet with Excel headers", async () => {
@@ -25,5 +26,23 @@ describe("FoundationWorkbookPreview", () => {
     expect(screen.getByRole("tabpanel", { name: "세출(원안)" })).toBeVisible();
     expect(screen.getByRole("columnheader", { name: "전년요구금액" })).toBeVisible();
     expect(screen.getByText("일반업무추진비")).toBeVisible();
+  });
+
+  it("shows prior-year revenue calculations as separate spreadsheet rows", () => {
+    const input = document();
+    const multiLine: FoundationBudgetDocument = {
+      ...input,
+      revenueRows: [{
+        ...input.revenueRows[0],
+        calculationBasis: "기본운영비 : 667,348,000원 * 1개교 =\n체육관사용료 : 29,660,000원 * 1건 =",
+        calculationAmount: 697_008_000,
+      }],
+    };
+
+    render(<FoundationWorkbookPreview document={multiLine} />);
+    expect(screen.getByText("기본운영비 : 667,348,000원 * 1개교 =")).toBeVisible();
+    expect(screen.getByText("체육관사용료 : 29,660,000원 * 1건 =")).toBeVisible();
+    expect(screen.getByText("667,348,000")).toBeVisible();
+    expect(screen.getByText("29,660,000")).toBeVisible();
   });
 });

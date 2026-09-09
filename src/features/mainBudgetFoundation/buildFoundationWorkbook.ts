@@ -3,6 +3,7 @@ import { classifyRevenue, selectBusinessExpenses } from "./classifyFoundationRow
 import { INDIVIDUAL_OPERATING_BUSINESSES, INTEGRATED_GRANT_BUSINESSES } from "./referenceData";
 import type { FoundationBudgetDocument } from "./types";
 import { validateFoundationBudget } from "./validateFoundationBudget";
+import { revenueCalculationLines } from "./revenueCalculationLines";
 
 const BODY_FONT: Partial<ExcelJS.Font> = { name: "맑은 고딕", size: 10 };
 const TITLE_FONT: Partial<ExcelJS.Font> = { name: "맑은 고딕", size: 16, bold: true, color: { argb: "FF173D57" } };
@@ -66,27 +67,29 @@ function addGuide(workbook: ExcelJS.Workbook, document: FoundationBudgetDocument
 }
 
 function addRevenue(workbook: ExcelJS.Workbook, document: FoundationBudgetDocument): void {
-  const sheet = baseSheet(workbook, "세입", `${document.fiscalYear}학년도 세입 편성 기초자료`, 10);
-  sheet.columns = [16, 22, 24, 24, 24, 42, 28, 16, 12, 16].map((width) => ({ width }));
-  sheet.getRow(4).values = ["세입 예산액", { formula: `SUM(H12:H${11 + document.revenueRows.length})` }, "세출 요구액", { formula: `SUM('세출(원안)'!G11:G${10 + document.expenseRows.length})` }, "세입-세출 차액", { formula: "B4-D4" }];
-  sheet.getRow(5).values = ["공통경상운영비", { formula: `SUMIF(I12:I${11 + document.revenueRows.length},"공",H12:H${11 + document.revenueRows.length})` }, "업무추진비 요구예산", { formula: `SUM('업무추진비'!G3:G${2 + Math.max(1, selectBusinessExpenses(document.expenseRows).length)})` }];
-  sheet.getRow(6).values = ["통합교부비", { formula: `SUMIF(I12:I${11 + document.revenueRows.length},"통",H12:H${11 + document.revenueRows.length})` }, "업무추진비 편성한도", { formula: "SUM(B5:B7)*3%" }, "업무추진비 조정필요액", { formula: "D6-D5" }];
-  sheet.getRow(7).values = ["일반(사용료+수수료등)", { formula: `SUMIF(I12:I${11 + document.revenueRows.length},"일",H12:H${11 + document.revenueRows.length})` }];
-  sheet.getRow(8).values = ["수익자부담경비(세입)", { formula: `SUMIF(I12:I${11 + document.revenueRows.length},"수",H12:H${11 + document.revenueRows.length})` }, "수익자부담경비(세출)", 0];
+  const outputRows = document.revenueRows.flatMap((row) => revenueCalculationLines(row).map((line) => ({ row, line })));
+  const last = 11 + outputRows.length;
+  const sheet = baseSheet(workbook, "세입", `${document.fiscalYear}학년도 세입 편성 기초자료`, 12);
+  sheet.columns = [16, 22, 24, 24, 24, 28, 32, 16, 42, 18, 12, 16].map((width) => ({ width }));
+  sheet.getRow(4).values = ["세입 예산액", { formula: `SUM(H12:H${last})` }, "세출 요구액", { formula: `SUM('세출(원안)'!G11:G${10 + document.expenseRows.length})` }, "세입-세출 차액", { formula: "B4-D4" }];
+  sheet.getRow(5).values = ["공통경상운영비", { formula: `SUMIF(K12:K${last},"공",H12:H${last})` }, "업무추진비 요구예산", { formula: `SUM('업무추진비'!G3:G${2 + Math.max(1, selectBusinessExpenses(document.expenseRows).length)})` }];
+  sheet.getRow(6).values = ["통합교부비", { formula: `SUMIF(K12:K${last},"통",H12:H${last})` }, "업무추진비 편성한도", { formula: "SUM(B5:B7)*3%" }, "업무추진비 조정필요액", { formula: "D6-D5" }];
+  sheet.getRow(7).values = ["일반(사용료+수수료등)", { formula: `SUMIF(K12:K${last},"일",H12:H${last})` }];
+  sheet.getRow(8).values = ["수익자부담경비(세입)", { formula: `SUMIF(K12:K${last},"수",H12:H${last})` }, "수익자부담경비(세출)", 0];
   for (let rowNumber = 4; rowNumber <= 8; rowNumber += 1) styleData(sheet, rowNumber, rowNumber, [2, 4, 6]);
-  sheet.getRow(11).values = ["장", "관", "항", "목", "원가통계비목", "산출내역", "산출식", "예산액", "예산성격", "비고"];
+  sheet.getRow(11).values = ["장", "관", "항", "목", "원가통계비목", "산출내역", "산출식", "예산액", "전년도 산출식", "전년도 예산", "예산성격", "비고"];
   styleHeader(sheet.getRow(11));
-  document.revenueRows.forEach((row, index) => {
-    sheet.getRow(12 + index).values = [row.chapter, row.division, row.section, row.item, row.costItem, row.calculationBasis, row.calculationAmount, row.currentAmount, classifyRevenue(row), ""];
+  outputRows.forEach(({ row, line }, index) => {
+    const detail = line.basis.split(":", 1)[0].trim() || row.costItem;
+    sheet.getRow(12 + index).values = [row.chapter, row.division, row.section, row.item, row.costItem, detail, null, null, line.basis, line.amount, classifyRevenue(row), ""];
   });
-  const last = 11 + document.revenueRows.length;
-  styleData(sheet, 12, last, [7, 8]);
+  styleData(sheet, 12, last, [7, 8, 10]);
   const total = last + 1;
-  sheet.getRow(total).values = ["합계", "", "", "", "", "", "", { formula: `SUM(H12:H${last})` }, "", ""];
+  sheet.getRow(total).values = ["합계", "", "", "", "", "", "", { formula: `SUM(H12:H${last})` }, "전년도 합계", { formula: `SUM(J12:J${last})` }, "", ""];
   sheet.mergeCells(total, 1, total, 7);
   sheet.getRow(total).fill = TOTAL_FILL;
-  styleData(sheet, total, total, [8]);
-  sheet.autoFilter = { from: "A11", to: `J${last}` };
+  styleData(sheet, total, total, [8, 10]);
+  sheet.autoFilter = { from: "A11", to: `L${last}` };
 }
 
 function addOriginalExpense(workbook: ExcelJS.Workbook, document: FoundationBudgetDocument): void {
