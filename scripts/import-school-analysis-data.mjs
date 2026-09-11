@@ -1,4 +1,4 @@
-import { mkdir, readFile, writeFile } from "node:fs/promises";
+import { mkdir, readFile, readdir, unlink, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 
@@ -25,6 +25,9 @@ function assertManifestEntry(entry, index) {
     path.basename(entry.file) !== entry.file
   ) {
     throw new Error(`학교 목록 ${index + 1}번째 항목이 올바르지 않습니다.`);
+  }
+  if (entry.fiscalYear !== 2025) {
+    throw new Error(`학교 결산 기준연도는 2025년이어야 합니다: ${entry.schoolCode}`);
   }
 }
 
@@ -64,6 +67,9 @@ export async function importSchoolAnalysisData(sourceRoot, outputRoot) {
 
   const profilesPath = path.join(source, "school-profiles", "school-profiles_2025.json");
   const profileDocument = parseJson(await readFile(profilesPath, "utf8"), profilesPath);
+  if (profileDocument.summary?.referenceYear !== 2025) {
+    throw new Error("학교 기본정보 기준연도는 2025년이어야 합니다.");
+  }
   if (!Array.isArray(profileDocument.profiles)) {
     throw new Error("학교 기본정보 목록은 배열이어야 합니다.");
   }
@@ -83,6 +89,7 @@ export async function importSchoolAnalysisData(sourceRoot, outputRoot) {
   await mkdir(schoolsRoot, { recursive: true });
 
   const compactManifest = [];
+  const expectedSchoolFiles = new Set(manifest.map((entry) => entry.file));
   for (const entry of manifest) {
     const sourceFilePath = path.join(source, "fixtures", "schools", entry.file);
     const dataset = parseJson(await readFile(sourceFilePath, "utf8"), sourceFilePath);
@@ -100,6 +107,16 @@ export async function importSchoolAnalysisData(sourceRoot, outputRoot) {
       referenceMonth: entry.referenceMonth,
       file: entry.file,
     });
+  }
+
+  for (const existingEntry of await readdir(schoolsRoot, { withFileTypes: true })) {
+    if (
+      existingEntry.isFile() &&
+      existingEntry.name.endsWith(".json") &&
+      !expectedSchoolFiles.has(existingEntry.name)
+    ) {
+      await unlink(path.join(schoolsRoot, existingEntry.name));
+    }
   }
 
   compactManifest.sort((left, right) =>
