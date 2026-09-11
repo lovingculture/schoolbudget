@@ -297,14 +297,14 @@ describe("예산업무 포털", () => {
     expect(screen.getByRole("link", { name: /본예산편성.*유튜브에서 보기/ })).toBeVisible();
   });
 
-  it("예산 웹툰 상단 메뉴에서 여섯 회차의 목록을 연다", async () => {
+  it("예산 웹툰 상단 메뉴에서 일곱 회차의 목록을 연다", async () => {
     const user = userEvent.setup();
     render(<Portal displayName="김담당" schoolName="서울한빛초등학교" />);
 
     await user.click(screen.getByRole("button", { name: "예산 웹툰" }));
 
     expect(screen.getByRole("heading", { name: "예산 웹툰" })).toBeVisible();
-    expect(screen.getAllByRole("button", { name: /화 .* 읽어보기/ })).toHaveLength(6);
+    expect(screen.getAllByRole("button", { name: /화 .* 읽어보기/ })).toHaveLength(7);
   });
 
   it("이용안내에서 연 모든 업무 화면은 이용안내 목록으로 돌아갈 수 있다", async () => {
