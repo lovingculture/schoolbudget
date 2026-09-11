@@ -222,6 +222,23 @@ describe("예산업무 포털", () => {
     expect(screen.getByText("본예산서를 불러오면 세입 기준금액과 일반업무추진비 편성 비율을 자동으로 계산합니다.")).toBeVisible();
   });
 
+  it("학교별 예산 분석 상단 메뉴에서 분석 화면을 열고 기존 업무 메뉴를 유지한다", async () => {
+    const user = userEvent.setup();
+    render(<Portal displayName="김담당" schoolName="서울한빛초등학교" />);
+
+    expect(screen.getByRole("button", { name: "학교별 예산 분석" })).toBeVisible();
+    await user.click(screen.getByRole("button", { name: "학교별 예산 분석" }));
+    expect(await screen.findByRole("heading", { name: "학교별 예산 분석" })).toBeVisible();
+
+    await user.click(screen.getByRole("button", { name: "예산 업무" }));
+    expect(screen.getByRole("button", { name: "결산 설명서 만들기" })).toBeVisible();
+    expect(
+      within(document.getElementById("portal-workflow-menu")!).queryByRole("button", {
+        name: "학교별 예산 분석",
+      }),
+    ).not.toBeInTheDocument();
+  });
+
   it("예산안건 설명서 메뉴에서 총괄표 불러오기 기능을 연다", async () => {
     const user = userEvent.setup();
     render(<Portal displayName="김담당" schoolName="서울한빛초등학교" />);

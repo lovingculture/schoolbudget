@@ -1,0 +1,607 @@
+.school-analysis-page {
+  max-width: 1240px;
+  margin: 0 auto;
+  padding: 32px 24px 56px;
+  color: #173b3a;
+  font-size: 16px;
+  line-height: 1.6;
+}
+.school-analysis-page * {
+  box-sizing: border-box;
+}
+.school-analysis-page h1,
+.school-analysis-page h2,
+.school-analysis-page h3,
+.school-analysis-page h4 {
+  line-height: 1.4;
+  margin: 0 0 12px;
+}
+.school-analysis-page h1 {
+  font-size: clamp(26px, 4vw, 34px);
+  margin-top: 8px;
+}
+.school-analysis-page h2 {
+  font-size: 23px;
+}
+.school-analysis-page h3 {
+  font-size: 18px;
+}
+.school-analysis-page h4 {
+  font-size: 15px;
+}
+.school-analysis-page p {
+  margin: 8px 0 14px;
+}
+.school-analysis-page button,
+.school-analysis-page input,
+.school-analysis-page select {
+  font: inherit;
+}
+.school-analysis-page button,
+.school-analysis-page a,
+.school-analysis-page summary,
+.school-analysis-page select {
+  touch-action: manipulation;
+}
+.school-analysis-page button {
+  min-height: 44px;
+  padding: 9px 14px;
+  border: 1px solid #cadbd7;
+  border-radius: 10px;
+  background: #fff;
+  color: #245c56;
+  cursor: pointer;
+}
+.school-analysis-page button:hover {
+  background: #e9f4f1;
+  border-color: #75a69e;
+}
+.school-analysis-page a {
+  color: #216e67;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.school-analysis-page
+  :is(button, input, select, a, summary, [tabindex]):focus-visible {
+  outline: 3px solid #c56935;
+  outline-offset: 3px;
+}
+.school-analysis-heading {
+  margin-bottom: 24px;
+}
+.school-analysis-eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: #286e65;
+  font-size: 14px;
+  font-weight: 800;
+}
+.school-analysis-heading-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 14px;
+}
+.school-analysis-panel {
+  min-width: 0;
+  padding: 24px;
+  margin-bottom: 22px;
+  border: 1px solid #d9e5e1;
+  border-radius: 18px;
+  background: #fff;
+}
+.school-analysis-muted {
+  color: #566e68;
+  font-size: 14px;
+}
+.school-analysis-selector label {
+  font-weight: 800;
+}
+.school-analysis-selector .school-analysis-heading-row > span {
+  color: #536e66;
+  font-size: 14px;
+}
+.school-analysis-search {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 12px;
+  padding: 0 14px;
+  border: 1px solid #a8c4bc;
+  border-radius: 11px;
+}
+.school-analysis-search input {
+  width: 100%;
+  min-width: 0;
+  min-height: 48px;
+  padding: 10px 0;
+  color: #173b3a;
+  border: 0;
+  background: transparent;
+}
+.school-analysis-results {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+  max-height: 238px;
+  overflow-y: auto;
+  padding: 4px;
+}
+.school-analysis-results button {
+  display: grid;
+  text-align: left;
+  padding: 12px;
+}
+.school-analysis-results span {
+  font-size: 12px;
+  color: #53665f;
+}
+.school-analysis-results [aria-selected="true"] {
+  background: #e7f4ef;
+  border: 2px solid #317f76;
+}
+.school-analysis-results[hidden] {
+  display: none;
+}
+.school-analysis-results [data-active="true"] {
+  outline: 2px solid #286e65;
+  outline-offset: -2px;
+}
+.school-analysis-empty {
+  border: 1px dashed #a8c4bc;
+  border-radius: 16px;
+  padding: 40px 24px;
+  text-align: center;
+  background: #f6faf8;
+}
+.school-analysis-loading {
+  min-height: 520px;
+  padding: 4px 0 24px;
+}
+.school-analysis-loading > p {
+  color: #536e66;
+  font-weight: 700;
+}
+.school-analysis-loading-kpis,
+.school-analysis-loading-panels {
+  display: grid;
+  gap: 14px;
+}
+.school-analysis-loading-kpis {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  margin: 18px 0 24px;
+}
+.school-analysis-loading-panels {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+.school-analysis-skeleton-card {
+  min-height: 132px;
+  border: 1px solid #d9e5e1;
+  border-radius: 15px;
+  background: linear-gradient(105deg, #f4f8f6 35%, #e8f1ed 50%, #f4f8f6 65%);
+  background-size: 220% 100%;
+  animation: school-analysis-loading 1.4s ease-in-out infinite;
+}
+.school-analysis-loading-panels .school-analysis-skeleton-card {
+  min-height: 260px;
+}
+@keyframes school-analysis-loading {
+  to {
+    background-position-x: -220%;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .school-analysis-skeleton-card {
+    animation: none;
+  }
+}
+.school-analysis-notice {
+  padding: 16px 20px;
+  border: 1px solid #e5bf98;
+  border-radius: 12px;
+  background: #fff7ec;
+  color: #76411d;
+}
+.school-analysis-school-title {
+  margin: 30px 0 20px;
+}
+.school-analysis-kpis {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px;
+  margin-bottom: 24px;
+}
+.school-analysis-kpis article {
+  min-width: 0;
+  padding: 20px;
+  border: 1px solid #d9e5e1;
+  border-top: 4px solid #317f76;
+  border-radius: 15px;
+  background: #fff;
+}
+.school-analysis-kpis h3 {
+  font-size: 14px;
+}
+.school-analysis-kpis strong {
+  font-size: 29px;
+  font-weight: 800;
+  overflow-wrap: anywhere;
+}
+.school-analysis-kpis small {
+  font-size: 14px;
+  font-weight: 500;
+}
+.school-analysis-kpis p {
+  margin-bottom: 0;
+  font-size: 14px;
+  color: #536e66;
+}
+.school-analysis-tabs {
+  display: flex;
+  gap: 8px;
+  padding: 6px;
+  border: 1px solid #d1e0db;
+  border-radius: 14px;
+  background: #eaf3ef;
+  margin-bottom: 24px;
+}
+.school-analysis-tabs button {
+  flex: 1;
+  background: transparent;
+  border-color: transparent;
+  font-weight: 800;
+}
+.school-analysis-tabs button[aria-selected="true"] {
+  background: #173b3a;
+  color: white;
+  box-shadow: 0 3px 8px #173b3a15;
+}
+.school-analysis-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px;
+  margin: 18px 0;
+}
+.school-analysis-two-columns {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 22px;
+}
+.school-analysis-two-columns > * {
+  min-width: 0;
+}
+.school-analysis-metric {
+  min-width: 0;
+  padding: 18px;
+  border: 1px solid #d9e5e1;
+  border-radius: 12px;
+  background: #f5faf7;
+}
+.school-analysis-metric > strong {
+  display: block;
+  font-size: 24px;
+  color: #21776c;
+  overflow-wrap: anywhere;
+}
+.school-analysis-metric p,
+.school-analysis-metric dl {
+  font-size: 14px;
+}
+.school-analysis-metric dl div {
+  margin-top: 10px;
+}
+.school-analysis-metric dt {
+  color: #536e66;
+}
+.school-analysis-metric dd {
+  margin: 2px 0;
+  font-weight: 700;
+  overflow-wrap: anywhere;
+}
+.school-analysis-facts dt {
+  font-size: 14px;
+  color: #536e66;
+}
+.school-analysis-facts dd {
+  margin: 4px 0 0;
+  font-size: 21px;
+  font-weight: 700;
+  overflow-wrap: anywhere;
+}
+.school-analysis-flow {
+  margin: 20px 0;
+}
+.school-analysis-flow > div:first-child {
+  display: flex;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.school-analysis-flow-track {
+  height: 18px;
+  margin-top: 8px;
+  overflow: hidden;
+  background: #eaf1ee;
+  border-radius: 5px;
+}
+.school-analysis-flow-track > span {
+  display: block;
+  height: 100%;
+  background: #34887a;
+}
+.school-analysis-flow:nth-child(2) .school-analysis-flow-track > span {
+  background: #bd704b;
+}
+.school-analysis-flow p {
+  font-size: 14px;
+}
+.school-analysis-surplus {
+  padding: 16px;
+  background: #edf5f1;
+  border-radius: 12px;
+}
+.school-analysis-surplus strong {
+  display: block;
+  font-size: 24px;
+}
+.school-analysis-prompts {
+  margin-bottom: 22px;
+}
+.school-analysis-prompts button {
+  padding: 22px;
+  text-align: left;
+  font-weight: 800;
+}
+.school-analysis-prompts span {
+  display: block;
+  margin-top: 6px;
+  font-size: 14px;
+  font-weight: 400;
+}
+.school-analysis-total {
+  display: grid;
+  gap: 4px;
+}
+.school-analysis-total span {
+  font-size: 14px;
+}
+.school-analysis-total strong {
+  font-size: 24px;
+  overflow-wrap: anywhere;
+}
+.school-analysis-controls {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 16px;
+  margin: 24px 0 12px;
+}
+.school-analysis-controls > div {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+.school-analysis-controls label {
+  display: grid;
+  gap: 5px;
+  font-size: 14px;
+}
+.school-analysis-controls select {
+  min-height: 44px;
+  padding: 6px 12px;
+  border: 1px solid #b3cbc2;
+  border-radius: 8px;
+  background: #fff;
+  color: #173b3a;
+}
+.school-analysis-breadcrumb {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 5px;
+}
+.school-analysis-breadcrumb button {
+  padding: 8px 10px;
+}
+.school-analysis-breadcrumb [aria-current] {
+  background: #edf6f1;
+  font-weight: 800;
+}
+.school-analysis-metric-section {
+  margin: 30px 0;
+  padding-top: 22px;
+  border-top: 1px solid #d9e5e1;
+}
+.school-analysis-rigid-summary {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 12px;
+  padding: 18px;
+  border-radius: 12px;
+  background: #e9f3ef;
+  font-size: 14px;
+}
+.school-analysis-rigid-summary strong {
+  display: block;
+  margin-top: 5px;
+  font-size: 18px;
+  overflow-wrap: anywhere;
+}
+.school-analysis-chart {
+  height: 360px;
+  width: 100%;
+  margin-top: 18px;
+}
+.school-analysis-chart-values {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+  list-style: none;
+  padding: 0;
+  margin: 16px 0 24px;
+}
+.school-analysis-chart-values button {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 10px;
+  width: 100%;
+  text-align: left;
+  font-size: 14px;
+}
+.school-analysis-selected {
+  background: #f0f7f3;
+  padding: 20px;
+  border: 1px solid #86b5a4;
+  border-radius: 14px;
+  margin: 22px 0;
+}
+.school-analysis-table-wrap {
+  max-width: 100%;
+  overflow-x: auto;
+  margin: 14px 0;
+}
+.school-analysis-page table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+  font-variant-numeric: tabular-nums;
+}
+.school-analysis-page caption {
+  text-align: left;
+  padding-bottom: 10px;
+  font-weight: 700;
+}
+.school-analysis-page th,
+.school-analysis-page td {
+  border-bottom: 1px solid #d9e5e1;
+  padding: 12px;
+  text-align: right;
+  white-space: nowrap;
+}
+.school-analysis-page th {
+  text-align: left;
+}
+.school-analysis-page thead {
+  background: #eef5f1;
+}
+.school-analysis-detail-table {
+  min-width: 920px;
+}
+.school-analysis-detail-table button {
+  border-color: transparent;
+  background: transparent;
+  text-align: left;
+  padding: 8px;
+}
+.school-analysis-top ol {
+  padding-left: 24px;
+}
+.school-analysis-top li {
+  padding: 6px 0;
+}
+.school-analysis-top button {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 10px;
+  text-align: left;
+}
+.school-analysis-top small {
+  display: block;
+  color: #536e66;
+  font-size: 12px;
+  margin-top: 4px;
+}
+.school-analysis-top strong {
+  white-space: nowrap;
+  font-size: 14px;
+}
+.school-analysis-notes {
+  margin-top: 22px;
+  font-size: 14px;
+}
+.school-analysis-notes summary {
+  cursor: pointer;
+  min-height: 44px;
+  padding: 10px 0;
+  font-weight: 700;
+}
+.school-analysis-notes li {
+  margin-bottom: 8px;
+  overflow-wrap: anywhere;
+}
+@media (max-width: 1000px) {
+  .school-analysis-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .school-analysis-rigid-summary {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+@media (max-width: 720px) {
+  .school-analysis-page {
+    padding: 24px 16px 40px;
+  }
+  .school-analysis-panel {
+    padding: 18px;
+  }
+  .school-analysis-kpis,
+  .school-analysis-loading-kpis,
+  .school-analysis-loading-panels,
+  .school-analysis-grid,
+  .school-analysis-two-columns,
+  .school-analysis-results,
+  .school-analysis-chart-values,
+  .school-analysis-rigid-summary {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .school-analysis-heading-row {
+    align-items: flex-start;
+  }
+  .school-analysis-controls,
+  .school-analysis-controls > div {
+    display: grid;
+    width: 100%;
+  }
+  .school-analysis-controls select,
+  .school-analysis-controls label,
+  .school-analysis-search,
+  .school-analysis-results button {
+    width: 100%;
+  }
+  .school-analysis-tabs {
+    gap: 4px;
+    padding: 4px;
+  }
+  .school-analysis-tabs button {
+    min-width: 0;
+    padding: 10px 6px;
+    font-size: 14px;
+  }
+  .school-analysis-table-wrap {
+    overflow-x: auto;
+  }
+  .school-analysis-chart {
+    height: 300px;
+  }
+  .school-analysis-kpis strong {
+    font-size: 28px;
+  }
+  .school-analysis-selected {
+    padding: 16px;
+  }
+  .school-analysis-page :is(button, a, summary, select) {
+    min-height: 44px;
+  }
+  .school-analysis-page a {
+    display: inline-flex;
+    align-items: center;
+  }
+}
