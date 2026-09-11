@@ -1,4 +1,8 @@
 import type { BudgetDataset, SchoolManifestEntry } from "./types";
+import {
+  validateBudgetDataset,
+  validateSchoolManifest,
+} from "./validation.js";
 
 type Fetcher = (
   input: RequestInfo | URL,
@@ -17,6 +21,24 @@ function assertOk(response: Response, message: string): Response {
     throw new Error(message);
   }
   return response;
+}
+
+async function loadValidatedJson<T>(
+  url: string,
+  fetcher: Fetcher,
+  message: string,
+  validate: (value: unknown) => T,
+): Promise<T> {
+  try {
+    const response = assertOk(await fetcher(url), message);
+    return validate(await response.json());
+  } catch (error) {
+    const userMessage =
+      error instanceof Error && error.message.includes("학교·기간")
+        ? "선택한 학교·기간과 자료가 일치하지 않습니다."
+        : message;
+    throw new Error(userMessage, { cause: error });
+  }
 }
 
 function cachePromise<T>(
@@ -44,9 +66,12 @@ export function loadSchoolManifest(
   fetcher: Fetcher = fetch,
 ): Promise<SchoolManifestEntry[]> {
   return cachePromise(manifestCache, "manifest", () =>
-    fetcher(MANIFEST_URL)
-      .then((response) => assertOk(response, MANIFEST_ERROR_MESSAGE))
-      .then((response) => response.json() as Promise<SchoolManifestEntry[]>),
+    loadValidatedJson(
+      MANIFEST_URL,
+      fetcher,
+      MANIFEST_ERROR_MESSAGE,
+      validateSchoolManifest,
+    ),
   );
 }
 
@@ -58,9 +83,12 @@ export function loadSchoolDataset(
   const url = `/data/school-analysis/schools/${encodeURIComponent(entry.file)}`;
 
   return cachePromise(datasetCache, key, () =>
-    fetcher(url)
-      .then((response) => assertOk(response, DATASET_ERROR_MESSAGE))
-      .then((response) => response.json() as Promise<BudgetDataset>),
+    loadValidatedJson(
+      url,
+      fetcher,
+      DATASET_ERROR_MESSAGE,
+      (value) => validateBudgetDataset(value, entry),
+    ),
   );
 }
 

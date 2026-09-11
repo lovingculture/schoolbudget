@@ -144,6 +144,17 @@ describe("school analysis selection", () => {
     await userEvent.click(screen.getByRole("button", { name: "다시 시도" }));
     expect(await screen.findByText("1,653개 학교·유치원")).toBeVisible();
   });
+  it("does not expose a raw English manifest failure", async () => {
+    vi.mocked(loadSchoolManifest).mockRejectedValueOnce(
+      new TypeError("Failed to fetch"),
+    );
+    render(<SchoolAnalysisPage />);
+
+    expect(await screen.findByRole("alert")).toHaveTextContent(
+      "학교 목록을 불러오지 못했습니다.",
+    );
+    expect(screen.queryByText("Failed to fetch")).not.toBeInTheDocument();
+  });
   it("rejects a dataset for another school instead of displaying its values", async () => {
     vi.mocked(loadSchoolDataset).mockResolvedValueOnce(garak as BudgetDataset);
     render(<SchoolAnalysisPage />);
@@ -271,6 +282,34 @@ describe("school analysis selection", () => {
     expect(
       screen.queryByRole("region", { name: "결산 핵심 지표" }),
     ).not.toBeInTheDocument();
+    await act(async () => resolveNext(beodeul as BudgetDataset));
+    expect(
+      await screen.findByRole("heading", { name: "서울버들초등학교" }),
+    ).toBeVisible();
+  });
+  it("reserves a neutral dashboard layout while switching schools", async () => {
+    render(<SchoolAnalysisPage />);
+    await choose("가락고등학교");
+    expect(
+      await screen.findByRole("heading", { name: "가락고등학교" }),
+    ).toBeVisible();
+
+    let resolveNext!: (value: BudgetDataset) => void;
+    vi.mocked(loadSchoolDataset).mockImplementationOnce(
+      () => new Promise((resolve) => {
+        resolveNext = resolve;
+      }),
+    );
+    await choose("서울버들초등학교");
+
+    const loadingLayout = screen.getByRole("region", {
+      name: "결산자료 불러오는 중",
+    });
+    expect(loadingLayout).toHaveAttribute("aria-busy", "true");
+    expect(within(loadingLayout).getAllByRole("presentation")).toHaveLength(5);
+    expect(screen.queryByText("2,569,339,810원")).not.toBeInTheDocument();
+    expect(screen.queryByRole("heading", { name: "가락고등학교" })).not.toBeInTheDocument();
+
     await act(async () => resolveNext(beodeul as BudgetDataset));
     expect(
       await screen.findByRole("heading", { name: "서울버들초등학교" }),

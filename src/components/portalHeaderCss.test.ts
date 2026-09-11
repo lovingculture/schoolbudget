@@ -11,3 +11,19 @@ describe("예산 업무 드롭다운", () => {
     expect(portalCss).toContain(".portal-work-dropdown button{padding-left:22px;white-space:normal}");
   });
 });
+
+describe("포털 헤더 반응형 배치", () => {
+  it("태블릿 너비에서 넘치기 전에 전체 메뉴를 접는다", () => {
+    const mobileToggleRule = portalCss.indexOf(".portal-mobile-toggle{display:grid");
+    expect(mobileToggleRule).toBeGreaterThan(-1);
+    const mediaQueries = [
+      ...portalCss.slice(0, mobileToggleRule).matchAll(/@media\(max-width:(\d+)px\)/g),
+    ];
+    const collapseBreakpoint = Number(mediaQueries.at(-1)?.[1]);
+
+    expect(collapseBreakpoint).toBeGreaterThanOrEqual(1360);
+    expect(portalCss.slice(mobileToggleRule - 500, mobileToggleRule + 800)).toContain(
+      ".portal-nav{display:none",
+    );
+  });
+});

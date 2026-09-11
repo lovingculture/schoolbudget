@@ -66,8 +66,33 @@ export class AnalysisErrorBoundary extends Component<
 
 const normalize = (value: string) =>
   value.normalize("NFC").trim().toLocaleLowerCase("ko-KR");
-const errorMessage = (error: unknown) =>
-  error instanceof Error ? error.message : "자료를 불러오지 못했습니다.";
+const errorMessage = (error: unknown, fallback: string) =>
+  error instanceof Error && /[가-힣]/u.test(error.message)
+    ? error.message
+    : fallback;
+
+function AnalysisLoading({ label, message }: { label: string; message: string }) {
+  return (
+    <section
+      className="school-analysis-loading"
+      role="region"
+      aria-label={label}
+      aria-busy="true"
+    >
+      <p role="status">{message}</p>
+      <div className="school-analysis-loading-kpis">
+        {Array.from({ length: 3 }, (_, index) => (
+          <div key={index} role="presentation" className="school-analysis-skeleton-card" />
+        ))}
+      </div>
+      <div className="school-analysis-loading-panels">
+        {Array.from({ length: 2 }, (_, index) => (
+          <div key={index} role="presentation" className="school-analysis-skeleton-card" />
+        ))}
+      </div>
+    </section>
+  );
+}
 
 export default function SchoolAnalysisPage() {
   const [state, setState] = useState<PageState>({ status: "loading-manifest" });
@@ -87,7 +112,7 @@ export default function SchoolAnalysisPage() {
         setState({
           status: "error",
           schools: [],
-          message: errorMessage(error),
+          message: errorMessage(error, "학교 목록을 불러오지 못했습니다."),
         });
     }
   }, []);
@@ -162,7 +187,10 @@ export default function SchoolAnalysisPage() {
           status: "error",
           schools,
           selected: entry,
-          message: errorMessage(error),
+          message: errorMessage(
+            error,
+            "선택한 학교의 결산자료를 불러오지 못했습니다.",
+          ),
         });
     }
   };
@@ -183,7 +211,10 @@ export default function SchoolAnalysisPage() {
         <p>학교를 찾아 세입·세출 결산과 예산 사용 내역을 살펴보세요.</p>
       </header>
       {state.status === "loading-manifest" ? (
-        <p role="status">학교 목록을 불러오는 중입니다.</p>
+        <AnalysisLoading
+          label="학교 목록 불러오는 중"
+          message="학교 목록을 불러오는 중입니다."
+        />
       ) : (
         <section
           className="school-analysis-panel school-analysis-selector"
@@ -302,9 +333,10 @@ export default function SchoolAnalysisPage() {
         </p>
       )}
       {state.status === "loading-school" && (
-        <p role="status" className="school-analysis-empty">
-          {state.selected.schoolName} 결산자료를 불러오는 중입니다.
-        </p>
+        <AnalysisLoading
+          label="결산자료 불러오는 중"
+          message={`${state.selected.schoolName} 결산자료를 불러오는 중입니다.`}
+        />
       )}
       {state.status === "error" && (
         <div role="alert" className="school-analysis-notice">

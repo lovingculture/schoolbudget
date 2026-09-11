@@ -30,8 +30,44 @@ const dataset: BudgetDataset = {
     collectionStatus: "수집완료",
     sourceUrl: "https://example.com/school",
   },
-  incomeRows: [],
-  expenseRows: [],
+  incomeRows: [{
+    schoolCode: entry.schoolCode,
+    schoolName: entry.schoolName,
+    fiscalYear: entry.fiscalYear,
+    referenceMonth: entry.referenceMonth,
+    sourceBundleNumber: 1,
+    duplicateBundleCount: 1,
+    sourceRowNumber: 1,
+    rowType: "합계",
+    chapter: "세입합계",
+    section: "세입합계",
+    subsection: "세입합계",
+    item: "세입합계",
+    budgetAmount: 100,
+    currentBudget: 90,
+    settlementAmount: 80,
+    difference: 10,
+    sourceUrl: "https://example.com/income",
+  }],
+  expenseRows: [{
+    schoolCode: entry.schoolCode,
+    schoolName: entry.schoolName,
+    fiscalYear: entry.fiscalYear,
+    referenceMonth: entry.referenceMonth,
+    sourceBundleNumber: 1,
+    duplicateBundleCount: 1,
+    sourceRowNumber: 1,
+    rowType: "합계",
+    policyProgram: "세출합계",
+    unitProgram: "세출합계",
+    detailProgram: "세출합계",
+    lineItem: "세출합계",
+    budgetAmount: 100,
+    currentBudget: 90,
+    settlementAmount: 70,
+    difference: 20,
+    sourceUrl: "https://example.com/expense",
+  }],
   findings: [],
   collectedAt: "2026-09-11T00:00:00.000Z",
 };
@@ -87,5 +123,46 @@ describe("school analysis data loaders", () => {
 
     expect(retried).toEqual(dataset);
     expect(fetcher).toHaveBeenCalledTimes(2);
+  });
+
+  it.each([
+    ["an object instead of an array", { error: "temporary manifest problem" }],
+    ["an invalid entry", [{ ...entry, schoolName: 17 }]],
+  ])("rejects %s and fetches a valid manifest on retry", async (_label, invalidManifest) => {
+    const fetcher = vi
+      .fn<typeof fetch>()
+      .mockResolvedValueOnce(jsonResponse(invalidManifest))
+      .mockResolvedValueOnce(jsonResponse([entry]));
+
+    await expect(loadSchoolManifest(fetcher)).rejects.toThrow(
+      "학교 목록을 불러오지 못했습니다.",
+    );
+    await expect(loadSchoolManifest(fetcher)).resolves.toEqual([entry]);
+    expect(fetcher).toHaveBeenCalledTimes(2);
+  });
+
+  it("rejects malformed selected-school data and fetches it again on retry", async () => {
+    const fetcher = vi
+      .fn<typeof fetch>()
+      .mockResolvedValueOnce(jsonResponse({
+        ...dataset,
+        summary: { ...dataset.summary, currentBudget: "not a number" },
+      }))
+      .mockResolvedValueOnce(jsonResponse(dataset));
+
+    await expect(loadSchoolDataset(entry, fetcher)).rejects.toThrow(
+      "선택한 학교의 결산자료를 불러오지 못했습니다.",
+    );
+    await expect(loadSchoolDataset(entry, fetcher)).resolves.toEqual(dataset);
+    expect(fetcher).toHaveBeenCalledTimes(2);
+  });
+
+  it("localizes raw fetch failures while retaining the diagnostic cause", async () => {
+    const failure = new TypeError("Failed to fetch");
+    const fetcher = vi.fn<typeof fetch>().mockRejectedValue(failure);
+
+    const rejected = loadSchoolManifest(fetcher);
+    await expect(rejected).rejects.toThrow("학교 목록을 불러오지 못했습니다.");
+    await expect(rejected).rejects.toMatchObject({ cause: failure });
   });
 });
