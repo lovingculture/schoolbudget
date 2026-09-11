@@ -7,7 +7,8 @@
     "dev": "vite",
     "build": "tsc -b && vite build --config vite.config.ts && node scripts/prepare-sites-build.mjs",
     "test": "vitest",
-    "test:run": "vitest run"
+    "test:run": "vitest run",
+    "import:school-analysis": "node scripts/import-school-analysis-data.mjs"
   },
   "dependencies": {
     "@supabase/supabase-js": "2.53.0",
