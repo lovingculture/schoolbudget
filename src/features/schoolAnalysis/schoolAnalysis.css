@@ -142,6 +142,13 @@
   background: #e7f4ef;
   border: 2px solid #317f76;
 }
+.school-analysis-results[hidden] {
+  display: none;
+}
+.school-analysis-results [data-active="true"] {
+  outline: 2px solid #286e65;
+  outline-offset: -2px;
+}
 .school-analysis-empty {
   border: 1px dashed #a8c4bc;
   border-radius: 16px;

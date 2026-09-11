@@ -1,6 +1,9 @@
 import type { BudgetDataset, SchoolManifestEntry } from "./types";
 
-type Fetcher = (input: RequestInfo | URL, init?: RequestInit) => Promise<Response>;
+type Fetcher = (
+  input: RequestInfo | URL,
+  init?: RequestInit,
+) => Promise<Response>;
 
 const MANIFEST_URL = "/data/school-analysis/manifest.json";
 const DATASET_ERROR_MESSAGE = "선택한 학교의 결산자료를 불러오지 못했습니다.";
@@ -37,7 +40,9 @@ function cachePromise<T>(
   return request;
 }
 
-export function loadSchoolManifest(fetcher: Fetcher = fetch): Promise<SchoolManifestEntry[]> {
+export function loadSchoolManifest(
+  fetcher: Fetcher = fetch,
+): Promise<SchoolManifestEntry[]> {
   return cachePromise(manifestCache, "manifest", () =>
     fetcher(MANIFEST_URL)
       .then((response) => assertOk(response, MANIFEST_ERROR_MESSAGE))
@@ -62,4 +67,10 @@ export function loadSchoolDataset(
 export function clearSchoolAnalysisCache(): void {
   manifestCache.clear();
   datasetCache.clear();
+}
+
+export function invalidateSchoolDataset(entry: SchoolManifestEntry): void {
+  datasetCache.delete(
+    `${entry.schoolCode}:${entry.fiscalYear}:${entry.referenceMonth}`,
+  );
 }

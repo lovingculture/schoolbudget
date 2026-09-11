@@ -515,6 +515,9 @@ function Explorer({
   const selectTop = (node: BudgetNode) => {
     setPath(node.path.slice(0, -1));
     setSelected(node);
+    const panel = document.getElementById("school-analysis-panel");
+    panel?.scrollIntoView?.({ block: "start", behavior: "auto" });
+    panel?.focus({ preventScroll: true });
   };
   return (
     <>

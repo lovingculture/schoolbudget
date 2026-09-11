@@ -8,7 +8,11 @@ import {
   type ReactNode,
 } from "react";
 import { BarChart3, Search } from "lucide-react";
-import { loadSchoolDataset, loadSchoolManifest } from "./data";
+import {
+  invalidateSchoolDataset,
+  loadSchoolDataset,
+  loadSchoolManifest,
+} from "./data";
 import SchoolAnalysisDashboard from "./SchoolAnalysisDashboard";
 import type { BudgetDataset, SchoolManifestEntry } from "./types";
 import "./schoolAnalysis.css";
@@ -68,6 +72,8 @@ const errorMessage = (error: unknown) =>
 export default function SchoolAnalysisPage() {
   const [state, setState] = useState<PageState>({ status: "loading-manifest" });
   const [query, setQuery] = useState("");
+  const [expanded, setExpanded] = useState(true);
+  const [activeIndex, setActiveIndex] = useState(-1);
   const request = useRef(0);
   const list = useRef<HTMLDivElement>(null);
   const loadManifest = useCallback(async () => {
@@ -113,7 +119,21 @@ export default function SchoolAnalysisPage() {
       ).values(),
     ];
   }, [query, uniqueSchools]);
+  const visibleMatches = matches.slice(0, 50);
+  const activeSchool = expanded ? visibleMatches[activeIndex] : undefined;
+  useEffect(() => {
+    if (activeSchool) {
+      list.current
+        ?.querySelector<HTMLElement>(
+          `#school-option-${activeSchool.schoolCode}`,
+        )
+        ?.scrollIntoView?.({ block: "nearest" });
+    }
+  }, [activeSchool]);
   const selectSchool = async (entry: SchoolManifestEntry) => {
+    setExpanded(false);
+    setActiveIndex(-1);
+    setQuery(entry.schoolName);
     const id = ++request.current;
     setState({ status: "loading-school", schools, selected: entry });
     try {
@@ -147,8 +167,10 @@ export default function SchoolAnalysisPage() {
     }
   };
   const retry = () => {
-    if (selected) void selectSchool(selected);
-    else void loadManifest();
+    if (selected) {
+      invalidateSchoolDataset(selected);
+      void selectSchool(selected);
+    } else void loadManifest();
   };
 
   return (
@@ -178,16 +200,60 @@ export default function SchoolAnalysisPage() {
             <input
               id="school-analysis-search"
               type="search"
+              role="combobox"
+              aria-autocomplete="list"
+              aria-expanded={expanded}
+              aria-activedescendant={
+                activeSchool
+                  ? `school-option-${activeSchool.schoolCode}`
+                  : undefined
+              }
               value={query}
               placeholder="학교명 또는 학교코드 입력"
               aria-controls="school-analysis-results"
-              onChange={(event) => setQuery(event.target.value)}
+              onFocus={() => setExpanded(true)}
+              onBlur={() => {
+                setExpanded(false);
+                setActiveIndex(-1);
+              }}
+              onChange={(event) => {
+                setQuery(event.target.value);
+                setExpanded(true);
+                setActiveIndex(-1);
+              }}
               onKeyDown={(event) => {
-                if (event.key === "ArrowDown") {
+                if (event.nativeEvent.isComposing) return;
+                if (event.key === "Escape") {
                   event.preventDefault();
-                  list.current
-                    ?.querySelector<HTMLButtonElement>("button")
-                    ?.focus();
+                  setExpanded(false);
+                  setActiveIndex(-1);
+                } else if (event.key === "Enter" && activeSchool) {
+                  event.preventDefault();
+                  void selectSchool(activeSchool);
+                } else if (
+                  event.key === "ArrowDown" ||
+                  event.key === "ArrowUp"
+                ) {
+                  event.preventDefault();
+                  setExpanded(true);
+                  if (visibleMatches.length)
+                    setActiveIndex((index) =>
+                      event.key === "ArrowDown"
+                        ? (index + 1) % visibleMatches.length
+                        : index < 0
+                          ? visibleMatches.length - 1
+                          : (index - 1 + visibleMatches.length) %
+                            visibleMatches.length,
+                    );
+                } else if (
+                  expanded &&
+                  activeIndex >= 0 &&
+                  (event.key === "Home" || event.key === "End")
+                ) {
+                  event.preventDefault();
+                  setActiveIndex(
+                    event.key === "Home" ? 0 : visibleMatches.length - 1,
+                  );
                 }
               }}
             />
@@ -203,33 +269,22 @@ export default function SchoolAnalysisPage() {
             role="listbox"
             aria-label="학교 검색 결과"
             className="school-analysis-results"
+            hidden={!expanded}
           >
-            {matches.slice(0, 50).map((entry, index) => (
+            {visibleMatches.map((entry, index) => (
               <button
                 key={entry.schoolCode}
+                id={`school-option-${entry.schoolCode}`}
                 role="option"
+                tabIndex={-1}
+                data-active={activeIndex === index}
                 aria-label={entry.schoolName}
-                aria-selected={selected?.schoolCode === entry.schoolCode}
+                aria-selected={
+                  activeIndex === index ||
+                  (activeIndex < 0 && selected?.schoolCode === entry.schoolCode)
+                }
+                onMouseDown={(event) => event.preventDefault()}
                 onClick={() => void selectSchool(entry)}
-                onKeyDown={(event) => {
-                  const buttons =
-                    list.current?.querySelectorAll<HTMLButtonElement>("button");
-                  if (!buttons?.length) return;
-                  const target =
-                    event.key === "ArrowDown"
-                      ? (index + 1) % buttons.length
-                      : event.key === "ArrowUp"
-                        ? (index - 1 + buttons.length) % buttons.length
-                        : event.key === "Home"
-                          ? 0
-                          : event.key === "End"
-                            ? buttons.length - 1
-                            : null;
-                  if (target !== null) {
-                    event.preventDefault();
-                    buttons[target].focus();
-                  }
-                }}
               >
                 <strong>{entry.schoolName}</strong>
                 <span>

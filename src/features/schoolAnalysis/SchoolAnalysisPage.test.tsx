@@ -11,7 +11,8 @@ import SchoolTreemap from "./SchoolTreemap";
 import type { BudgetDataset, BudgetNode, SchoolManifestEntry } from "./types";
 
 // Network and canvas are external boundaries; all dashboard/calculation code stays real.
-vi.mock("./data", () => ({
+vi.mock("./data", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("./data")>()),
   loadSchoolManifest: vi.fn(),
   loadSchoolDataset: vi.fn(),
 }));
@@ -49,7 +50,7 @@ beforeEach(() => {
 });
 async function choose(name: string) {
   const user = userEvent.setup();
-  const search = await screen.findByRole("searchbox", { name: "학교 검색" });
+  const search = await screen.findByRole("combobox", { name: "학교 검색" });
   await user.clear(search);
   await user.type(search, name);
   await user.click(screen.getByRole("option", { name }));
@@ -57,13 +58,42 @@ async function choose(name: string) {
 }
 
 describe("school analysis selection", () => {
+  it("keeps 50 suggestions out of the Tab order and navigates them with a combobox", async () => {
+    render(
+      <>
+        <SchoolAnalysisPage />
+        <button>다음 영역</button>
+      </>,
+    );
+    const user = userEvent.setup();
+    const input = await screen.findByRole("combobox", { name: "학교 검색" });
+    expect(screen.getAllByRole("option")).toHaveLength(50);
+    input.focus();
+    await user.keyboard("{ArrowDown}{ArrowDown}");
+    expect(input).toHaveFocus();
+    const second = screen.getByRole("option", { name: "강동중학교" });
+    expect(input).toHaveAttribute("aria-activedescendant", second.id);
+    expect(second).toHaveAttribute("tabindex", "-1");
+    await user.tab();
+    expect(screen.getByRole("button", { name: "다음 영역" })).toHaveFocus();
+    await user.click(input);
+    await user.type(input, "가락");
+    await user.keyboard("{Escape}");
+    expect(input).toHaveValue("가락");
+    expect(input).toHaveAttribute("aria-expanded", "false");
+    expect(screen.queryByRole("listbox")).not.toBeInTheDocument();
+    await user.keyboard("{ArrowDown}{Enter}");
+    expect(
+      await screen.findByRole("heading", { name: "가락고등학교" }),
+    ).toBeVisible();
+  });
   it("preserves a single main landmark when embedded in the portal", async () => {
     render(
       <main>
         <SchoolAnalysisPage />
       </main>,
     );
-    await screen.findByRole("searchbox", { name: "학교 검색" });
+    await screen.findByRole("combobox", { name: "학교 검색" });
     expect(screen.getAllByRole("main")).toHaveLength(1);
   });
   it("loads the manifest only, caps matches at 50, then requests just the chosen school", async () => {
@@ -73,7 +103,7 @@ describe("school analysis selection", () => {
     expect(loadSchoolDataset).not.toHaveBeenCalled();
     const user = userEvent.setup();
     await user.type(
-      screen.getByRole("searchbox", { name: "학교 검색" }),
+      screen.getByRole("combobox", { name: "학교 검색" }),
       "  버들  ",
     );
     expect(
@@ -90,7 +120,7 @@ describe("school analysis selection", () => {
     vi.mocked(loadSchoolManifest).mockResolvedValue([...entries, entries[2]]);
     render(<SchoolAnalysisPage />);
     const user = userEvent.setup();
-    const search = await screen.findByRole("searchbox", { name: "학교 검색" });
+    const search = await screen.findByRole("combobox", { name: "학교 검색" });
     await user.type(search, "버들".normalize("NFD"));
     expect(screen.getAllByRole("option")).toHaveLength(1);
     await user.clear(search);
@@ -149,7 +179,7 @@ describe("school analysis selection", () => {
     );
     render(<SchoolAnalysisPage />);
     const user = userEvent.setup();
-    const search = await screen.findByRole("searchbox", { name: "학교 검색" });
+    const search = await screen.findByRole("combobox", { name: "학교 검색" });
     await user.type(search, "가락");
     await user.keyboard("{ArrowDown}{Enter}");
     expect(screen.getByRole("status")).toHaveTextContent("가락고등학교");
@@ -169,7 +199,7 @@ describe("school analysis selection", () => {
     expect(await screen.findByRole("alert")).toHaveTextContent(
       "학교 자료 오류",
     );
-    expect(screen.getByRole("searchbox", { name: "학교 검색" })).toBeEnabled();
+    expect(screen.getByRole("combobox", { name: "학교 검색" })).toBeEnabled();
     await user.click(screen.getByRole("button", { name: "다시 시도" }));
     expect(
       await screen.findByRole("heading", { name: "가락고등학교" }),
@@ -179,6 +209,37 @@ describe("school analysis selection", () => {
         "2,569,339,810원",
       ),
     ).toBeVisible();
+  });
+  it("refetches a fulfilled but invalid cached dataset when Retry is pressed", async () => {
+    const real = await vi.importActual<typeof import("./data")>("./data");
+    real.clearSchoolAnalysisCache();
+    const fetcher = vi
+      .fn<typeof fetch>()
+      .mockResolvedValueOnce(
+        new Response(
+          JSON.stringify({ ...garak, expenseRows: gangdong.expenseRows }),
+        ),
+      )
+      .mockResolvedValueOnce(new Response(JSON.stringify(garak)));
+    vi.mocked(loadSchoolDataset).mockImplementation((entry) =>
+      real.loadSchoolDataset(entry, fetcher),
+    );
+    render(<SchoolAnalysisPage />);
+    const user = await choose("가락고등학교");
+    expect(await screen.findByRole("alert")).toHaveTextContent(
+      "선택한 학교·기간과 자료가 일치하지 않습니다.",
+    );
+    await user.click(screen.getByRole("button", { name: "다시 시도" }));
+    expect(
+      await screen.findByRole("heading", { name: "가락고등학교" }),
+    ).toBeVisible();
+    expect(fetcher).toHaveBeenCalledTimes(2);
+    expect(
+      within(screen.getByRole("region", { name: "결산 핵심 지표" })).getByText(
+        "2,569,339,810원",
+      ),
+    ).toBeVisible();
+    real.clearSchoolAnalysisCache();
   });
   it("removes previous values immediately and ignores late responses from an older selection", async () => {
     let resolveOld!: (value: BudgetDataset) => void;
@@ -218,6 +279,88 @@ describe("school analysis selection", () => {
 });
 
 describe("complete analysis composition", () => {
+  it("scrolls and focuses the analysis panel after drilling from a top item", async () => {
+    render(<SchoolAnalysisPage />);
+    const user = await choose("가락고등학교");
+    await user.click(await screen.findByRole("tab", { name: "세출결산" }));
+    const panel = screen.getByRole("tabpanel", { name: "세출결산" });
+    const scroll = vi.fn();
+    panel.scrollIntoView = scroll;
+    await user.click(
+      within(
+        screen.getByRole("region", { name: "결산액 상위 10개 세부항목" }),
+      ).getByRole("button", { name: /급식재료구입비/ }),
+    );
+    expect(
+      screen.getByRole("complementary", { name: "선택 항목" }),
+    ).toHaveTextContent("급식재료구입비");
+    expect(panel).toHaveFocus();
+    expect(scroll).toHaveBeenCalledWith({ block: "start", behavior: "auto" });
+  });
+  it("converts actual amounts and changes the numeric order rather than only sort labels", async () => {
+    render(<SchoolAnalysisPage />);
+    const user = await choose("가락고등학교");
+    await user.click(await screen.findByRole("tab", { name: "세출결산" }));
+    const table = screen.getByRole("table", { name: /현재 단계 분석표/ });
+    expect(within(table).getAllByRole("row")[1]).toHaveTextContent(
+      "학생복지/교육격차 해소",
+    );
+    const welfareRow = within(table).getAllByRole("row")[1];
+    expect(within(welfareRow).getByText("1,032,686,790")).toBeVisible();
+    await user.selectOptions(screen.getByLabelText("표 단위"), "만원");
+    expect(within(welfareRow).getByText("103,268.68")).toBeVisible();
+    expect(
+      within(welfareRow).queryByText("1,032,686,790"),
+    ).not.toBeInTheDocument();
+    await user.selectOptions(screen.getByLabelText("표 단위"), "억원");
+    expect(within(welfareRow).getByTitle("1,032,686,790원")).toHaveTextContent(
+      "10.33",
+    );
+    await user.click(screen.getByRole("button", { name: "결산액 정렬" }));
+    expect(within(table).getAllByRole("row")[1]).toHaveTextContent(
+      "학교 재무활동",
+    );
+    expect(within(table).getAllByRole("row").at(-1)).toHaveTextContent(
+      "학생복지/교육격차 해소",
+    );
+  });
+  it("replaces previous values with distinct selected bundle values and resets drill state", async () => {
+    const original = garak as BudgetDataset;
+    vi.mocked(loadSchoolDataset).mockResolvedValueOnce({
+      ...original,
+      expenseRows: [
+        ...original.expenseRows,
+        ...original.expenseRows.map((row) => ({
+          ...row,
+          sourceBundleNumber: 2,
+          currentBudget: row.currentBudget * 2,
+          settlementAmount: row.settlementAmount * 2,
+          difference: row.difference * 2,
+        })),
+      ],
+    });
+    render(<SchoolAnalysisPage />);
+    const user = await choose("가락고등학교");
+    await user.click(await screen.findByRole("tab", { name: "세출결산" }));
+    let table = screen.getByRole("table", { name: /현재 단계 분석표/ });
+    expect(within(table).getByText("1,032,686,790")).toBeVisible();
+    await user.click(
+      within(table).getByRole("button", {
+        name: "학생복지/교육격차 해소 상세 보기",
+      }),
+    );
+    await user.selectOptions(screen.getByLabelText("원문 묶음"), "2");
+    table = screen.getByRole("table", { name: /현재 단계 분석표/ });
+    expect(within(table).getByText("2,065,373,580")).toBeVisible();
+    expect(within(table).queryByText("1,032,686,790")).not.toBeInTheDocument();
+    expect(screen.getByText("5,138,679,620원")).toBeVisible();
+    expect(
+      screen.getByRole("navigation", { name: "분석 경로" }),
+    ).toHaveTextContent(/^전체$/);
+    await user.selectOptions(screen.getByLabelText("원문 묶음"), "1");
+    expect(within(table).getByText("1,032,686,790")).toBeVisible();
+    expect(within(table).queryByText("2,065,373,580")).not.toBeInTheDocument();
+  });
   it("shows school profile, scale, exact summary and keyboard-operable tabs", async () => {
     render(<SchoolAnalysisPage />);
     const user = await choose("가락고등학교");
