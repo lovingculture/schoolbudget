@@ -1,6 +1,7 @@
 import { useState } from "react";
 import {
   BookOpen,
+  BarChart3,
   ChevronDown,
   CircleHelp,
   CircleUserRound,
@@ -16,6 +17,7 @@ import {
 
 export type PortalHeaderView =
   | "home"
+  | "school-analysis"
   | "guidelines"
   | "prebudget"
   | "budget"
@@ -53,6 +55,7 @@ const searchItems: ReadonlyArray<{
   keywords: string;
 }> = [
   { view: "home", label: "홈", description: "학교예산 한눈에 첫 화면", keywords: "처음 메인" },
+  { view: "school-analysis", label: "학교별 예산 분석", description: "학교별 세입·세출 결산과 예산 사용 내역 분석", keywords: "학교 결산 세입 세출 분석" },
   { view: "guide", label: "학교예산 한눈에 이용안내", description: "업무별 사용 방법과 자주 묻는 질문", keywords: "도움말 사용법 질문" },
   { view: "prebudget", label: "성립전예산요구서작성(사업담당자용)", description: "성립전예산 요구서와 기안문 작성", keywords: "목적사업비 보조금 수익자부담" },
   { view: "main-budget-foundation", label: "본예산 편성 기초자료 만들기", description: "세입·세출 자료 분석과 Excel 미리보기", keywords: "본예산 엑셀 기초자료" },
@@ -131,6 +134,15 @@ export function PortalHeader({
           >
             <Home size={17} aria-hidden="true" />
             홈
+          </button>
+          <button
+            type="button"
+            className={activeView === "school-analysis" ? "active" : undefined}
+            aria-current={activeView === "school-analysis" ? "page" : undefined}
+            onClick={() => navigate("school-analysis")}
+          >
+            <BarChart3 size={17} aria-hidden="true" />
+            학교별 예산 분석
           </button>
           <div className="portal-work-menu">
             <button

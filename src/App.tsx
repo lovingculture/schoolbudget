@@ -1,4 +1,4 @@
-import { FormEvent, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
+import { FormEvent, lazy, Suspense, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import type { User } from "@supabase/supabase-js";
 import {
   ArrowLeft,
@@ -35,6 +35,8 @@ import { ReferenceSitesPage } from "./features/referenceSites/ReferenceSitesPage
 import "./features/portal/portalWorkspace.css";
 
 export type View = PortalHeaderView;
+
+const SchoolAnalysisPage = lazy(() => import("./features/schoolAnalysis/SchoolAnalysisPage"));
 
 const GUIDE_DESTINATIONS = new Set<View>([
   "resources",
@@ -412,6 +414,11 @@ export function Portal({
             schoolName={schoolName}
             onNavigate={go}
           />
+        )}
+        {view === "school-analysis" && (
+          <Suspense fallback={<div role="status">학교별 분석 화면을 불러오는 중…</div>}>
+            <SchoolAnalysisPage />
+          </Suspense>
         )}
         {view === "guidelines" && <BudgetResourceLibraryPage isAdmin={isAdmin} userId={userId ?? ""} onAdminLogin={onAdminLogin} />}
         {view === "prebudget" && <PrebudgetPage ref={prebudgetPageRef} initialSchoolName={schoolName} />}

@@ -27,6 +27,7 @@ describe("PortalHeader", () => {
 
     for (const label of [
       "홈",
+      "학교별 예산 분석",
       "예산 자료실",
       "참고사이트",
       "예산 업무",
@@ -62,6 +63,9 @@ describe("PortalHeader", () => {
       "안건설명서 만들기",
       "결산 설명서 만들기",
     ]);
+    expect(
+      within(workflowMenu!).queryByRole("button", { name: "학교별 예산 분석" }),
+    ).not.toBeInTheDocument();
     await user.click(
       screen.getByRole("button", { name: "성립전예산요구서작성(사업담당자용)" }),
     );
@@ -70,6 +74,9 @@ describe("PortalHeader", () => {
 
     await user.click(screen.getByRole("button", { name: "참고사이트" }));
     expect(onNavigate).toHaveBeenCalledWith("reference-sites");
+
+    await user.click(screen.getByRole("button", { name: "학교별 예산 분석" }));
+    expect(onNavigate).toHaveBeenCalledWith("school-analysis");
 
     await user.click(screen.getByRole("button", { name: "예산 웹툰" }));
     expect(onNavigate).toHaveBeenCalledWith("webtoon");
@@ -157,5 +164,25 @@ describe("PortalHeader", () => {
 
     expect(onNavigate).toHaveBeenCalledWith("supplementary");
     expect(screen.queryByRole("searchbox", { name: "사이트 전체 검색" })).not.toBeInTheDocument();
+  });
+
+  it("학교별 예산 분석을 사이트 전체 검색 결과에 포함한다", async () => {
+    const user = userEvent.setup();
+    const onNavigate = vi.fn();
+
+    render(
+      <PortalHeader
+        activeView="home"
+        displayName="김담당"
+        onNavigate={onNavigate}
+        schoolName="서울한빛초등학교"
+      />,
+    );
+
+    await user.click(screen.getByRole("button", { name: "사이트 검색 열기" }));
+    await user.type(screen.getByRole("searchbox", { name: "사이트 전체 검색" }), "학교별 예산 분석");
+    await user.click(screen.getByRole("button", { name: /학교별 예산 분석.*이동/ }));
+
+    expect(onNavigate).toHaveBeenCalledWith("school-analysis");
   });
 });
