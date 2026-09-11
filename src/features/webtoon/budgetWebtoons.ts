@@ -11,5 +11,4 @@ export const budgetWebtoons: readonly BudgetWebtoon[] = [
   { episode: 4, title: "성립전예산, 어떻게 편성하지?", imageSrc: "/webtoons/budget/episode-4.png" },
   { episode: 5, title: "추가경정예산(추경)이란?", imageSrc: "/webtoons/budget/episode-5.png" },
   { episode: 6, title: "추경예산, 언제 어떻게 편성할까?", imageSrc: "/webtoons/budget/episode-6.png" },
-  { episode: 7, title: "원가통계비목 알아보기", imageSrc: "/webtoons/budget/episode-7.png" },
 ];
