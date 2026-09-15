@@ -290,21 +290,8 @@ function Summary({
                     : `${profile.siteAreaM2.toLocaleString("ko-KR")}㎡`}
                 </dd>
               </div>
-              <div>
-                <dt>건물 연면적</dt>
-                <dd>
-                  {profile.buildingGrossAreaM2 === null
-                    ? "미제공"
-                    : `${profile.buildingGrossAreaM2.toLocaleString("ko-KR")}㎡`}
-                </dd>
-              </div>
             </dl>
             {profile.siteAreaNote && <p>{profile.siteAreaNote}</p>}
-            {profile.buildingAreaNote && (
-              <p className="school-analysis-muted">
-                {profile.buildingAreaNote}
-              </p>
-            )}
             {profile.siteShared === "○" && (
               <p>용지를 공동사용하는 학교입니다.</p>
             )}

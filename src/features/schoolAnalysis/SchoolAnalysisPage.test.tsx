@@ -408,6 +408,10 @@ describe("complete analysis composition", () => {
     ).toBeVisible();
     expect(screen.getByText("757명")).toBeVisible();
     expect(screen.getByText("16,504㎡")).toBeVisible();
+    expect(screen.queryByText("건물 연면적")).not.toBeInTheDocument();
+    expect(
+      screen.queryByText("교사 현황 API는 실 수를 제공하며 건물 연면적은 제공하지 않음"),
+    ).not.toBeInTheDocument();
     expect(
       screen.getByRole("table", { name: "결산 총괄 · 단위: 원" }),
     ).toBeVisible();
