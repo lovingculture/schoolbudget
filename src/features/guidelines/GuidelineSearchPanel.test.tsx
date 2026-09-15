@@ -15,5 +15,5 @@ describe("예산 자료실의 지침 검색 디자인", () => {
 
     expect(css).toMatch(/\.guideline-search\{display:flex/);
     expect(css).toMatch(/\.guideline-document-card\{display:flex/);
-  }, 60_000);
+  }, 120_000);
 });

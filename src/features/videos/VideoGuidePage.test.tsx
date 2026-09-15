@@ -13,6 +13,22 @@ describe("portal workspace visual contract", () => {
 });
 
 describe("동영상 안내", () => {
+  it("학교예산 한눈에 소개 영상을 첫 번째 카드에서 직접 재생한다", () => {
+    render(<VideoGuidePage />);
+
+    const cards = screen.getAllByRole("article");
+    expect(cards[0]).toHaveAccessibleName("학교예산 한눈에 소개");
+
+    const video = screen.getByLabelText("학교예산 한눈에 소개 영상");
+    expect(video).toHaveAttribute("controls");
+    expect(video).toHaveAttribute("preload", "metadata");
+    expect(video).toHaveAttribute("playsinline");
+    expect(video).not.toHaveAttribute("autoplay");
+    expect(video).toHaveAttribute("poster", "/videos/yegamday-intro-poster.webp");
+    expect(video.querySelector("source")).toHaveAttribute("src", "/videos/yegamday-intro-35s.mp4");
+    expect(video.querySelector("source")).toHaveAttribute("type", "video/mp4");
+  });
+
   it("학교회계 유튜브 안내 영상 7개를 한곳에서 제공한다", () => {
     render(<VideoGuidePage />);
 
@@ -59,7 +75,7 @@ describe("동영상 안내", () => {
 
     expect(screen.getByRole("combobox", { name: "영상 분류" })).toBeVisible();
     expect(screen.getByRole("searchbox", { name: "영상 제목 검색" })).toBeVisible();
-    expect(screen.getAllByRole("article")).toHaveLength(7);
+    expect(screen.getAllByRole("article")).toHaveLength(8);
   });
 
   it("검색 또는 분류 결과가 없을 때 다음 행동을 안내한다", async () => {

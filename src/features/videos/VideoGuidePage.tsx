@@ -37,17 +37,26 @@ export function VideoGuidePage() {
       {guides.length > 0 ? (
         <section className="video-guide-grid" aria-live="polite">
           {guides.map((guide) => (
-            <article className="video-guide-card" key={guide.id}>
-              {guide.thumbnailUrl ? <img src={guide.thumbnailUrl} alt="" /> : <span className="video-guide-placeholder" aria-hidden="true"><Video /></span>}
+            <article
+              className={`video-guide-card${guide.featured ? " video-guide-card-featured" : ""}`}
+              key={guide.id}
+              aria-labelledby={`video-guide-title-${guide.id}`}
+            >
+              {guide.localVideoUrl ? (
+                <video aria-label={`${guide.title} 영상`} controls playsInline poster={guide.posterUrl} preload="metadata">
+                  <source src={guide.localVideoUrl} type="video/mp4" />
+                  이 브라우저에서는 영상을 재생할 수 없습니다.
+                </video>
+              ) : guide.thumbnailUrl ? <img src={guide.thumbnailUrl} alt="" /> : <span className="video-guide-placeholder" aria-hidden="true"><Video /></span>}
               <div>
                 <span>{guide.category}</span>
                 {["k-edufine-budget-management-chapter-1", "k-edufine-budget-management-chapter-2", "k-edufine-budget-management-chapter-3"].includes(guide.id) ? (
-                  <h2 aria-label={guide.title}>
+                  <h2 id={`video-guide-title-${guide.id}`} aria-label={guide.title}>
                     <span className="video-guide-title-line">[학교회계 - 예산관리]</span>
                     <span className="video-guide-title-line">{guide.title.replace("[학교회계 - 예산관리] ", "")}</span>
                   </h2>
                 ) : (
-                  <h2>{guide.title}</h2>
+                  <h2 id={`video-guide-title-${guide.id}`}>{guide.title}</h2>
                 )}
                 <p>{guide.description}</p>
                 {guide.videoUrl && <a href={guide.videoUrl} target="_blank" rel="noreferrer" aria-label={`${guide.title} 유튜브에서 보기`}>유튜브에서 보기</a>}

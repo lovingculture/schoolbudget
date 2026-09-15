@@ -190,6 +190,18 @@
   display: block;
 }
 
+.video-guide-card > video {
+  display: block;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  background: #102f49;
+  object-fit: cover;
+}
+
+.video-guide-card-featured {
+  grid-column: 1 / -1;
+}
+
 @media (max-width: 1040px) {
   .portal-nav > a {
     padding: 9px 8px;

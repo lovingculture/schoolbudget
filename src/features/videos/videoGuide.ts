@@ -9,9 +9,21 @@ export type VideoGuide = {
   description: string;
   thumbnailUrl?: string;
   videoUrl?: string;
+  localVideoUrl?: string;
+  posterUrl?: string;
+  featured?: boolean;
 };
 
 export const videoGuides: readonly VideoGuide[] = [
+  {
+    id: "yegamday-intro",
+    title: "학교예산 한눈에 소개",
+    category: "예산편성",
+    description: "배우는 AI에서 실제로 일하는 AI로. 학교 예산 분석과 예산 자료 작성을 더 쉽고 빠르게 돕는 웹앱을 35초로 만나보세요.",
+    localVideoUrl: "/videos/yegamday-intro-35s.mp4",
+    posterUrl: "/videos/yegamday-intro-poster.webp",
+    featured: true,
+  },
   {
     id: "k-edufine-main-budget-training-2025-11-20",
     title: "(25.11.20.) K-에듀파인 학교회계 예산관리(본예산편성) 대표강사 교육영상",
