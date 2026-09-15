@@ -413,6 +413,9 @@ describe("complete analysis composition", () => {
       screen.queryByText("교사 현황 API는 실 수를 제공하며 건물 연면적은 제공하지 않음"),
     ).not.toBeInTheDocument();
     expect(
+      screen.queryByText("원문 대조 및 자료 안내 · 0건"),
+    ).not.toBeInTheDocument();
+    expect(
       screen.getByRole("table", { name: "결산 총괄 · 단위: 원" }),
     ).toBeVisible();
     const tab = screen.getByRole("tab", { name: "총괄" });
@@ -430,6 +433,7 @@ describe("complete analysis composition", () => {
   it("preserves missing summary values without blocking collected income and expense details", async () => {
     render(<SchoolAnalysisPage />);
     const user = await choose("강동중학교");
+    expect(screen.getByText("원문 대조 및 자료 안내 · 3건")).toBeVisible();
     expect(
       await screen.findByText("원사이트에서 총괄표를 제공하지 않습니다"),
     ).toBeVisible();

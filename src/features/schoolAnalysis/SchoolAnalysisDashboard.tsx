@@ -200,21 +200,21 @@ export default function SchoolAnalysisDashboard({
           )}
         </DetailBoundary>
       </div>
-      <details className="school-analysis-panel school-analysis-notes">
-        <summary>원문 대조 및 자료 안내 · {dataset.findings.length}건</summary>
-        <p>
-          원문 금액은 보존했습니다. 분석 차액은 예산현액 − 결산액으로
-          계산합니다.
-        </p>
-        <p>자료 수집 시점: {dataset.collectedAt}</p>
-        {dataset.findings.length > 0 && (
+      {dataset.findings.length > 0 && (
+        <details className="school-analysis-panel school-analysis-notes">
+          <summary>원문 대조 및 자료 안내 · {dataset.findings.length}건</summary>
+          <p>
+            원문 금액은 보존했습니다. 분석 차액은 예산현액 − 결산액으로
+            계산합니다.
+          </p>
+          <p>자료 수집 시점: {dataset.collectedAt}</p>
           <ul>
             {dataset.findings.map((finding, index) => (
               <li key={index}>{finding}</li>
             ))}
           </ul>
-        )}
-      </details>
+        </details>
+      )}
     </div>
   );
 }
