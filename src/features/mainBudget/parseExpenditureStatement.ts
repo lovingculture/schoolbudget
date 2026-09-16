@@ -53,6 +53,11 @@ function isHierarchyHeader(value: unknown): boolean {
   return Object.values(hierarchyHeaders).some((labels) => (labels as readonly string[]).includes(label));
 }
 
+function hierarchyValue(value: unknown): string {
+  const label = canonicalBudgetLabel(value);
+  return ["예산구분", "본예산", "사업"].includes(label) ? "" : label;
+}
+
 function columnInWindow(
   rows: BudgetLogicalRow[],
   sectionStart: number,
@@ -157,10 +162,10 @@ export function parseExpenditureStatement(rows: BudgetLogicalRow[]): Expenditure
       if (!context || index === context.start || isSectionHeading(rows[index], "expenditure") || isClosingTotal(rows[index], "expenditure")) continue;
       if (rows[index].cells.some(isHierarchyHeader)) continue;
 
-      const nextPolicy = canonicalBudgetLabel(cellAtBudgetColumn(rows[index], context.policyHeaderRow, context.policyColumn));
-      const nextUnit = canonicalBudgetLabel(cellAtBudgetColumn(rows[index], context.unitHeaderRow, context.unitColumn));
-      const nextBusiness = canonicalBudgetLabel(cellAtBudgetColumn(rows[index], context.businessHeaderRow, context.businessColumn));
-      const nextDetail = canonicalBudgetLabel(cellAtBudgetColumn(rows[index], context.detailHeaderRow, context.detailColumn));
+      const nextPolicy = hierarchyValue(cellAtBudgetColumn(rows[index], context.policyHeaderRow, context.policyColumn));
+      const nextUnit = hierarchyValue(cellAtBudgetColumn(rows[index], context.unitHeaderRow, context.unitColumn));
+      const nextBusiness = hierarchyValue(cellAtBudgetColumn(rows[index], context.businessHeaderRow, context.businessColumn));
+      const nextDetail = hierarchyValue(cellAtBudgetColumn(rows[index], context.detailHeaderRow, context.detailColumn));
       if (nextPolicy && nextPolicy !== policy) {
         policy = nextPolicy;
         unit = "";

@@ -22,16 +22,34 @@ function compact(value: string): string {
 
 function accountingYear(values: readonly string[]): number | null {
   for (const value of values) {
-    const match = /(?:^|\D)(20\d{2})(?:\s*학년도|\D|$)/.exec(value);
+    const match = /(?:^|\D)(20\d{2})\s*학년도(?:\D|$)/.exec(value);
+    if (match) return Number(match[1]);
+  }
+  for (const value of values) {
+    const match = /(?:^|\D)(20\d{2})\s*회계연도(?:\D|$)/.exec(value);
+    if (match) return Number(match[1]);
+  }
+  for (const value of values) {
+    const match = /(?:^|\D)(20\d{2})(?:\D|$)/.exec(value);
     if (match) return Number(match[1]);
   }
   return null;
 }
 
+function withoutEducationOfficePrefix(value: string): string {
+  return value.replace(/^[가-힣]+교육청(?=[가-힣A-Za-z0-9]{2,}(?:유치원|초등학교|중학교|고등학교)$)/, "");
+}
+
 function schoolName(values: readonly string[]): string | null {
   for (const value of values) {
+    const match = /(?:^|\s)([가-힣A-Za-z0-9]{2,40}(?:유치원|초등학교|중학교|고등학교))(?=\s|$)/.exec(value);
+    const candidate = match ? withoutEducationOfficePrefix(match[1]) : null;
+    if (candidate && !["학교회계", "초등학교", "중학교", "고등학교"].includes(candidate)) return candidate;
+  }
+  for (const value of values) {
     const match = /([가-힣A-Za-z0-9]+(?:유치원|초등학교|중학교|고등학교))/.exec(value.replace(/\s+/g, ""));
-    if (match && !["학교회계", "초등학교", "중학교", "고등학교"].includes(match[1])) return match[1];
+    const candidate = match ? withoutEducationOfficePrefix(match[1]) : null;
+    if (candidate && !["학교회계", "초등학교", "중학교", "고등학교"].includes(candidate)) return candidate;
   }
   return null;
 }

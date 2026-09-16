@@ -446,6 +446,25 @@ describe("본예산 공통 구역 파서", () => {
     ]);
   });
 
+  it("반복 페이지의 예산구분과 본예산을 사업 계층으로 덮어쓰지 않는다", () => {
+    const rows = [
+      { cells: ["세출예산명세서"], sourceSheet: "세입예산명세서", sourceRow: 1 },
+      { cells: ["정책", "정책", "단위", "단위", "세부", "세부", "세부항목", "세부항목", "원가통계비목", "원가통계비목", "예산액"], sourceSheet: "세입예산명세서", sourceRow: 2 },
+      { cells: ["기본적교육활동", "기본적교육활동", "교과활동", "교과활동", "교과활동지원", "교과활동지원", "교과협의회운영", "교과협의회운영", "", "", 3_650], sourceSheet: "세입예산명세서", sourceRow: 3 },
+      { cells: ["", "", "", "", "", "", "", "", "일반업무추진비", "일반업무추진비", 3_650], sourceSheet: "세입예산명세서", sourceRow: 4 },
+      { cells: ["예산구분", "예산구분", "예산구분", "예산구분", "예산구분", "예산구분", "본예산", "본예산", "", "", ""], sourceSheet: "세입예산명세서", sourceRow: 5 },
+      { cells: ["정책", "정책", "단위", "단위", "세부", "세부", "세부항목", "세부항목", "원가통계비목", "원가통계비목", "예산액"], sourceSheet: "세입예산명세서", sourceRow: 6 },
+      { cells: ["", "", "", "", "", "", "교육협력실습학교운영", "교육협력실습학교운영", "", "", 1_500], sourceSheet: "세입예산명세서", sourceRow: 7 },
+      { cells: ["", "", "", "", "", "", "", "", "일반업무추진비", "일반업무추진비", 1_500], sourceSheet: "세입예산명세서", sourceRow: 8 },
+      { cells: ["세출합계", "", "", "", "", "", "", "", "", "", 5_150], sourceSheet: "세입예산명세서", sourceRow: 9 },
+    ];
+
+    expect(parseExpenditureStatement(rows).expenses).toEqual([
+      expect.objectContaining({ policy: "기본적교육활동", unit: "교과활동", business: "교과활동지원", detail: "교과협의회운영", amount: 3_650 }),
+      expect.objectContaining({ policy: "기본적교육활동", unit: "교과활동", business: "교과활동지원", detail: "교육협력실습학교운영", amount: 1_500 }),
+    ]);
+  });
+
   it("인식하지 못한 낮은 신뢰도 세입 본문 행은 0원 확정을 막고 출처 경고를 남긴다", () => {
     const unreadableRow = { cells: ["", "", "", "", "1.ㅅㅏ용ㄹㅛ", 123, 0], sourcePage: 4, confidence: 0.3 };
     const rows = [...logicalBudgetRows.slice(0, 14), unreadableRow, ...logicalBudgetRows.slice(14)];

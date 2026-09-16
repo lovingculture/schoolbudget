@@ -23,4 +23,19 @@ describe("parseDetailWorkbookIdentity", () => {
       hasExpenditureSection: false,
     });
   });
+
+  it("작성자와 출력 시각이 반복된 머리글에서 실제 학교명을 선택한다", () => {
+    const noisyHeading = "신은경 2026년 09월 08일 17시 06분 18초 ".repeat(5)
+      + "서울특별시교육청 서울옥정초등학교 ".repeat(3);
+    const rows = [
+      { cells: [noisyHeading, "2024학년도 세입예산명세서"] },
+      ...detailStatementRows2026,
+    ];
+
+    expect(parseDetailWorkbookIdentity(rows, "2024.xls").identity).toEqual({
+      schoolName: "서울옥정초등학교",
+      accountingYear: 2024,
+      budgetType: "본예산",
+    });
+  });
 });
