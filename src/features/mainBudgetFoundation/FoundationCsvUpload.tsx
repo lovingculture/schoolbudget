@@ -1,11 +1,29 @@
+import { useState } from "react";
+
 interface Props {
   disabled?: boolean;
   onFile: (file: File) => void;
 }
 
 export function FoundationCsvUpload({ disabled = false, onFile }: Props) {
+  const [dragging, setDragging] = useState(false);
+  const acceptFile = (file: File | undefined) => {
+    if (!disabled && file) onFile(file);
+  };
+
   return (
-    <section className="foundation-upload">
+    <section
+      aria-label="세입·세출예산서 Excel 파일 불러오기"
+      className={`foundation-upload${dragging ? " drag-over" : ""}`}
+      onDragEnter={(event) => { event.preventDefault(); if (!disabled) setDragging(true); }}
+      onDragLeave={(event) => { event.preventDefault(); setDragging(false); }}
+      onDragOver={(event) => { event.preventDefault(); event.dataTransfer.dropEffect = disabled ? "none" : "copy"; }}
+      onDrop={(event) => {
+        event.preventDefault();
+        setDragging(false);
+        acceptFile(event.dataTransfer.files?.[0]);
+      }}
+    >
       <div className="foundation-upload-copy">
         <span className="foundation-upload-icon" aria-hidden="true">XLS</span>
         <div>
@@ -23,7 +41,7 @@ export function FoundationCsvUpload({ disabled = false, onFile }: Props) {
           type="file"
           onChange={(event) => {
             const file = event.currentTarget.files?.[0];
-            if (file) onFile(file);
+            acceptFile(file);
             event.currentTarget.value = "";
           }}
         />

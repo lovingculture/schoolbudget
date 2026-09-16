@@ -55,6 +55,7 @@ function isHierarchyHeader(value: unknown): boolean {
 
 function hierarchyValue(value: unknown): string {
   const label = canonicalBudgetLabel(value);
+  if (/^\S+20\d{2}년\d{1,2}월\d{1,2}일\d{1,2}시\d{1,2}분\d{1,2}초$/.test(label)) return "";
   return ["예산구분", "본예산", "사업"].includes(label) ? "" : label;
 }
 

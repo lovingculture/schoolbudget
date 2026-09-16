@@ -1,4 +1,4 @@
-import { render, screen } from "@testing-library/react";
+import { fireEvent, render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { MainBudgetFoundationPage } from "./MainBudgetFoundationPage";
@@ -52,6 +52,13 @@ describe("MainBudgetFoundationPage", () => {
     expect(screen.getAllByText("100천원").length).toBeGreaterThan(0);
     await user.click(screen.getByRole("button", { name: "엑셀 자료 내려받기" }));
     expect(screen.getByRole("button", { name: "분석 결과 Excel 내려받기" })).toBeEnabled();
+  });
+
+  it("analyzes a file dropped on the upload area", async () => {
+    render(<MainBudgetFoundationPage />);
+    const uploadArea = screen.getByRole("region", { name: "세입·세출예산서 Excel 파일 불러오기" });
+    fireEvent.drop(uploadArea, { dataTransfer: { files: [csvFile()] } });
+    expect(await screen.findByText("세입·세출 일치")).toBeVisible();
   });
 
   it("shows workbook-style sheet tabs after analysis", async () => {
