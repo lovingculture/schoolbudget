@@ -66,9 +66,11 @@ export class AnalysisErrorBoundary extends Component<
 
 const normalize = (value: string) =>
   value.normalize("NFC").trim().toLocaleLowerCase("ko-KR");
+const redactSchoolCodes = (value: string) =>
+  value.replace(/\b[BS]\d{9}\b/giu, "").replace(/\s+/g, " ").trim();
 const errorMessage = (error: unknown, fallback: string) =>
   error instanceof Error && /[가-힣]/u.test(error.message)
-    ? error.message
+    ? redactSchoolCodes(error.message)
     : fallback;
 
 function AnalysisLoading({ label, message }: { label: string; message: string }) {
@@ -150,11 +152,11 @@ export default function SchoolAnalysisPage() {
     if (activeSchool) {
       list.current
         ?.querySelector<HTMLElement>(
-          `#school-option-${activeSchool.schoolCode}`,
+          `#school-option-${activeIndex}`,
         )
         ?.scrollIntoView?.({ block: "nearest" });
     }
-  }, [activeSchool]);
+  }, [activeIndex, activeSchool]);
   const selectSchool = async (entry: SchoolManifestEntry) => {
     setExpanded(false);
     setActiveIndex(-1);
@@ -236,11 +238,11 @@ export default function SchoolAnalysisPage() {
               aria-expanded={expanded}
               aria-activedescendant={
                 activeSchool
-                  ? `school-option-${activeSchool.schoolCode}`
+                  ? `school-option-${activeIndex}`
                   : undefined
               }
               value={query}
-              placeholder="학교명 또는 학교코드 입력"
+              placeholder="학교명 입력"
               aria-controls="school-analysis-results"
               onFocus={() => setExpanded(true)}
               onBlur={() => {
@@ -305,7 +307,7 @@ export default function SchoolAnalysisPage() {
             {visibleMatches.map((entry, index) => (
               <button
                 key={entry.schoolCode}
-                id={`school-option-${entry.schoolCode}`}
+                id={`school-option-${index}`}
                 role="option"
                 tabIndex={-1}
                 data-active={activeIndex === index}
@@ -318,9 +320,7 @@ export default function SchoolAnalysisPage() {
                 onClick={() => void selectSchool(entry)}
               >
                 <strong>{entry.schoolName}</strong>
-                <span>
-                  {entry.schoolCode} · {entry.fiscalYear}회계연도
-                </span>
+                <span>{entry.fiscalYear}회계연도</span>
               </button>
             ))}
           </div>

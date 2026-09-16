@@ -58,6 +58,21 @@ async function choose(name: string) {
 }
 
 describe("school analysis selection", () => {
+  it("keeps the NEIS school code out of the school search and selected-school display", async () => {
+    render(<SchoolAnalysisPage />);
+
+    const search = await screen.findByRole("combobox", { name: "학교 검색" });
+    expect(search).toHaveAttribute("placeholder", "학교명 입력");
+    expect(screen.getByRole("option", { name: "가락고등학교" })).not.toHaveTextContent("B100000370");
+    search.focus();
+    await userEvent.keyboard("{ArrowDown}");
+    expect(search.getAttribute("aria-activedescendant")).not.toContain("B100000370");
+
+    await choose("가락고등학교");
+    expect(await screen.findByRole("heading", { name: "가락고등학교" })).toBeVisible();
+    expect(screen.queryByText(/학교코드\s*B100000370/)).not.toBeInTheDocument();
+  });
+
   it("keeps 50 suggestions out of the Tab order and navigates them with a combobox", async () => {
     render(
       <>
@@ -154,6 +169,16 @@ describe("school analysis selection", () => {
       "학교 목록을 불러오지 못했습니다.",
     );
     expect(screen.queryByText("Failed to fetch")).not.toBeInTheDocument();
+  });
+  it("redacts a NEIS code from a Korean loading error", async () => {
+    vi.mocked(loadSchoolManifest).mockRejectedValueOnce(
+      new Error("학교 목록 B100000370 오류"),
+    );
+    render(<SchoolAnalysisPage />);
+
+    const alert = await screen.findByRole("alert");
+    expect(alert).not.toHaveTextContent("B100000370");
+    expect(alert).toHaveTextContent("학교 목록 오류");
   });
   it("rejects a dataset for another school instead of displaying its values", async () => {
     vi.mocked(loadSchoolDataset).mockResolvedValueOnce(garak as BudgetDataset);

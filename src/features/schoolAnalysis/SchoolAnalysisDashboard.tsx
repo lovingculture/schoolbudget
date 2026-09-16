@@ -124,9 +124,7 @@ export default function SchoolAnalysisDashboard({
             {s.referenceMonth.slice(4)}
           </span>
           <h2>{s.schoolName}</h2>
-          <p className="school-analysis-muted">
-            학교코드 {s.schoolCode} · {s.collectionStatus}
-          </p>
+          <p className="school-analysis-muted">{s.collectionStatus}</p>
         </div>
         <SourceLink url={s.sourceUrl} />
       </div>
