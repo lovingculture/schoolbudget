@@ -12,7 +12,7 @@ import type {
 } from "./analysisTypes";
 
 const STORAGE_KEY = "school-budget:main-budget:file-analysis:v1";
-const SCHEMA_VERSION = 4;
+const SCHEMA_VERSION = 5;
 const LEGACY_KEYS = [
   "school-budget:main-budget:expenditures:v1",
   "school-budget:main-budget:pdf-analysis:v1",
