@@ -5,7 +5,6 @@ import { FoundationWorkbookPreview } from "./FoundationWorkbookPreview";
 import { FoundationDownloadDialog } from "./FoundationDownloadDialog";
 import { FoundationSummary } from "./FoundationSummary";
 import { foundationStorage } from "./foundationStorage";
-import { parseFoundationCsv } from "./parseFoundationCsv";
 import { parseFoundationExcel } from "./parseFoundationExcel";
 import type { FoundationBudgetDocument } from "./types";
 import { validateFoundationBudget } from "./validateFoundationBudget";
@@ -21,9 +20,9 @@ export function MainBudgetFoundationPage() {
     setBusy(true); setError("");
     try {
       const extension = file.name.toLowerCase().split(".").pop();
-      if (!extension || !["xls", "xlsx", "csv"].includes(extension)) throw new Error(".xls, .xlsx 또는 .csv 파일을 선택해 주세요.");
+      if (!extension || !["xls", "xlsx"].includes(extension)) throw new Error(".xls 또는 .xlsx 파일을 선택해 주세요.");
       const bytes = await file.arrayBuffer();
-      const parsed = extension === "csv" ? parseFoundationCsv(file.name, bytes) : parseFoundationExcel(bytes, file.name);
+      const parsed = parseFoundationExcel(bytes, file.name);
       setDocument(parsed);
       if (!foundationStorage.save({ document: parsed, edits: {} })) setError("결과는 표시되지만 이 기기에 임시저장하지 못했습니다.");
     } catch (caught) {

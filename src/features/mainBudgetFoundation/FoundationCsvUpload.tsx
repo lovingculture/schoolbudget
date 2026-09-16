@@ -36,7 +36,7 @@ export function FoundationCsvUpload({ disabled = false, onFile }: Props) {
         Excel 파일 선택
         <input
           aria-label="세입·세출예산서 Excel 파일 선택"
-          accept=".xls,.xlsx,.csv"
+          accept=".xls,.xlsx"
           disabled={disabled}
           type="file"
           onChange={(event) => {
