@@ -17,7 +17,7 @@ describe("예산 웹툰", () => {
       "4화 성립전예산, 어떻게 편성하지? 읽어보기",
       "5화 추가경정예산(추경)이란? 읽어보기",
       "6화 추경예산, 언제 어떻게 편성할까? 읽어보기",
-      "7화 자라나와 열리미의 알기 쉬운 학교회계 읽어보기",
+      "7화 원가통계비목이 뭐야? 읽어보기",
     ]);
 
     await user.click(screen.getByRole("button", { name: "3화 성립전예산, 언제 어떻게 편성할까? 읽어보기" }));
@@ -47,9 +47,9 @@ describe("예산 웹툰", () => {
     expect(screen.queryByRole("button", { name: /이전 화/ })).not.toBeInTheDocument();
     await user.click(screen.getByRole("button", { name: "다음 화 2화" }));
     await user.click(screen.getByRole("button", { name: "웹툰 목록으로" }));
-    await user.click(screen.getByRole("button", { name: "7화 자라나와 열리미의 알기 쉬운 학교회계 읽어보기" }));
+    await user.click(screen.getByRole("button", { name: "7화 원가통계비목이 뭐야? 읽어보기" }));
     expect(screen.queryByRole("button", { name: /다음 화/ })).not.toBeInTheDocument();
-    expect(screen.getByRole("img", { name: "7화 자라나와 열리미의 알기 쉬운 학교회계" })).toHaveAttribute(
+    expect(screen.getByRole("img", { name: "7화 원가통계비목이 뭐야?" })).toHaveAttribute(
       "src",
       "/webtoons/budget/episode-7.png",
     );
