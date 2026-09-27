@@ -78,6 +78,4 @@ npm run build
 
 ## 참고
 
-- 최초 OCR 사용 시 Tesseract worker·core·한국어/영어 언어 데이터가 외부 저장소에서 내려받아지므로 인터넷 연결이 필요합니다. 원본 PDF와 페이지 이미지는 외부로 업로드되지 않습니다.
-- `node_modules`는 포함하지 않았으므로 `npm install`로 복원합니다.
-- `public/guidelines` 폴더에 실제 지침 PDF가 포함되어 있습니다.
+
