@@ -1,5 +1,6 @@
 import { FormEvent, lazy, Suspense, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import type { User } from "@supabase/supabase-js";
+import { Analytics } from "@vercel/analytics/react";
 import {
   ArrowLeft,
   Download,
@@ -73,7 +74,12 @@ export const kakaoOAuthOptions = (redirectTo: string) => ({
 });
 
 export default function App() {
-  return <AuthenticatedApp />;
+  return (
+    <>
+      <AuthenticatedApp />
+      <Analytics />
+    </>
+  );
 }
 
 export function AuthenticatedApp() {
@@ -259,7 +265,7 @@ export function LoginPage({
           </div>
         )}
         <small className="auth-note">
-          카카오 로그인 후 최초 1회 소속 학교를 등록합니다.
+          카카오 로그인 후 최초 1회 소�� 학교를 등록합니다.
         </small>
       </section>
     </main>
@@ -501,7 +507,7 @@ function Prebudget({
             <input placeholder="안전인력봉사비 성립전예산 편성 요청" />
           </label>
           <label>
-            부서명
+            부���명
             <input defaultValue="체육안전교육부" />
           </label>
           <label>
